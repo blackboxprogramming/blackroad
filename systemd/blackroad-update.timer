@@ -1,0 +1,10 @@
+[Unit]
+Description=Run BlackRoad auto-update regularly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Unit=blackroad-update.service
+
+[Install]
+WantedBy=timers.target
