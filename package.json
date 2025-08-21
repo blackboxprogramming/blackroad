@@ -10,6 +10,6 @@
     "build": "pnpm -r run build"
   },
   "devDependencies": {
-    "@blackroad/ui": "workspace:packages/ui"
+    "@blackroad/ui": "workspace:*"
   }
 }
