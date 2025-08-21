@@ -1,0 +1,53 @@
+/* Global resets + fonts */
+:root{
+  --bg:#0b1220;             /* deep space */
+  --panel:#0f172a;          /* slate-900 */
+  --subpanel:#0b1324;       /* darker */
+  --text:#e2e8f0;           /* slate-200 */
+  --muted:#9aa4b2;          /* slate-400 */
+  --border:#1f2a44;         /* slate-800 */
+  --accent:#FF4FD8;         /* indigo-400 */
+  --accent-2:#0096FF;       /* sky-300 */
+  --accent-3:#FDBA2D;       /* fuchsia-400 */
+  --good:#10b981;
+  --warn:#f59e0b;
+  --bad:#ef4444;
+  --shadow:0 6px 30px rgba(0,0,0,.35);
+  --radius:16px;
+}
+html, body, #root { height: 100%; }
+body{ margin:0; background: radial-gradient(1200px 900px at 80% -10%,rgba(255,79,216,.20),transparent 40%),
+                          radial-gradient(1000px 800px at -20% 100%,rgba(0,150,255,.16),transparent 50%),
+                          var(--bg);
+      color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+*{ box-sizing: border-box }
+/* minimal highlight styles for our custom syntax highlighter */
+.hl-key{ color:#93c5fd }
+.hl-str{ color:#f472b6 }
+.hl-num{ color:#f59e0b }
+.hl-com{ color:#64748b; font-style:italic }
+.hl-fn { color:#22d3ee }
+
+/* reusable utility classes */
+.tag{ display:inline-flex; gap:.5rem; align-items:center; padding:.2rem .6rem; border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:.8rem }
+.dot{ width:.5rem; height:.5rem; border-radius:1rem; background:var(--muted) }
+.btn{ appearance:none; background:#121a30; border:1px solid var(--border); color:var(--text); padding:.55rem .9rem; border-radius:.75rem; cursor:pointer; box-shadow:var(--shadow); transition: all .2s ease; }
+.btn:hover{ transform: translateY(-1px); border-color:#29406c }
+.btn.primary{ background: linear-gradient(135deg, #7c6cff, #00d0ff); color:#0b1220; font-weight:700; }
+.btn.ghost{ background: transparent }
+.btn.small{ padding:.35rem .6rem; font-size:.85rem }
+.chip{ display:inline-flex; align-items:center; gap:.4rem; border:1px solid var(--border); padding:.2rem .5rem; border-radius:.6rem; font-size:.8rem; color:var(--muted) }
+
+/* gradient brand button (left nav) */
+.co-btn {
+  background: conic-gradient(from 180deg at 50% 50%, #ff4fd8, #7c6cff, #00d0ff, #10b981, #ff4fd8);
+  color:#0b1220; font-weight:800; border:none; border-radius:20px; padding:1.05rem 1.2rem; box-shadow: 0 10px 40px rgba(124,108,255,.35);
+  transition: transform .2s ease, filter .2s ease; cursor:pointer; width:100%;
+}
+.co-btn:hover{ transform: translateY(-2px); filter: brightness(1.05) }
+
+/* simple scrollbar */
+::-webkit-scrollbar{ width:10px; height:10px }
+::-webkit-scrollbar-thumb{ background:#1b2744; border-radius:8px }
+::-webkit-scrollbar-track{ background:transparent }
