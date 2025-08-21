@@ -45,7 +45,7 @@ export const Toast: React.FC<ToastProps> = ({
     return () => clearTimeout(timer);
   }, [open, duration, onClose]);
 
-  const variantStyles: Record<ToastProps['variant'], string> = {
+  const variantStyles: Record<NonNullable<ToastProps['variant']>, string> = {
     info: 'bg-info text-white',
     success: 'bg-success text-white',
     warning: 'bg-warning text-white',

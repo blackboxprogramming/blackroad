@@ -5,6 +5,7 @@ export default function Home() {
   return (
     <main style={{ padding: '2rem' }}>
       <h1>Welcome to RoadBook</h1>
+      <p>Hello World</p>
       <p>This is the documentation site for the BlackRoad ecosystem.</p>
       <nav>
         <ul>
