@@ -15,6 +15,9 @@ export default function Home() {
           <li>
             <Link href="/docs/getting-started">Getting Started</Link>
           </li>
+          <li>
+            <Link href="/components">Components</Link>
+          </li>
         </ul>
       </nav>
     </main>
