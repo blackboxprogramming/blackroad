@@ -27,7 +27,7 @@ automatically includes its Tailwind styles when you import the
 generated CSS file from `dist/styles.css`.
 
 ```tsx
-import { Button, Input, Tabs, Drawer, Dialog, Toast, DataTable } from '@blackroad/ui';
+import { Button, Input, Tabs, Drawer, Dialog, Toast, DataTable, Badge, Card } from '@blackroad/ui';
 import '@blackroad/ui/dist/styles.css';
 
 function Example() {
@@ -35,6 +35,8 @@ function Example() {
     <div className="space-y-4">
       <Button variant="primary">Primary Button</Button>
       <Input label="Email" placeholder="you@example.com" />
+      <Badge variant="success">Live</Badge>
+      <Card variant="elevated">Card content</Card>
     </div>
   );
 }
