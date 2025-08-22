@@ -46,3 +46,7 @@ This document outlines interface concepts and backend logic for a suite of commu
 - **Interface**: Mobile assistant guiding users through trips with voice commands.
 - **Backend Logic**: Uses a speech-to-text pipeline and connects to portal APIs for context.
 
+## Universal Computer Portal
+- **Interface**: Master console unifying tools from all portals through customizable tiles and global search.
+- **Backend Logic**: Central orchestrator service that handles single sign-on, proxies portal APIs, and syncs user preferences.
+
