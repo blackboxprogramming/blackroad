@@ -11,6 +11,12 @@ importers:
       '@blackroad/ui':
         specifier: workspace:*
         version: link:packages/ui
+      '@types/react':
+        specifier: ^18.0.0
+        version: 18.3.23
+      '@types/react-dom':
+        specifier: ^18.0.0
+        version: 18.3.7(@types/react@18.3.23)
 
   apps/api:
     dependencies:
