@@ -18,7 +18,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'blackroad-api' });
 });
 
-// Chat bridge to Lucidia LLM
+// Chat bridge
 app.post('/api/llm/chat', async (req, res) => {
   try {
     const { message } = req.body ?? {};
