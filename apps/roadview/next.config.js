@@ -1,6 +1,2 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  transpilePackages: ['@blackroad/ui'],
-}
-
+const nextConfig = { output: 'export', images: { unoptimized: true } }
 module.exports = nextConfig

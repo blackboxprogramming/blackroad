@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --hot-pink: #FF1D6C;
+  --amber: #F5A623;
+  --electric-blue: #2979FF;
+  --violet: #9C27B0;
+}
+
+body {
+  background: #000;
+  color: #fff;
+}
