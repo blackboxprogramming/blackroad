@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hot-pink: #FF1D6C;
+  --amber: #F5A623;
+  --electric-blue: #2979FF;
+  --violet: #9C27B0;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.maplibregl-map {
+  width: 100%;
+  height: 100vh;
+}
+
+.marker-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.5; }
+}

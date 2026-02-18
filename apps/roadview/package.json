@@ -1,0 +1,24 @@
+{
+  "name": "@blackroad/roadview",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "maplibre-gl": "^4.0.0",
+    "react-map-gl": "^7.1.0",
+    "socket.io-client": "^4.7.0",
+    "@blackroad/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/node": "^20.4.2",
+    "typescript": "^5.1.6"
+  }
+}

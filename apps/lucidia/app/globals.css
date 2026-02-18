@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hot-pink: #FF1D6C;
+  --amber: #F5A623;
+  --electric-blue: #2979FF;
+  --violet: #9C27B0;
+}
+
+.prose {
+  color: #e5e5e5;
+}
+.prose h1, .prose h2, .prose h3 {
+  color: #fff;
+}
+.prose a {
+  color: var(--electric-blue);
+}
+.prose code {
+  background: #1a1a1a;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
