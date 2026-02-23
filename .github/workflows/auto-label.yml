@@ -12,12 +12,27 @@ jobs:
         with:
           script: |
             const name = context.repo.repo.toLowerCase()
-            const labels = []
-            if (name.includes("lab")) labels.push("labs")
-            else labels.push("core")
+            const labelName = name.includes("lab") ? "labs" : "core"
+
+            // Ensure label exists before applying
+            try {
+              await github.rest.issues.getLabel({
+                ...context.repo,
+                name: labelName
+              })
+            } catch (e) {
+              if (e.status === 404) {
+                await github.rest.issues.createLabel({
+                  ...context.repo,
+                  name: labelName,
+                  color: labelName === 'labs' ? 'a2eeef' : '0075ca',
+                  description: `Auto-label: ${labelName}`
+                })
+              }
+            }
 
             await github.rest.issues.addLabels({
               ...context.repo,
               issue_number: context.issue.number,
-              labels
+              labels: [labelName]
             })

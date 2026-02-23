@@ -7,8 +7,10 @@ on:
 jobs:
   add-to-project:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
-      - uses: actions/add-to-project@v1
+      - uses: actions/add-to-project@v1.0.2
+        continue-on-error: true
         with:
           project-url: https://github.com/users/blackboxprogramming/projects/8
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PROJECT_TOKEN || github.token }}
