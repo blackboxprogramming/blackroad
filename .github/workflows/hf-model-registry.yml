@@ -1,0 +1,56 @@
+name: HuggingFace Model Registry Sync
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Pull specific model (e.g., Qwen/Qwen2.5-7B-Instruct)'
+        required: false
+        default: 'none'
+
+jobs:
+  sync-registry:
+    runs-on: [self-hosted, blackroad-fleet]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install HF Hub
+        run: pip3 install -q --upgrade huggingface_hub 2>/dev/null || true
+
+      - name: List Ollama models
+        run: |
+          ollama list 2>/dev/null || \
+            curl -sf http://localhost:11434/api/tags | python3 -m json.tool 2>/dev/null || \
+            echo "ollama not running on $(hostname)"
+
+      - name: Pull model if specified
+        if: ${{ github.event.inputs.model != '' && github.event.inputs.model != 'none' }}
+        env:
+          HF_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+        run: |
+          MODEL="${{ github.event.inputs.model }}"
+          echo "Pulling: $MODEL"
+          MODEL_SHORT=$(echo "$MODEL" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          curl -X POST http://localhost:11434/api/pull \
+            -H 'Content-Type: application/json' \
+            -d "{\"name\":\"${MODEL_SHORT}\"}" \
+            --no-buffer 2>/dev/null | tail -2 || true
+          echo "Model pull requested"
+
+      - name: Update model registry
+        run: |
+          mkdir -p agents/platform-registry
+          curl -sf http://localhost:11434/api/tags 2>/dev/null \
+            > agents/platform-registry/ollama-models.json || true
+          if [ -s agents/platform-registry/ollama-models.json ]; then
+            git config user.email "actions@blackroad.io"
+            git config user.name "BlackRoad Actions"
+            git add agents/platform-registry/ollama-models.json
+            git diff --staged --quiet || git commit -m "chore: update ollama model registry [skip ci]
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+            git push origin HEAD || true
+          fi
+          echo "Registry updated"
