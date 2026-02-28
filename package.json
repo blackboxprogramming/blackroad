@@ -9,6 +9,7 @@
     "start": "node server_full.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "stripe": "^14.11.0"
   }
 }
