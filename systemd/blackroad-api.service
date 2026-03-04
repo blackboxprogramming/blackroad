@@ -1,12 +1,16 @@
 [Unit]
-Description=BlackRoad API
+Description=BlackRoad API (Stripe + LLM + Portals)
 After=network.target
+
 [Service]
-WorkingDirectory=/srv/blackroad-api
-ExecStart=/usr/bin/node server.js
+WorkingDirectory=/srv/blackroad
+ExecStart=/usr/bin/node server_full.js
+EnvironmentFile=/srv/blackroad/.env
 Environment=NODE_ENV=production
 User=www-data
 Group=www-data
 Restart=always
+RestartSec=2
+
 [Install]
 WantedBy=multi-user.target
