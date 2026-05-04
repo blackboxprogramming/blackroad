@@ -11,100 +11,109 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Environment (dev, staging, prod)"
+  description = "Environment (staging, production)"
   type        = string
-  validation {
-    condition     = contains(["dev", "staging", "prod"], var.environment)
-    error_message = "Environment must be dev, staging, or prod"
-  }
+  default     = "staging"
 }
 
-# Networking
 variable "vpc_cidr" {
-  description = "VPC CIDR block"
+  description = "CIDR block for VPC"
   type        = string
   default     = "10.0.0.0/16"
 }
 
-# RDS
-variable "rds_instance_class" {
-  description = "RDS instance class"
-  type        = string
-  default     = "db.t4g.medium"
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
-variable "rds_allocated_storage" {
-  description = "Initial RDS storage in GB"
+variable "private_subnet_cidrs" {
+  description = "CIDR blocks for private subnets"
+  type        = list(string)
+  default     = ["10.0.10.0/24", "10.0.11.0/24"]
+}
+
+variable "container_port" {
+  description = "Port exposed by the docker image to redirect traffic to"
+  type        = number
+  default     = 5000
+}
+
+variable "container_cpu" {
+  description = "The number of cpu units used by the task"
+  type        = number
+  default     = 256
+}
+
+variable "container_memory" {
+  description = "The amount (in MB) of memory used by the task"
+  type        = number
+  default     = 512
+}
+
+variable "desired_count" {
+  description = "Number of docker containers to run"
+  type        = number
+  default     = 3
+}
+
+variable "db_instance_class" {
+  description = "RDS instance class"
+  type        = string
+  default     = "db.t3.medium"
+}
+
+variable "db_allocated_storage" {
+  description = "RDS allocated storage in GB"
   type        = number
   default     = 100
 }
 
-variable "rds_backup_retention" {
-  description = "RDS backup retention days"
-  type        = number
-  default     = 30
+variable "db_engine_version" {
+  description = "RDS engine version"
+  type        = string
+  default     = "15.3"
 }
 
-variable "rds_multi_az" {
-  description = "Enable RDS Multi-AZ"
-  type        = bool
-  default     = true
-}
-
-variable "rds_username" {
+variable "db_username" {
   description = "RDS master username"
   type        = string
-  default     = "admin"
   sensitive   = true
 }
 
-variable "rds_password" {
+variable "db_password" {
   description = "RDS master password"
   type        = string
   sensitive   = true
 }
 
-# Redis
-variable "redis_node_type" {
+variable "enable_rds_backup" {
+  description = "Enable RDS backups"
+  type        = bool
+  default     = true
+}
+
+variable "rds_backup_retention" {
+  description = "RDS backup retention days"
+  type        = number
+  default     = 7
+}
+
+variable "enable_elasticache" {
+  description = "Enable ElastiCache Redis"
+  type        = bool
+  default     = true
+}
+
+variable "elasticache_node_type" {
   description = "ElastiCache node type"
   type        = string
-  default     = "cache.t4g.micro"
+  default     = "cache.t3.micro"
 }
 
-variable "redis_num_nodes" {
-  description = "Number of Redis nodes"
+variable "elasticache_num_nodes" {
+  description = "Number of ElastiCache nodes"
   type        = number
-  default     = 2
-}
-
-# ECS
-variable "container_image" {
-  description = "Docker image URI"
-  type        = string
-  # e.g., "ghcr.io/yourusername/blackroad:latest"
-}
-
-variable "ecs_desired_count" {
-  description = "Desired number of ECS tasks"
-  type        = number
-  default     = 2
-}
-
-variable "ecs_task_cpu" {
-  description = "Task CPU in CPU units (256 = 0.25 CPU)"
-  type        = number
-  default     = 512
-}
-
-variable "ecs_task_memory" {
-  description = "Task memory in MB"
-  type        = number
-  default     = 1024
-}
-
-# Logging
-variable "log_level" {
-  description = "Application log level"
-  type        = string
-  default     = "INFO"
+  default     = 1
 }
