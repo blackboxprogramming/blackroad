@@ -34,6 +34,12 @@ Commands:
   db              Connect to database
   cache           Connect to Redis cache
   metrics         Show current metrics
+  
+  Backup & Recovery:
+  backups status  Show backup status
+  backups full    Create full backup now
+  backups recover Recover from latest backup
+  
   clean           Clean up everything (⚠️  removes data)
   help            Show this help message
 
@@ -161,6 +167,39 @@ cmd_metrics() {
     echo "Password: grafana_admin_pass"
 }
 
+# Backups
+cmd_backups() {
+    case "$1" in
+        status)
+            ./disaster-recovery.sh status
+            ;;
+        full)
+            echo -e "${YELLOW}Creating full backup...${NC}"
+            ./disaster-recovery.sh backup-all
+            echo -e "${GREEN}Backup complete${NC}"
+            ;;
+        recover)
+            echo -e "${YELLOW}Starting recovery from latest backup...${NC}"
+            ./disaster-recovery.sh full-recovery
+            echo -e "${GREEN}Recovery complete${NC}"
+            ;;
+        verify)
+            ./disaster-recovery.sh verify
+            ;;
+        list)
+            ./disaster-recovery.sh list-restore-points
+            ;;
+        *)
+            echo "Backup commands:"
+            echo "  backups status   - Show backup status"
+            echo "  backups full     - Create full backup now"
+            echo "  backups recover  - Recover from latest backup"
+            echo "  backups verify   - Verify backup integrity"
+            echo "  backups list     - List available restore points"
+            ;;
+    esac
+}
+
 # Clean
 cmd_clean() {
     read -p "Remove everything including data? (y/n) " -n 1 -r
@@ -187,6 +226,7 @@ case "$1" in
     db) cmd_db ;;
     cache) cmd_cache ;;
     metrics) cmd_metrics ;;
+    backups) cmd_backups "$2" ;;
     clean) cmd_clean ;;
     help|"") show_help ;;
     *) 
