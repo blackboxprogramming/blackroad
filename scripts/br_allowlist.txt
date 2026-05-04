@@ -1,0 +1,10 @@
+# BlackRoad allowlist - CIDR blocks to treat as internal/allowed
+# Local networks
+10.0.0.0/8
+172.16.0.0/12
+192.168.0.0/16
+127.0.0.0/8
+# Carrier-grade NAT
+100.64.0.0/10
+# Tailscale (RFC 8781 / 100.64.0.0/10 already included)
+# Cloudflare and known vendors should be explicitly listed when allowed; leave blank to treat as external by default
