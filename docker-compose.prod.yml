@@ -1,0 +1,415 @@
+version: '3.9'
+
+services:
+  # ============================================
+  # Infrastructure Layer
+  # ============================================
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: blackroad-postgres
+    environment:
+      POSTGRES_USER: blackroad
+      POSTGRES_PASSWORD: prod_secure_pass_12345
+      POSTGRES_DB: blackroad_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/database/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blackroad"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blackroad-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: blackroad-redis
+    command: redis-server --requirepass cache_secure_pass_12345 --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blackroad-network
+
+  # ============================================
+  # Monitoring Stack
+  # ============================================
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: blackroad-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "9090:9090"
+    networks:
+      - blackroad-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: blackroad-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: grafana_admin_pass
+      GF_INSTALL_PLUGINS: redis-datasource
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_started
+    networks:
+      - blackroad-network
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: blackroad-alertmanager
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - "9093:9093"
+    networks:
+      - blackroad-network
+
+  # ============================================
+  # Microservices (Production Config)
+  # ============================================
+
+  billing-api:
+    build:
+      context: ./services/billing_api
+      dockerfile: Dockerfile
+    container_name: blackroad-billing-api
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/0
+      STRIPE_API_KEY: sk_live_test_12345
+      JWT_SECRET: prod_jwt_secret_key_12345
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8001
+    ports:
+      - "8001:8000"
+      - "9001:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  admin-dashboard:
+    build:
+      context: ./services/admin_dashboard
+      dockerfile: Dockerfile
+    container_name: blackroad-admin-dashboard
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/1
+      STRIPE_API_KEY: sk_live_test_12345
+      JWT_SECRET: prod_jwt_secret_key_12345
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8002
+    ports:
+      - "8002:8000"
+      - "9002:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  analytics-engine:
+    build:
+      context: ./services/customer_analytics
+      dockerfile: Dockerfile
+    container_name: blackroad-analytics-engine
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/2
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8003
+    ports:
+      - "8003:8000"
+      - "9003:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  ml-analytics:
+    build:
+      context: ./services/ml_analytics_engine
+      dockerfile: Dockerfile
+    container_name: blackroad-ml-analytics
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/3
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8004
+    ports:
+      - "8004:8000"
+      - "9004:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  customer-ui:
+    build:
+      context: ./services/customer_ui
+      dockerfile: Dockerfile
+    container_name: blackroad-customer-ui
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/4
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8005
+    ports:
+      - "8005:8000"
+      - "9005:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  stripe-webhooks:
+    build:
+      context: ./services/stripe_webhooks
+      dockerfile: Dockerfile
+    container_name: blackroad-stripe-webhooks
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/5
+      STRIPE_API_KEY: sk_live_test_12345
+      STRIPE_WEBHOOK_SECRET: whsec_test_12345
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8006
+    ports:
+      - "8006:8000"
+      - "9006:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  onboarding-service:
+    build:
+      context: ./services/onboarding_service
+      dockerfile: Dockerfile
+    container_name: blackroad-onboarding
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/6
+      JWT_SECRET: prod_jwt_secret_key_12345
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8007
+    ports:
+      - "8007:8000"
+      - "9007:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  monitoring-system:
+    build:
+      context: ./services/monitoring_system
+      dockerfile: Dockerfile
+    container_name: blackroad-monitoring-system
+    environment:
+      ENV: production
+      DEBUG: "false"
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@redis:6379/7
+      LOG_LEVEL: INFO
+      PROMETHEUS_PORT: 8008
+    ports:
+      - "8008:8000"
+      - "9008:9001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+  # ============================================
+  # Frontend Applications
+  # ============================================
+
+  react-web:
+    build:
+      context: ./frontends/react_web
+      dockerfile: Dockerfile.prod
+    container_name: blackroad-react-web
+    environment:
+      REACT_APP_API_URL: http://localhost/api
+      REACT_APP_ENV: production
+      NODE_ENV: production
+    ports:
+      - "3000:80"
+    depends_on:
+      - nginx
+    restart: always
+    networks:
+      - blackroad-network
+
+  admin-frontend:
+    build:
+      context: ./frontends/admin_dashboard
+      dockerfile: Dockerfile.prod
+    container_name: blackroad-admin-frontend
+    environment:
+      REACT_APP_API_URL: http://localhost/api
+      REACT_APP_ENV: production
+      NODE_ENV: production
+    ports:
+      - "3001:80"
+    depends_on:
+      - nginx
+    restart: always
+    networks:
+      - blackroad-network
+
+  # ============================================
+  # Load Balancer & Reverse Proxy
+  # ============================================
+
+  nginx:
+    image: nginx:alpine
+    container_name: blackroad-nginx
+    volumes:
+      - ./monitoring/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - billing-api
+      - admin-dashboard
+      - analytics-engine
+      - ml-analytics
+      - customer-ui
+      - stripe-webhooks
+      - onboarding-service
+      - monitoring-system
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - blackroad-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:
+
+networks:
+  blackroad-network:
+    driver: bridge

@@ -1,0 +1,96 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: production
+    cluster: blackroad-prod
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+rule_files:
+  - '/etc/prometheus/alert-rules.yml'
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Services with Prometheus exporters
+  - job_name: billing-api
+    static_configs:
+      - targets: ['billing-api:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'billing-api'
+
+  - job_name: admin-dashboard
+    static_configs:
+      - targets: ['admin-dashboard:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'admin-dashboard'
+
+  - job_name: analytics-engine
+    static_configs:
+      - targets: ['analytics-engine:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'analytics-engine'
+
+  - job_name: ml-analytics
+    static_configs:
+      - targets: ['ml-analytics:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'ml-analytics'
+
+  - job_name: customer-ui
+    static_configs:
+      - targets: ['customer-ui:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'customer-ui'
+
+  - job_name: stripe-webhooks
+    static_configs:
+      - targets: ['stripe-webhooks:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'stripe-webhooks'
+
+  - job_name: onboarding-service
+    static_configs:
+      - targets: ['onboarding-service:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'onboarding-service'
+
+  - job_name: monitoring-system
+    static_configs:
+      - targets: ['monitoring-system:9001']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'monitoring-system'
+
+  # PostgreSQL exporter
+  - job_name: postgres
+    static_configs:
+      - targets: ['localhost:5432']
+
+  # Redis exporter
+  - job_name: redis
+    static_configs:
+      - targets: ['localhost:6379']
