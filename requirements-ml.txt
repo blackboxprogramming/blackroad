@@ -6,7 +6,7 @@ scipy==1.11.2
 
 # Deep Learning
 tensorflow==2.13.0
-tensorflow-estimator==2.13.0
+tensorflow-estimator==2.15.0
 keras==2.13.1
 
 # ML Utilities
