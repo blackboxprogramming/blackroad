@@ -91,8 +91,86 @@ services:
     depends_on:
       - postgres
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: blackroad-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: blackroad-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafana_data:/var/lib/grafana
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - prometheus
+
+  monitoring:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blackroad-monitoring
+    environment:
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-in-prod}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      ALERT_EMAIL: ${ALERT_EMAIL:-}
+    command: python3 monitoring_system.py daemon 60
+    depends_on:
+      admin-dashboard:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:8001/api/admin/ping', headers={'Authorization': 'Bearer dev-admin-token-change-in-prod'}, timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blackroad-exporter
+    ports:
+      - "8002:8002"
+    environment:
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-in-prod}
+    command: python3 prometheus_exporter.py 8002 30
+    depends_on:
+      admin-dashboard:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8002/metrics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   default:

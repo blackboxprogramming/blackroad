@@ -1,0 +1,221 @@
+# Alert Rules for BlackRoad
+# Prometheus alert definitions with evaluation conditions
+
+groups:
+  - name: blackroad_alerts
+    interval: 30s
+    rules:
+      # Revenue Alerts
+      - alert: DailyRevenueDropped
+        expr: |
+          (blackroad_daily_revenue_usd < (blackroad_revenue_total_usd / 30) * 0.5)
+        for: 10m
+        labels:
+          severity: warning
+          category: revenue
+        annotations:
+          summary: "Daily revenue dropped significantly"
+          description: "Daily revenue ({{ $value }}) is less than 50% of average"
+
+      - alert: RevenueProjectionLow
+        expr: |
+          (blackroad_revenue_projection_annual_usd < blackroad_mrr_total_usd * 12 * 0.8)
+        for: 30m
+        labels:
+          severity: warning
+          category: revenue
+        annotations:
+          summary: "Revenue projection below expectations"
+          description: "Projected annual revenue is significantly below MRR-based estimate"
+
+      # User Metrics Alerts
+      - alert: HighChurnRate
+        expr: |
+          blackroad_churn_rate_percent > 10
+        for: 30m
+        labels:
+          severity: critical
+          category: users
+        annotations:
+          summary: "Critical churn rate detected"
+          description: "Churn rate is {{ $value }}% (threshold: 10%)"
+
+      - alert: ChurnRateElevated
+        expr: |
+          blackroad_churn_rate_percent > 5 and blackroad_churn_rate_percent <= 10
+        for: 30m
+        labels:
+          severity: warning
+          category: users
+        annotations:
+          summary: "Churn rate elevated"
+          description: "Churn rate is {{ $value }}% (warning threshold: 5%)"
+
+      - alert: LowPaidConversion
+        expr: |
+          blackroad_paid_conversion_rate_percent < 5
+        for: 1h
+        labels:
+          severity: warning
+          category: users
+        annotations:
+          summary: "Paid conversion rate is low"
+          description: "Only {{ $value }}% of users have converted to paid (target: > 10%)"
+
+      - alert: NoSignups
+        expr: |
+          increase(blackroad_daily_signups[24h]) == 0
+        for: 24h
+        labels:
+          severity: critical
+          category: users
+        annotations:
+          summary: "No signups in last 24 hours"
+          description: "Zero new user signups detected in the past day"
+
+      # System Health Alerts
+      - alert: DatabaseLatencyHigh
+        expr: |
+          blackroad_database_latency_ms > 500
+        for: 5m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "Database latency critical"
+          description: "Database latency is {{ $value }}ms (threshold: 500ms)"
+
+      - alert: DatabaseLatencyWarning
+        expr: |
+          blackroad_database_latency_ms > 100 and blackroad_database_latency_ms <= 500
+        for: 10m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: "Database latency elevated"
+          description: "Database latency is {{ $value }}ms (warning: 100ms)"
+
+      - alert: DatabaseUnhealthy
+        expr: |
+          blackroad_health_check_status{service="database"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "Database health check failed"
+          description: "Database is not responding to health checks"
+
+      - alert: PendingInvoicesPiled
+        expr: |
+          blackroad_pending_invoices > 25
+        for: 30m
+        labels:
+          severity: critical
+          category: invoices
+        annotations:
+          summary: "Too many pending invoices"
+          description: "{{ $value }} invoices are pending (threshold: 25)"
+
+      - alert: PendingInvoicesWarning
+        expr: |
+          blackroad_pending_invoices > 10 and blackroad_pending_invoices <= 25
+        for: 1h
+        labels:
+          severity: warning
+          category: invoices
+        annotations:
+          summary: "Pending invoices accumulating"
+          description: "{{ $value }} invoices are pending (warning: 10)"
+
+      - alert: FailedChargesHigh
+        expr: |
+          (blackroad_failed_charges_total / (blackroad_revenue_total_usd / 0.01)) > 0.05
+        for: 30m
+        labels:
+          severity: critical
+          category: payments
+        annotations:
+          summary: "High charge failure rate"
+          description: "More than 5% of charges are failing"
+
+      - alert: FailedInvoices
+        expr: |
+          blackroad_failed_invoices > 5
+        for: 1h
+        labels:
+          severity: warning
+          category: invoices
+        annotations:
+          summary: "Multiple failed invoices"
+          description: "{{ $value }} invoices have failed (threshold: 5)"
+
+      # Subscription Metrics Alerts
+      - alert: MRRDecline
+        expr: |
+          rate(blackroad_mrr_total_usd[7d]) < 0
+        for: 24h
+        labels:
+          severity: warning
+          category: subscription
+        annotations:
+          summary: "MRR is declining"
+          description: "Monthly Recurring Revenue is declining over the last 7 days"
+
+      - alert: ARRTargetMissed
+        expr: |
+          blackroad_arr_total_usd < 5000000
+        for: 24h
+        labels:
+          severity: info
+          category: subscription
+        annotations:
+          summary: "ARR below target"
+          description: "Annual Recurring Revenue ({{ $value }}) below $5M target"
+
+      # Alert System Alerts
+      - alert: HighAlertVolume
+        expr: |
+          blackroad_alerts_active{severity="critical"} > 5
+        for: 15m
+        labels:
+          severity: critical
+          category: alerts
+        annotations:
+          summary: "Multiple critical alerts active"
+          description: "{{ $value }} critical alerts are currently active"
+
+      - alert: AlertStorm
+        expr: |
+          rate(blackroad_alerts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+          category: alerts
+        annotations:
+          summary: "Alert storm detected"
+          description: "Alerts are being triggered at an abnormal rate"
+
+      # User Growth Alerts
+      - alert: LowUserGrowth
+        expr: |
+          rate(blackroad_total_users[7d]) < 10
+        for: 24h
+        labels:
+          severity: info
+          category: growth
+        annotations:
+          summary: "User growth slowing"
+          description: "Adding fewer than 10 new users per day on average"
+
+      - alert: NegativeGrowth
+        expr: |
+          rate(blackroad_total_users[7d]) < 0
+        for: 24h
+        labels:
+          severity: warning
+          category: growth
+        annotations:
+          summary: "User count declining"
+          description: "Total users are decreasing (churn exceeds signups)"
