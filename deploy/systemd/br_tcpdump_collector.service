@@ -1,0 +1,22 @@
+[Unit]
+Description=BlackRoad tcpdump collector (local capture)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Set REPO_DIR to where this repo is installed on the target (e.g. /opt/blackroad)
+Environment=REPO_DIR=/opt/blackroad
+
+# Runs the local capture wrapper which launches tcpdump and the Python collector.
+# Adjust User if you want the service to run as a non-root user.
+ExecStart=/bin/bash -c "$REPO_DIR/scripts/br_local_capture.sh"
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

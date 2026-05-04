@@ -1,0 +1,11 @@
+[Unit]
+Description=BlackRoad ledger rotation (one-shot)
+After=network.target
+
+[Service]
+Type=oneshot
+Environment=REPO_DIR=/opt/blackroad
+ExecStart=/bin/bash -c "$REPO_DIR/scripts/br_rotate_ledger.sh"
+
+[Install]
+WantedBy=multi-user.target
