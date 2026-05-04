@@ -1,0 +1,198 @@
+{
+  "catalog_version": 1,
+  "currency": "usd",
+  "generated_by": "stripe_create_catalog.py",
+  "generated_at": "2026-05-04T14:27:32.008-05:00",
+  "notes": "Source-of-truth catalog for BlackRoad OS pricing. Prices use lookup_key values and include metadata for idempotent Stripe creation.",
+  "products": [
+    {
+      "product_key": "base_consumer",
+      "name": "BlackRoad OS — Consumer",
+      "description": "Base monthly tier: Consumer",
+      "metadata": { "family": "base_monthly", "tier": "consumer" },
+      "prices": [
+        {
+          "price_key": "base_consumer_monthly",
+          "lookup_key": "blackroad_base_consumer_monthly",
+          "nickname": "Consumer — monthly",
+          "currency": "usd",
+          "unit_amount_cents": 500,
+          "recurring": { "interval": "month" },
+          "metadata": { "billing_family": "base_monthly", "tier": "consumer" }
+        }
+      ]
+    },
+    {
+      "product_key": "base_developer_sandbox",
+      "name": "BlackRoad OS — Developer Sandbox",
+      "description": "Developer Sandbox tier — kept at an accessible $99/mo to lower barrier to adoption.",
+      "metadata": { "family": "base_monthly", "tier": "developer_sandbox", "note": "growth-minded pricing" },
+      "prices": [
+        {
+          "price_key": "base_developer_sandbox_monthly",
+          "lookup_key": "blackroad_base_developer_sandbox_monthly",
+          "nickname": "Developer Sandbox — monthly",
+          "currency": "usd",
+          "unit_amount_cents": 9900,
+          "recurring": { "interval": "month" },
+          "metadata": { "billing_family": "base_monthly", "tier": "developer_sandbox" }
+        }
+      ]
+    },
+    {
+      "product_key": "base_builder",
+      "name": "BlackRoad OS — Builder",
+      "description": "Builder tier",
+      "metadata": { "family": "base_monthly", "tier": "builder" },
+      "prices": [
+        { "price_key": "base_builder_monthly", "lookup_key": "blackroad_base_builder_monthly", "nickname": "Builder — monthly", "currency": "usd", "unit_amount_cents": 19900, "recurring": { "interval": "month" }, "metadata": { "tier": "builder" } }
+      ]
+    },
+    {
+      "product_key": "base_launch",
+      "name": "BlackRoad OS — Launch",
+      "description": "Launch tier",
+      "metadata": { "family": "base_monthly", "tier": "launch" },
+      "prices": [
+        { "price_key": "base_launch_monthly", "lookup_key": "blackroad_base_launch_monthly", "nickname": "Launch — monthly", "currency": "usd", "unit_amount_cents": 49900, "recurring": { "interval": "month" }, "metadata": { "tier": "launch" } }
+      ]
+    },
+    {
+      "product_key": "base_startup",
+      "name": "BlackRoad OS — Startup",
+      "description": "Startup tier",
+      "metadata": { "family": "base_monthly", "tier": "startup" },
+      "prices": [
+        { "price_key": "base_startup_monthly", "lookup_key": "blackroad_base_startup_monthly", "nickname": "Startup — monthly", "currency": "usd", "unit_amount_cents": 99900, "recurring": { "interval": "month" }, "metadata": { "tier": "startup" } }
+      ]
+    },
+    {
+      "product_key": "base_startup_plus",
+      "name": "BlackRoad OS — Startup Plus",
+      "description": "Startup Plus tier",
+      "metadata": { "family": "base_monthly", "tier": "startup_plus" },
+      "prices": [
+        { "price_key": "base_startup_plus_monthly", "lookup_key": "blackroad_base_startup_plus_monthly", "nickname": "Startup Plus — monthly", "currency": "usd", "unit_amount_cents": 250000, "recurring": { "interval": "month" }, "metadata": { "tier": "startup_plus" } }
+      ]
+    },
+    {
+      "product_key": "base_growth",
+      "name": "BlackRoad OS — Growth",
+      "description": "Growth tier",
+      "metadata": { "family": "base_monthly", "tier": "growth" },
+      "prices": [
+        { "price_key": "base_growth_monthly", "lookup_key": "blackroad_base_growth_monthly", "nickname": "Growth — monthly", "currency": "usd", "unit_amount_cents": 500000, "recurring": { "interval": "month" }, "metadata": { "tier": "growth" } }
+      ]
+    },
+    {
+      "product_key": "base_growth_plus",
+      "name": "BlackRoad OS — Growth Plus",
+      "description": "Growth Plus tier",
+      "metadata": { "family": "base_monthly", "tier": "growth_plus" },
+      "prices": [
+        { "price_key": "base_growth_plus_monthly", "lookup_key": "blackroad_base_growth_plus_monthly", "nickname": "Growth Plus — monthly", "currency": "usd", "unit_amount_cents": 1000000, "recurring": { "interval": "month" }, "metadata": { "tier": "growth_plus" } }
+      ]
+    },
+    {
+      "product_key": "base_scale",
+      "name": "BlackRoad OS — Scale",
+      "description": "Scale tier",
+      "metadata": { "family": "base_monthly", "tier": "scale" },
+      "prices": [
+        { "price_key": "base_scale_monthly", "lookup_key": "blackroad_base_scale_monthly", "nickname": "Scale — monthly", "currency": "usd", "unit_amount_cents": 2500000, "recurring": { "interval": "month" }, "metadata": { "tier": "scale" } }
+      ]
+    },
+    {
+      "product_key": "base_scale_plus",
+      "name": "BlackRoad OS — Scale Plus",
+      "description": "Scale Plus tier",
+      "metadata": { "family": "base_monthly", "tier": "scale_plus" },
+      "prices": [
+        { "price_key": "base_scale_plus_monthly", "lookup_key": "blackroad_base_scale_plus_monthly", "nickname": "Scale Plus — monthly", "currency": "usd", "unit_amount_cents": 5000000, "recurring": { "interval": "month" }, "metadata": { "tier": "scale_plus" } }
+      ]
+    },
+    {
+      "product_key": "base_enterprise_internal",
+      "name": "BlackRoad OS — Enterprise Internal",
+      "description": "Enterprise Internal tier",
+      "metadata": { "family": "base_monthly", "tier": "enterprise_internal" },
+      "prices": [
+        { "price_key": "base_enterprise_internal_monthly", "lookup_key": "blackroad_base_enterprise_internal_monthly", "nickname": "Enterprise Internal — monthly", "currency": "usd", "unit_amount_cents": 10000000, "recurring": { "interval": "month" }, "metadata": { "tier": "enterprise_internal" } }
+      ]
+    },
+    {
+      "product_key": "base_enterprise_customer_facing",
+      "name": "BlackRoad OS — Enterprise Customer-Facing",
+      "description": "Enterprise Customer-Facing tier",
+      "metadata": { "family": "base_monthly", "tier": "enterprise_customer_facing" },
+      "prices": [
+        { "price_key": "base_enterprise_customer_facing_monthly", "lookup_key": "blackroad_base_enterprise_customer_facing_monthly", "nickname": "Enterprise Customer-Facing — monthly", "currency": "usd", "unit_amount_cents": 25000000, "recurring": { "interval": "month" }, "metadata": { "tier": "enterprise_customer_facing" } }
+      ]
+    },
+    {
+      "product_key": "base_enterprise_rail",
+      "name": "BlackRoad OS — Enterprise Rail",
+      "description": "Enterprise Rail tier",
+      "metadata": { "family": "base_monthly", "tier": "enterprise_rail" },
+      "prices": [
+        { "price_key": "base_enterprise_rail_monthly", "lookup_key": "blackroad_base_enterprise_rail_monthly", "nickname": "Enterprise Rail — monthly", "currency": "usd", "unit_amount_cents": 50000000, "recurring": { "interval": "month" }, "metadata": { "tier": "enterprise_rail" } }
+      ]
+    },
+    {
+      "product_key": "base_big_pipe",
+      "name": "BlackRoad OS — Big Pipe / Big 7",
+      "description": "Big Pipe tier",
+      "metadata": { "family": "base_monthly", "tier": "big_pipe" },
+      "prices": [
+        { "price_key": "base_big_pipe_monthly", "lookup_key": "blackroad_base_big_pipe_monthly", "nickname": "Big Pipe — monthly", "currency": "usd", "unit_amount_cents": 100000000, "recurring": { "interval": "month" }, "metadata": { "tier": "big_pipe" } }
+      ]
+    }
+  ],
+  "usage_products": [
+    {
+      "product_key": "routed_events_1k",
+      "name": "Routed events (per 1k)",
+      "description": "Atomic usage: charge per 1,000 routed events (aggregation recommended). Original rate: $0.0001 per event => $0.10 per 1,000 events.",
+      "metadata": { "atomic": "true", "unit": "1k_events", "original_rate_per_event_usd": 0.0001 },
+      "prices": [
+        { "price_key": "routed_events_1k_price", "lookup_key": "blackroad_routed_events_1k", "nickname": "Routed events — per 1k", "currency": "usd", "unit_amount_cents": 10, "recurring": { "interval": "month", "usage_type": "metered" }, "metadata": { "aggregation": "per_1000_events" } }
+      ]
+    },
+    {
+      "product_key": "customer_days_touched",
+      "name": "Customer days touched",
+      "description": "Atomic usage: $0.01 per customer-day touched",
+      "metadata": { "atomic": "true", "unit": "customer_day", "original_rate_usd": 0.01 },
+      "prices": [
+        { "price_key": "customer_days_touched_price", "lookup_key": "blackroad_customer_days_touched", "nickname": "Customer days touched", "currency": "usd", "unit_amount_cents": 1, "recurring": { "interval": "month", "usage_type": "metered" }, "metadata": { "aggregation": "per_customer_day" } }
+      ]
+    },
+    {
+      "product_key": "memory_records_1k",
+      "name": "Memory / provenance records (per 1k)",
+      "description": "Atomic usage: $0.001 per record => $1.00 per 1,000 records",
+      "metadata": { "atomic": "true", "unit": "1k_records", "original_rate_per_record_usd": 0.001 },
+      "prices": [
+        { "price_key": "memory_records_1k_price", "lookup_key": "blackroad_memory_records_1k", "nickname": "Memory records — per 1k", "currency": "usd", "unit_amount_cents": 100, "recurring": { "interval": "month", "usage_type": "metered" }, "metadata": { "aggregation": "per_1000_records" } }
+      ]
+    },
+    {
+      "product_key": "infra_cost_markup_cents",
+      "name": "Infra cost markup (report in cents)",
+      "description": "Report infrastructure cost markup using integer cents (report amount in cents as quantity). The price unit represents $0.01 per reported unit — clients should report cost in cents. Example: report quantity=12345 to represent $123.45.",
+      "metadata": { "atomic": "true", "unit": "cents", "note": "report infra costs in integer cents; server will apply markup multiplier before billing if configured" },
+      "prices": [
+        { "price_key": "infra_cost_markup_cents_price", "lookup_key": "blackroad_infra_cost_markup_cents", "nickname": "Infra cost markup (cents) — metered", "currency": "usd", "unit_amount_cents": 1, "recurring": { "interval": "month", "usage_type": "metered" }, "metadata": { "units": "cents", "reporting_instruction": "report raw cents as quantity" } }
+      ]
+    },
+    {
+      "product_key": "volatility_premium_placeholder",
+      "name": "Volatility premium (placeholder)",
+      "description": "Placeholder product/price for volatility premium. Not automated; treat as manual invoice item unless specifically configured.",
+      "metadata": { "atomic": "true", "manual_only": "true", "note": "Do not auto-bill. Use manual invoice items or CLA for final implementation." },
+      "prices": [
+        { "price_key": "volatility_premium_placeholder_price", "lookup_key": "blackroad_volatility_premium_placeholder", "nickname": "Volatility premium — placeholder", "currency": "usd", "unit_amount_cents": 0, "recurring": { "interval": "month", "usage_type": "metered" }, "metadata": { "manual_only": "true", "explain": "Placeholder — set via manual invoice or review" } }
+      ]
+    }
+  ]
+}
