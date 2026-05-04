@@ -1,0 +1,51 @@
+{
+  "annotations": {"list": [{"builtIn": 1, "datasource": "-- Prometheus --", "enable": true, "hide": true, "name": "Annotations"}]},
+  "editable": true, "gnetId": null, "graphTooltip": 0, "id": 3, "links": [],
+  "panels": [
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 100}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}, "id": 1,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "sum(rate(pg_stat_statements_calls_total[5m]))", "refId": "A"}],
+      "title": "Queries/sec", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 100}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}, "id": 2,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "pg_stat_activity_count", "refId": "A"}],
+      "title": "Connections", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 100}, {"color": "red", "value": 500}]}, "unit": "ms"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}, "id": 3,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "avg(pg_stat_statements_mean_exec_time_ms)", "refId": "A"}],
+      "title": "Avg Query Time", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 80}, {"color": "red", "value": 95}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}, "id": 4,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "100 * (pg_database_size_bytes / (pg_database_size_bytes + pg_database_free_bytes))", "refId": "A"}],
+      "title": "DB Disk Usage", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "Queries/sec", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "linear"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}, "id": 5,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}},
+      "targets": [{"expr": "sum(rate(pg_stat_statements_calls_total[5m])) by (query)", "legendFormat": "{{ query }}", "refId": "A"}],
+      "title": "Query Rate by Type", "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "Connections", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "linear"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}, "id": 6,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}},
+      "targets": [{"expr": "pg_stat_activity_count by (state)", "legendFormat": "{{ state }}", "refId": "A"}],
+      "title": "Connection State", "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 27, "style": "dark", "tags": ["database", "postgresql"],
+  "templating": {"list": []}, "time": {"from": "now-1h", "to": "now"}, "timepicker": {}, "timezone": "",
+  "title": "Database Performance", "uid": "database-performance", "version": 0
+}

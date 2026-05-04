@@ -1,0 +1,51 @@
+{
+  "annotations": {"list": [{"builtIn": 1, "datasource": "-- Prometheus --", "enable": true, "hide": true, "name": "Annotations"}]},
+  "editable": true, "gnetId": null, "graphTooltip": 0, "id": 4, "links": [],
+  "panels": [
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "currencyUSD"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}, "id": 1,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["sum"]}},
+      "targets": [{"expr": "sum(increase(billing_transactions_total[24h]))", "refId": "A"}],
+      "title": "Revenue (24h)", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}, "id": 2,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "count(billing_active_subscriptions)", "refId": "A"}],
+      "title": "Active Subscriptions", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}, "id": 3,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "100 - ((count(billing_churn) / count(billing_active_subscriptions)) * 100)", "refId": "A"}],
+      "title": "Retention Rate", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "currencyUSD"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}, "id": 4,
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"values": false, "calcs": ["mean"]}},
+      "targets": [{"expr": "avg(billing_customer_ltv)", "refId": "A"}],
+      "title": "Avg LTV", "type": "stat"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "Revenue", "axisPlacement": "auto", "drawStyle": "bars", "fillOpacity": 100, "lineInterpolation": "linear"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "currencyUSD"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}, "id": 5,
+      "options": {"legend": {"calcs": ["sum"], "displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+      "targets": [{"expr": "sum(increase(billing_transactions_total[1h])) by (plan)", "legendFormat": "{{ plan }}", "refId": "A"}],
+      "title": "Hourly Revenue by Plan", "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus", "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "Subscriptions", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 10, "lineInterpolation": "linear"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}, "id": 6,
+      "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right"}, "tooltip": {"mode": "multi"}},
+      "targets": [{"expr": "count(billing_active_subscriptions) by (plan)", "legendFormat": "{{ plan }}", "refId": "A"}],
+      "title": "Subscriptions by Plan", "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 27, "style": "dark", "tags": ["business", "revenue"],
+  "templating": {"list": []}, "time": {"from": "now-30d", "to": "now"}, "timepicker": {}, "timezone": "",
+  "title": "Business Metrics", "uid": "business-metrics", "version": 0
+}
