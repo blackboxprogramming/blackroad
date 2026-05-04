@@ -91,6 +91,28 @@ services:
     depends_on:
       - postgres
 
+  analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blackroad-analytics
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL: postgresql://blackroad:dev-password@postgres:5432/blackroad_dev
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-in-prod}
+    command: python3 customer_analytics.py
+    depends_on:
+      admin-dashboard:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "Authorization: Bearer dev-admin-token-change-in-prod", "http://localhost:8003/api/analytics/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - .:/app
+
   prometheus:
     image: prom/prometheus:latest
     container_name: blackroad-prometheus
