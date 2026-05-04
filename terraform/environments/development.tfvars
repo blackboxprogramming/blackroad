@@ -1,0 +1,12 @@
+environment          = "dev"
+aws_region           = "us-east-1"
+rds_instance_class   = "db.t3.micro"
+rds_allocated_storage = 20
+rds_backup_retention = 3
+rds_multi_az         = false
+redis_node_type      = "cache.t3.micro"
+redis_num_nodes      = 1
+ecs_desired_count    = 1
+ecs_task_cpu         = 256
+ecs_task_memory      = 512
+log_level            = "DEBUG"

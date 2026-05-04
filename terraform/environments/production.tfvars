@@ -1,0 +1,12 @@
+environment          = "prod"
+aws_region           = "us-east-1"
+rds_instance_class   = "db.t4g.large"
+rds_allocated_storage = 500
+rds_backup_retention = 30
+rds_multi_az         = true
+redis_node_type      = "cache.t4g.small"
+redis_num_nodes      = 3
+ecs_desired_count    = 5
+ecs_task_cpu         = 512
+ecs_task_memory      = 1024
+log_level            = "INFO"

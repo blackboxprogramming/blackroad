@@ -1,0 +1,12 @@
+environment          = "staging"
+aws_region           = "us-east-1"
+rds_instance_class   = "db.t4g.small"
+rds_allocated_storage = 50
+rds_backup_retention = 7
+rds_multi_az         = false
+redis_node_type      = "cache.t4g.micro"
+redis_num_nodes      = 1
+ecs_desired_count    = 2
+ecs_task_cpu         = 256
+ecs_task_memory      = 512
+log_level            = "DEBUG"
