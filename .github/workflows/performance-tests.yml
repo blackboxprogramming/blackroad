@@ -1,0 +1,73 @@
+name: Performance Tests
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run daily at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  performance-tests:
+    name: Load & Performance Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: blackroad_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install locust pytest-benchmark redis
+      
+      - name: Start services
+        run: docker-compose up -d
+      
+      - name: Run database optimization
+        run: python optimize_database.py
+      
+      - name: Run load tests
+        run: |
+          locust -f load_tests.py \
+            --headless \
+            -u 1000 \
+            -r 50 \
+            -t 5m \
+            --csv=results
+      
+      - name: Run performance benchmarks
+        run: pytest performance_tests.py -v
+      
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-results
+          path: results*
+

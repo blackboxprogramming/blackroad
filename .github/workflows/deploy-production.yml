@@ -1,0 +1,89 @@
+name: Deploy - Production
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.3)'
+        required: true
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: blackroad-production
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    
+    environment: production
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Get release notes
+        id: release
+        run: |
+          VERSION=${{ github.event.release.tag_name || github.event.inputs.version }}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      
+      - name: Run pre-deployment validation
+        run: |
+          echo "Running production validation..."
+          python deploy.py --validate --env production
+      
+      - name: Build and push production images
+        run: |
+          echo "Building production images..."
+          docker compose build --prod
+      
+      - name: Deploy with Blue/Green strategy
+        run: |
+          echo "Deploying with blue/green strategy..."
+          python deploy.py \
+            --env production \
+            --strategy blue-green \
+            --version ${{ steps.release.outputs.version }}
+      
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          bash test_dashboard_integration.sh
+      
+      - name: Monitor deployment
+        run: |
+          echo "Monitoring deployment health..."
+          for i in {1..10}; do
+            curl -f https://api.blackroad.com/health && break || sleep 30
+          done
+      
+      - name: Create deployment record
+        run: |
+          echo "Creating deployment record..."
+          aws s3 cp deploy.log s3://blackroad-deployments/${{ steps.release.outputs.version }}/
+      
+      - name: Notify success
+        if: success()
+        run: |
+          echo "✅ Production deployment successful!"
+      
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed, initiating rollback..."
+          python deploy.py --rollback --env production
+

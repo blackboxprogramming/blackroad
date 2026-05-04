@@ -1,0 +1,67 @@
+name: Deploy - Staging
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: blackroad-staging
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    
+    environment: staging
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Build and push Docker images
+        run: |
+          echo "Building staging images..."
+          docker compose build
+      
+      - name: Run pre-deployment checks
+        run: |
+          echo "Running health checks..."
+          # Add your pre-deployment checks here
+          python deploy.py --validate --env staging
+      
+      - name: Deploy to ECS
+        run: |
+          echo "Deploying to staging..."
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service blackroad-api \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }}
+      
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment..."
+          sleep 30
+          curl -f http://staging-api.blackroad.com/health || exit 1
+      
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "✅ Staging deployment successful!"
+      
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "❌ Staging deployment failed!"
+
