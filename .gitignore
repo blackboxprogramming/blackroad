@@ -15,6 +15,15 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
+
+# Keys and certs
+*.pem
+*.key
+*.p8
+*.p12
+*.crt
 
 # IDE
 .vscode/
@@ -41,3 +50,11 @@ node_modules/
 # Logs
 logs/
 *.log
+
+# Billing mapping (should not be committed)
+billing/stripe_price_map.json
+
+# Data files
+data/*.jsonl
+data/known_devices.json
+data/device_tags.json

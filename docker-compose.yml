@@ -189,6 +189,106 @@ services:
       timeout: 5s
       retries: 5
 
+  customer-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blackroad-customer-ui
+    ports:
+      - "8004:8004"
+    environment:
+      FLASK_APP: customer_analytics_ui.py
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://blackroad:dev-password@postgres:5432/blackroad_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: python3 customer_analytics_ui.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  ml-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blackroad-ml
+    ports:
+      - "8005:8005"
+    environment:
+      DATABASE_URL: postgresql://blackroad:dev-password@postgres:5432/blackroad_dev
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-in-prod}
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - ./models:/app/models
+    command: python3 advanced_ml_engine.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/api/ml/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  webhooks:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blackroad-webhooks
+    ports:
+      - "8006:8006"
+    environment:
+      DATABASE_URL: postgresql://blackroad:dev-password@postgres:5432/blackroad_dev
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_fake}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-whsec_test_fake}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-in-prod}
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: python3 stripe_webhooks.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8006/api/webhooks/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  onboarding:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blackroad-onboarding
+    ports:
+      - "8007:8007"
+    environment:
+      DATABASE_URL: postgresql://blackroad:dev-password@postgres:5432/blackroad_dev
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-in-prod}
+      SEND_EMAILS: ${SEND_EMAILS:-false}
+      SMTP_HOST: ${SMTP_HOST:-smtp.sendgrid.net}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-apikey}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: python3 onboarding_service.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/api/onboarding/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_data:
   prometheus_data:
