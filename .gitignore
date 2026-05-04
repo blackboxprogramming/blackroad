@@ -1,0 +1,43 @@
+# Load test results
+load-test-results/
+results.json
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Docker
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+
+# Node (if needed)
+node_modules/
+.npm
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
