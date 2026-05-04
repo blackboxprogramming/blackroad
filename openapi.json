@@ -1,0 +1,790 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "BlackRoad Monetization API",
+    "description": "Complete SaaS billing, analytics, and monitoring system for production deployment",
+    "version": "1.0.0",
+    "contact": {
+      "name": "BlackRoad Engineering",
+      "email": "engineering@blackroad.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://blackroad.com/license"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Main API (Billing & Metering)"
+    },
+    {
+      "url": "http://localhost:8001",
+      "description": "Admin Dashboard (Analytics)"
+    },
+    {
+      "url": "http://localhost:8003",
+      "description": "Customer Analytics"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Bearer token authentication. Use token from authentication service or admin panel."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object"
+          }
+        }
+      },
+      "ChargeRequest": {
+        "type": "object",
+        "required": [
+          "customer_id",
+          "amount",
+          "description"
+        ],
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Unique customer identifier"
+          },
+          "amount": {
+            "type": "number",
+            "format": "float",
+            "description": "Amount in USD"
+          },
+          "description": {
+            "type": "string",
+            "description": "Charge description"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata"
+          }
+        }
+      },
+      "UsageResponse": {
+        "type": "object",
+        "properties": {
+          "customer_id": {
+            "type": "string"
+          },
+          "current_month_usage": {
+            "type": "number"
+          },
+          "monthly_limit": {
+            "type": "number"
+          },
+          "free_tier_hours": {
+            "type": "number"
+          },
+          "paid_hours": {
+            "type": "number"
+          },
+          "current_rate": {
+            "type": "string"
+          },
+          "next_charge_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "reset_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "HealthStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "degraded",
+              "unhealthy"
+            ]
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ]
+          },
+          "cache": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ]
+          },
+          "stripe": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "disconnected"
+            ]
+          },
+          "latency_ms": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/charge": {
+      "post": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "Record a usage charge",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChargeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Charge recorded successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Payment required"
+          }
+        }
+      }
+    },
+    "/usage": {
+      "get": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "Get current usage",
+        "responses": {
+          "200": {
+            "description": "Usage data retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/billing": {
+      "post": {
+        "tags": [
+          "Billing"
+        ],
+        "summary": "Manage subscription",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "customer_id",
+                  "tier"
+                ],
+                "properties": {
+                  "customer_id": {
+                    "type": "string"
+                  },
+                  "tier": {
+                    "type": "string",
+                    "enum": [
+                      "free",
+                      "light",
+                      "power",
+                      "enterprise"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription updated"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "API health check",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "System status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/revenue/total": {
+      "get": {
+        "tags": [
+          "Admin - Revenue"
+        ],
+        "summary": "Get total revenue",
+        "responses": {
+          "200": {
+            "description": "Total revenue data"
+          },
+          "403": {
+            "description": "Forbidden (admin only)"
+          }
+        }
+      }
+    },
+    "/api/admin/revenue/daily": {
+      "get": {
+        "tags": [
+          "Admin - Revenue"
+        ],
+        "summary": "Get daily revenue trend (30 days)",
+        "responses": {
+          "200": {
+            "description": "Daily revenue trend"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/revenue/monthly": {
+      "get": {
+        "tags": [
+          "Admin - Revenue"
+        ],
+        "summary": "Get monthly revenue trend",
+        "responses": {
+          "200": {
+            "description": "Monthly revenue data"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/revenue/projection": {
+      "get": {
+        "tags": [
+          "Admin - Revenue"
+        ],
+        "summary": "Get annual revenue projection",
+        "responses": {
+          "200": {
+            "description": "Projected annual revenue"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/users/total": {
+      "get": {
+        "tags": [
+          "Admin - Users"
+        ],
+        "summary": "Get user metrics by tier",
+        "responses": {
+          "200": {
+            "description": "User count by tier"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/users/growth": {
+      "get": {
+        "tags": [
+          "Admin - Users"
+        ],
+        "summary": "Get user growth metrics",
+        "responses": {
+          "200": {
+            "description": "Growth metrics"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/users/conversion": {
+      "get": {
+        "tags": [
+          "Admin - Users"
+        ],
+        "summary": "Get paid conversion rate",
+        "responses": {
+          "200": {
+            "description": "Conversion rate"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/users/churn": {
+      "get": {
+        "tags": [
+          "Admin - Users"
+        ],
+        "summary": "Get churn rate metrics",
+        "responses": {
+          "200": {
+            "description": "Churn metrics"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/health/database": {
+      "get": {
+        "tags": [
+          "Admin - Health"
+        ],
+        "summary": "Database health check",
+        "responses": {
+          "200": {
+            "description": "Database status"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/health/stripe": {
+      "get": {
+        "tags": [
+          "Admin - Health"
+        ],
+        "summary": "Stripe integration health",
+        "responses": {
+          "200": {
+            "description": "Stripe status"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/health/cache": {
+      "get": {
+        "tags": [
+          "Admin - Health"
+        ],
+        "summary": "Cache (Redis) health check",
+        "responses": {
+          "200": {
+            "description": "Cache status"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/invoices/pending": {
+      "get": {
+        "tags": [
+          "Admin - Invoices"
+        ],
+        "summary": "Get pending invoices",
+        "responses": {
+          "200": {
+            "description": "Pending invoices"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/invoices/failed": {
+      "get": {
+        "tags": [
+          "Admin - Invoices"
+        ],
+        "summary": "Get failed invoices",
+        "responses": {
+          "200": {
+            "description": "Failed invoices"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/tiers/distribution": {
+      "get": {
+        "tags": [
+          "Admin - Tiers"
+        ],
+        "summary": "Get tier distribution",
+        "responses": {
+          "200": {
+            "description": "User/revenue by tier"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/tiers/mrr": {
+      "get": {
+        "tags": [
+          "Admin - Tiers"
+        ],
+        "summary": "Get MRR by tier",
+        "responses": {
+          "200": {
+            "description": "Monthly recurring revenue by tier"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/admin/export/revenue": {
+      "get": {
+        "tags": [
+          "Admin - Export"
+        ],
+        "summary": "Export revenue report (CSV/JSON)",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "csv",
+                "json"
+              ]
+            },
+            "default": "json"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revenue report"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/customers": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "List all customers",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "tier",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer list"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/customers/{customer_id}": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Get customer profile",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer profile"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/customers/{customer_id}/revenue": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Get customer revenue analysis",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "months",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 12
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revenue by month"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/customers/{customer_id}/usage": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Get customer usage analysis",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usage by endpoint"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/customers/{customer_id}/trends": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Get customer trends",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trend data"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/analytics/cohorts": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get cohort retention analysis",
+        "parameters": [
+          {
+            "name": "cohort_month",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cohort retention data"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/analytics/segmentation": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get customer segmentation",
+        "responses": {
+          "200": {
+            "description": "VIP, Growing, At Risk, Inactive segments"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/analytics/churn": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get churn detection",
+        "responses": {
+          "200": {
+            "description": "At-risk customers"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/analytics/trends": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get platform trends",
+        "responses": {
+          "200": {
+            "description": "Revenue/user/engagement trends"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    }
+  }
+}
