@@ -1,0 +1,6 @@
+llama-cpp-python>=0.1.60
+chromadb>=0.3.23
+sentence-transformers>=2.2.2
+fastapi>=0.95.2
+uvicorn[standard]>=0.20.0
+python-dotenv>=1.0.0

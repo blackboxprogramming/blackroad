@@ -1,0 +1,5 @@
+/lucidia/models/
+lucidia/.venv
+.venv
+__pycache__/
+*.pyc
