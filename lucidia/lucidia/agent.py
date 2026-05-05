@@ -10,7 +10,15 @@ def load_llm():
 
 
 def chat(prompt, llm=None, max_tokens=512):
-    if llm is None:
-        llm = load_llm()
-    out = llm.create(prompt=prompt, max_tokens=max_tokens)
-    return out.get("choices", [{}])[0].get("text", "").strip()
+    try:
+        if llm is None:
+            llm = load_llm()
+    except Exception as e:
+        return ("Lucidia is running but no local LLM available. "
+                "Place a quantized ggml model in lucidia/models/ or set LUCIDIA_MODEL_PATH, "
+                "and install llama-cpp-python. Error: " + str(e))
+    try:
+        out = llm.create(prompt=prompt, max_tokens=max_tokens)
+        return out.get("choices", [{}])[0].get("text", "").strip()
+    except Exception as e:
+        return "LLM error: " + str(e)
