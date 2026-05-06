@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadChain — Ledger & Provenance</title>
+<meta name="description" content="RoadChain — verifiable receipts for the road.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --g:linear-gradient(90deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+  --g135:linear-gradient(135deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+  --gv:linear-gradient(180deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+  --bg:#000;--card:#0a0a0a;--elevated:#111;--hover:#181818;--border:#1a1a1a;
+  --muted:#444;--sub:#737373;--text:#f5f5f5;--white:#fff;
+  --green:#3fb950;--red:#f85149;--yellow:#d29922;
+  --sg:'Space Grotesk',sans-serif;--jb:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sg);line-height:1.6;overflow:hidden}
+button{font-family:var(--sg);cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:var(--sg)}
+a{color:var(--text);text-decoration:none}
+
+.app{display:grid;grid-template-rows:auto 1fr auto;height:100vh;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--card);border-bottom:1px solid var(--border);position:relative}
+.topbar::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--g);opacity:.35}
+.tb-left{display:flex;align-items:center;gap:14px}
+.tb-logo{font-weight:700;font-size:16px;color:var(--white);display:flex;align-items:center;gap:10px}
+.tb-logo-bar{width:24px;height:4px;border-radius:2px;background:var(--g)}
+.tb-crumbs{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);font-family:var(--jb)}
+.tb-crumbs .sep{color:var(--muted)}
+.tb-crumbs .cur{color:var(--white)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-search{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--sub);cursor:pointer;transition:border-color .15s;min-width:300px}
+.tb-search:hover{border-color:#333;color:var(--text)}
+.tb-search .kbd{font-family:var(--jb);font-size:10px;background:var(--bg);padding:2px 6px;border-radius:3px;border:1px solid var(--border);margin-left:auto}
+
+.body{display:grid;grid-template-columns:220px 1fr;overflow:hidden}
+.rail{background:var(--card);border-right:1px solid var(--border);padding:14px 0;overflow-y:auto}
+.rail-label{padding:8px 18px;font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.rail-tab{display:flex;align-items:center;gap:12px;padding:9px 18px 9px 14px;cursor:pointer;position:relative;color:var(--sub);font-size:13px;transition:color .12s,background .12s}
+.rail-tab:hover{color:var(--text);background:var(--hover)}
+.rail-tab.active{color:var(--white);background:var(--hover)}
+.rail-tab.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 2px 2px 0;background:var(--gv)}
+.rail-tab .num{font-family:var(--jb);font-size:11px;color:var(--muted);min-width:18px;text-align:center}
+.rail-tab.active .num{color:var(--white)}
+.rail-tab .name{flex:1}
+
+.host{overflow-y:auto;padding:24px 28px 60px}
+.space{display:none}
+.space.active{display:block}
+.space-head{margin-bottom:18px}
+.space-num{font-family:var(--jb);font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.space-title{font-weight:700;font-size:26px;color:var(--white);margin-bottom:6px}
+.space-desc{font-size:13px;color:var(--sub);max-width:660px}
+.space-divider{height:2px;background:var(--g);opacity:.18;border-radius:1px;margin-bottom:24px}
+
+.statusbar{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;background:var(--card);border-top:1px solid var(--border);font-family:var(--jb);font-size:11px;color:var(--muted)}
+.statusbar .seg{display:flex;align-items:center;gap:6px}
+.statusbar .seg .lbl{color:var(--sub)}
+.statusbar .seg .val{color:var(--text)}
+.statusbar .right{display:flex;align-items:center;gap:18px}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(63,185,80,.6)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:6px;font-weight:600;font-size:13px;border:none;transition:all .15s;white-space:nowrap}
+.btn-sm{padding:7px 16px;font-size:12px;border-radius:5px}
+.btn-white{background:var(--white);color:#000}
+.btn-white:hover{background:#e0e0e0}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:#444}
+.btn-ghost{background:transparent;color:var(--sub)}
+.btn-ghost:hover{color:var(--white)}
+.btn-dark{background:var(--elevated);color:var(--text);border:1px solid var(--border)}
+.btn-dark:hover{background:#181818}
+.btn-icon{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:var(--elevated);border:1px solid var(--border);color:var(--sub);font-size:14px}
+.btn-icon:hover{color:var(--white)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-grad{height:3px;background:var(--g)}
+.card-body{padding:20px}
+.card-title{font-weight:600;font-size:15px;color:var(--white);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--sub);line-height:1.7}
+.card-meta{font-family:var(--jb);font-size:10px;color:var(--muted);margin-top:10px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-header-title{font-weight:600;font-size:14px;color:var(--white)}
+
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-family:var(--jb);text-transform:uppercase;letter-spacing:.04em}
+.badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--sub)}
+.badge-grad .badge-dot{background:var(--g135)}
+.badge-line{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;color:var(--text);font-family:var(--jb);text-transform:uppercase}
+.badge-line::before{content:'';width:12px;height:3px;border-radius:2px;background:var(--g)}
+.badge-ok{color:var(--green)}.badge-ok .badge-dot{background:var(--green)}
+.badge-bad{color:var(--red)}.badge-bad .badge-dot{background:var(--red)}
+.badge-pending{color:var(--yellow)}.badge-pending .badge-dot{background:var(--yellow)}
+
+.input{width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s;font-family:var(--sg)}
+.input:focus{border-color:#333}
+.input-mono{font-family:var(--jb);font-size:12px}
+.input-label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px;letter-spacing:.02em}
+.input-hint{font-size:11px;color:var(--muted);margin-top:4px;font-family:var(--jb)}
+.input-group{position:relative}
+.input-group .input{padding-left:36px}
+.input-group-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted)}
+
+.table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)}
+.table{width:100%;border-collapse:collapse}
+.table th{text-align:left;padding:12px 16px;font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;background:var(--card);border-bottom:1px solid var(--border);font-family:var(--jb)}
+.table td{padding:12px 16px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
+.table tr:last-child td{border-bottom:none}
+.table tr.row-clickable{cursor:pointer}
+.table tr.row-clickable:hover td{background:var(--hover)}
+.mono{font-family:var(--jb);font-size:11px;color:var(--text)}
+.mono-sm{font-family:var(--jb);font-size:10px;color:var(--sub)}
+
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;padding-bottom:20px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-dot{position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:var(--bg)}
+.timeline-dot.active{border:none;background:var(--g135);box-shadow:0 0 0 3px rgba(255,107,43,.15)}
+.timeline-title{font-weight:600;font-size:14px;color:var(--white);margin-bottom:4px}
+.timeline-text{font-size:13px;color:var(--sub)}
+.timeline-time{font-family:var(--jb);font-size:10px;color:var(--muted);margin-top:4px}
+
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--sub);flex-shrink:0}
+.avatar-sm{width:28px;height:28px;font-size:11px}
+.avatar-lg{width:48px;height:48px;font-size:16px}
+.avatar-ring{padding:2px;background:var(--g135);border-radius:50%;display:inline-flex}
+.avatar-ring .avatar{border:2px solid var(--bg)}
+
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;background:var(--elevated);border:1px solid var(--border);color:var(--sub);font-family:var(--jb)}
+
+.toggle{position:relative;width:34px;height:20px;display:inline-block;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--elevated);border:1px solid var(--border);border-radius:10px;transition:.2s;cursor:pointer}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--sub);border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider::before{transform:translateX(14px);background:var(--g135)}
+
+.alert{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border-radius:8px;font-size:13px;border:1px solid var(--border);background:var(--card)}
+.alert-bar{width:3px;min-height:100%;border-radius:2px;background:var(--g);flex-shrink:0;align-self:stretch}
+.alert-title{font-weight:600;color:var(--white);margin-bottom:2px}
+.alert-text{color:var(--sub)}
+
+.progress-track{width:100%;height:4px;background:var(--elevated);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:var(--g);transition:width .3s}
+
+.stat{padding:20px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.stat-label{font-size:12px;color:var(--sub);font-family:var(--jb);text-transform:uppercase;letter-spacing:.08em}
+.stat-value{font-size:32px;font-weight:700;color:var(--white);margin-top:6px;line-height:1.1}
+.stat-sub{font-family:var(--jb);font-size:11px;color:var(--sub);margin-top:6px}
+.stat-bar{width:100%;height:3px;border-radius:2px;background:var(--g);margin-top:12px}
+
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-family:var(--jb);font-size:11px;color:var(--text);line-height:1.7;overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.col{flex:1;min-width:0}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.spacer{height:24px}
+.spacer-sm{height:12px}
+.flex-between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:560px;max-width:90vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-grad{height:3px;background:var(--g);flex-shrink:0}
+.modal-header{padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-title{font-weight:600;font-size:15px;color:var(--white)}
+.modal-close{color:var(--muted);font-size:18px;cursor:pointer}
+.modal-close:hover{color:var(--white)}
+.modal-body{padding:18px 22px;overflow-y:auto;flex:1}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
+
+.cmd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;z-index:1100;padding-top:12vh}
+.cmd-overlay.open{display:flex}
+.cmd{background:var(--card);border:1px solid var(--border);border-radius:12px;width:560px;max-width:92vw;overflow:hidden;box-shadow:0 20px 80px rgba(0,0,0,.6)}
+.cmd-grad{height:3px;background:var(--g)}
+.cmd-input-wrap{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.cmd-prefix{font-family:var(--jb);font-size:12px;color:var(--muted)}
+.cmd-input{flex:1;background:none;border:none;color:var(--white);font-size:14px;outline:none}
+.cmd-input::placeholder{color:var(--muted)}
+.cmd-results{max-height:340px;overflow-y:auto;padding:6px}
+.cmd-item{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:6px;cursor:pointer}
+.cmd-item:hover,.cmd-item.selected{background:var(--hover)}
+.cmd-item-icon{font-size:13px;color:var(--muted);width:18px;text-align:center}
+.cmd-item-text{flex:1;font-size:13px;color:var(--text)}
+.cmd-item-shortcut{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.cmd-group{padding:6px 14px;font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:var(--jb)}
+.cmd-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:14px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+
+.toast-stack{position:fixed;right:20px;bottom:60px;display:flex;flex-direction:column;gap:8px;z-index:2000;pointer-events:none}
+.toast{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;max-width:340px;font-size:12px;pointer-events:auto;animation:tin .2s ease-out;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.toast-bar{width:3px;min-height:24px;border-radius:2px;background:var(--g);flex-shrink:0;align-self:stretch}
+.toast-text{flex:1;color:var(--text)}
+@keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.heat{display:grid;grid-template-columns:repeat(24,1fr);gap:3px}
+.heat-cell{aspect-ratio:1;border-radius:2px;background:var(--elevated);cursor:pointer}
+.heat-cell.l1{background:rgba(255,107,43,.25)}
+.heat-cell.l2{background:rgba(255,34,85,.4)}
+.heat-cell.l3{background:rgba(204,0,170,.6)}
+.heat-cell.l4{background:rgba(136,68,255,.8)}
+.heat-cell.l5{background:var(--g135)}
+
+.cal{display:grid;grid-template-columns:repeat(53,1fr);gap:3px}
+.cal-cell{width:11px;height:11px;border-radius:2px;background:var(--elevated);cursor:pointer}
+.cal-cell.l1{background:rgba(255,107,43,.3)}
+.cal-cell.l2{background:rgba(255,34,85,.5)}
+.cal-cell.l3{background:rgba(136,68,255,.7)}
+.cal-cell.l4{background:var(--g135)}
+.cal-cell:hover{outline:1px solid var(--white)}
+
+.diff-pane{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--card);font-family:var(--jb);font-size:11px}
+.diff-side{padding:0;min-height:120px}
+.diff-head{padding:8px 14px;font-size:10px;color:var(--sub);background:var(--bg);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.08em}
+.diff-line{padding:3px 14px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.diff-add{background:rgba(63,185,80,.08);color:#7ee787;border-left:2px solid var(--green)}
+.diff-rem{background:rgba(248,81,73,.08);color:#ffa198;border-left:2px solid var(--red)}
+.diff-ctx{color:var(--sub)}
+
+.signer-rail{display:flex;align-items:center;gap:10px;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow-x:auto}
+.signer{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:84px;flex-shrink:0;text-align:center}
+.signer-name{font-size:11px;color:var(--text);font-weight:500}
+.signer-state{font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase}
+.signer-arrow{color:var(--muted);font-size:14px;flex-shrink:0}
+
+.score-bar{position:relative;width:80px;height:6px;background:var(--elevated);border-radius:3px;overflow:hidden}
+.score-fill{position:absolute;top:0;left:0;bottom:0;background:var(--g);border-radius:3px}
+
+.merkle{display:flex;flex-direction:column;gap:6px;font-family:var(--jb);font-size:10px;color:var(--sub)}
+.merkle-step{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px}
+.merkle-op{color:var(--white);font-weight:600;min-width:60px;text-transform:uppercase}
+
+.list-pick{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+.list-pick:hover{background:var(--hover)}
+.list-pick.active{background:var(--hover)}
+.list-pick:last-child{border-bottom:none}
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--elevated);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#222}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo"><div class="tb-logo-bar"></div>BlackRoad</div>
+      <div class="tb-crumbs"><span>RoadChain</span><span class="sep">/</span><span class="cur" id="crumb">Explorer</span></div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-search" onclick="openCmd()"><span>⌕</span><span>Search records, refs, kinds…</span><span class="kbd">⌘K</span></div>
+      <button class="btn-icon" title="Notifications">◔</button>
+      <div class="avatar avatar-sm" title="anastasia">an</div>
+    </div>
+  </header>
+  <div class="body">
+    <aside class="rail">
+      <div class="rail-label">Spaces</div>
+      <div id="rail-tabs"></div>
+      <div class="rail-label" style="margin-top:14px">Quick</div>
+      <div class="rail-tab" onclick="openCmd()"><span class="num">⌘K</span><span class="name">Command palette</span></div>
+      <div class="rail-tab" onclick="anchorNow()"><span class="num">⛓</span><span class="name">Anchor head now</span></div>
+      <div class="rail-tab" onclick="exportChain()"><span class="num">⇣</span><span class="name">Export NDJSON</span></div>
+    </aside>
+    <main class="host" id="host"></main>
+  </div>
+  <footer class="statusbar">
+    <div class="seg"><span class="status-dot"></span><span class="lbl">chain</span> <span class="val" id="status-head">0xab12…cd34</span></div>
+    <div class="right">
+      <div class="seg"><span class="lbl">records</span> <span class="val" id="status-total">36</span></div>
+      <div class="seg"><span class="lbl">last anchor</span> <span class="val" id="status-anchor">2h ago</span></div>
+      <div class="seg"><span class="lbl">build</span> <span class="val">v0.1 · 2026-05-06</span></div>
+    </div>
+  </footer>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-grad"></div>
+    <div class="modal-header"><div class="modal-title" id="modal-title">Title</div><div class="modal-close" onclick="closeModal()">×</div></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<div class="cmd-overlay" id="cmd" onclick="if(event.target===this)closeCmd()">
+  <div class="cmd">
+    <div class="cmd-grad"></div>
+    <div class="cmd-input-wrap">
+      <span class="cmd-prefix">›</span>
+      <input class="cmd-input" id="cmd-input" placeholder="Jump to a Space, search a record id…" oninput="renderCmd()" onkeydown="cmdKey(event)">
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+    <div class="cmd-footer"><span>↑↓ navigate</span><span>↵ select</span><span>esc close</span></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toasts"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if(cls) e.className = cls; if(html!=null) e.innerHTML = html; return e; };
+const SHORT = (h) => h && h.length > 14 ? h.slice(0,6) + '…' + h.slice(-4) : (h||'');
+const REL = (iso) => {
+  const s = (Date.now() - new Date(iso).getTime())/1000;
+  if (s < 60) return Math.round(s)+'s ago';
+  if (s < 3600) return Math.round(s/60)+'m ago';
+  if (s < 86400) return Math.round(s/3600)+'h ago';
+  return Math.round(s/86400)+'d ago';
+};
+const DAY  = (iso) => new Date(iso).toISOString().slice(0,10);
+const HHMM = (iso) => new Date(iso).toISOString().slice(11,16);
+const ESC  = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function toast(text){
+  const t = el('div','toast',`<div class="toast-bar"></div><div class="toast-text">${text}</div>`);
+  $('toasts').appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2400);
+}
+function copy(text){
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(()=>toast(`Copied <span class="mono">${SHORT(text)}</span>`));
+  else toast(`Copied <span class="mono">${SHORT(text)}</span>`);
+}
+
+const USERS = [
+  {id:'u_an', name:'anastasia', init:'an'},
+  {id:'u_al', name:'alice',     init:'al'},
+  {id:'u_ce', name:'cecilia',   init:'ce'},
+  {id:'u_oc', name:'octavia',   init:'oc'},
+  {id:'u_ol', name:'olympia',   init:'ol'},
+  {id:'u_ge', name:'gematria',  init:'ge'},
+  {id:'u_ga', name:'gaia',      init:'ga'},
+  {id:'u_ar', name:'aria',      init:'ar'},
+];
+const userOf = (id) => USERS.find(u=>u.id===id) || USERS[0];
+
+const KINDS = [
+  'roadbook.publish','carpool.message','roadtrip.reply','payment.received',
+  'file.write','note.update','chain.anchor','oracle.attest',
+  'sign.request','sign.signed','sign.witness','version.create'
+];
+
+function fakeHash(seed){
+  let h = 0x811c9dc5 >>> 0;
+  for (let i=0;i<seed.length;i++){ h ^= seed.charCodeAt(i); h = (Math.imul(h, 0x01000193)) >>> 0; }
+  let out = '';
+  for (let i=0;i<8;i++){ h = (Math.imul(h, 0x9E3779B1)) >>> 0; out += (h & 0xff).toString(16).padStart(2,'0'); out += ((h>>>8) & 0xff).toString(16).padStart(2,'0'); }
+  return '0x'+out.slice(0,16);
+}
+function pickKind(ref, i){
+  if (ref.startsWith('roadbook')) return ['roadbook.publish','note.update','version.create'][i%3];
+  if (ref.startsWith('carpool'))  return 'carpool.message';
+  if (ref.startsWith('roadtrip')) return 'roadtrip.reply';
+  if (ref.startsWith('payment'))  return 'payment.received';
+  if (ref.startsWith('file'))     return 'file.write';
+  if (ref.startsWith('oracle'))   return 'oracle.attest';
+  if (ref.startsWith('sign'))     return ['sign.request','sign.signed','sign.witness'][i%3];
+  if (ref.startsWith('version'))  return 'version.create';
+  if (ref.startsWith('chain'))    return 'chain.anchor';
+  return 'note.update';
+}
+function buildChain(){
+  const refs = [
+    'roadbook:post:rb_001','roadbook:post:rb_001','roadbook:post:rb_001',
+    'carpool:thread:cp_thr_042','carpool:thread:cp_thr_042','carpool:thread:cp_thr_042','carpool:thread:cp_thr_042',
+    'roadtrip:reply:rt_hh21','roadtrip:reply:rt_hh21',
+    'payment:c95_pay_03','payment:c95_pay_03',
+    'file:notes/road-pass.md','file:notes/road-pass.md','file:notes/road-pass.md',
+    'oracle:btc-usd','oracle:btc-usd','oracle:btc-usd','oracle:btc-usd',
+    'sign:agreement_q2','sign:agreement_q2','sign:agreement_q2','sign:agreement_q2',
+    'version:wiki/getting-started','version:wiki/getting-started','version:wiki/getting-started','version:wiki/getting-started',
+    'chain:head:anchor','chain:head:anchor',
+    'roadbook:post:rb_001','carpool:thread:cp_thr_042','roadtrip:reply:rt_hh21',
+    'oracle:btc-usd','file:notes/road-pass.md','version:wiki/getting-started',
+    'chain:head:anchor','sign:agreement_q2'
+  ];
+  const recs = [];
+  let prev = null;
+  let t = Date.now() - 18*86400*1000;
+  refs.forEach((ref, i) => {
+    const kind = pickKind(ref, i);
+    const user = USERS[i % USERS.length].id;
+    const id = fakeHash(ref + ':' + i + ':' + kind);
+    const created_at = new Date(t).toISOString();
+    const byte_size = 280 + (i * 41) % 1800;
+    const score = (i*23 + 17) % 100;
+    recs.push({ id, prev_id: prev, kind, ref, byte_size, created_at, user_id: user, score });
+    prev = id;
+    t += (3 + (i*53) % 14) * 3600 * 1000;
+  });
+  return recs;
+}
+const CHAIN = buildChain();
+const HEAD = CHAIN[CHAIN.length-1].id;
+
+const SPACES = [
+  {key:'explorer', num:'01', name:'Explorer',  icon:'⌕', desc:'Search every record on the road. Hashes, refs, kinds — all linked back to the chain.'},
+  {key:'history',  num:'02', name:'History',   icon:'⎇', desc:'Per-ref commit graph with side-by-side diffs and a blame strip.'},
+  {key:'sign',     num:'03', name:'Sign',      icon:'✎', desc:'Request, witness, and countersign records. The signing path is its own chain trail.'},
+  {key:'oracles',  num:'04', name:'Oracles',   icon:'◎', desc:'External attestations with multi-source quorum and proof-of-source bundles.'},
+  {key:'radar',    num:'05', name:'Radar',     icon:'◑', desc:'Anomaly scoring on chain events with a rule engine and a flagged queue.'},
+  {key:'audit',    num:'06', name:'Audit',     icon:'≣', desc:'Who-did-what, before→after diffs, exportable trails for finance and compliance.'},
+  {key:'versions', num:'07', name:'Versions',  icon:'❑', desc:'Per-document revision tree with named tags and one-click restore.'},
+  {key:'wayback',  num:'08', name:'Wayback',   icon:'◷', desc:'Calendar of every snapshot with point-in-time replay.'},
+  {key:'anchors',  num:'09', name:'Anchors',   icon:'⛓', desc:'External anchoring with proof bundles you can verify off-network.'},
+  {key:'verify',   num:'10', name:'Verify',    icon:'✓', desc:'Public verifier — paste a chain id, walk the prev links, download a receipt.'},
+];
+
+function renderRail(){
+  const c = $('rail-tabs');
+  SPACES.forEach(s => {
+    const t = el('div','rail-tab',`<span class="num">${s.icon}</span><span class="name">${s.name}</span>`);
+    t.dataset.key = s.key;
+    t.onclick = () => showSpace(s.key);
+    c.appendChild(t);
+  });
+}
+function renderHost(){
+  const h = $('host');
+  SPACES.forEach(s => {
+    const sec = el('section','space');
+    sec.dataset.key = s.key;
+    sec.id = 'space-'+s.key;
+    sec.innerHTML = `
+      <div class="space-head">
+        <div class="space-num">${s.num} / 10 · ${s.name}</div>
+        <div class="space-title">${s.name}</div>
+        <div class="space-desc">${s.desc}</div>
+      </div>
+      <div class="space-divider"></div>
+      <div data-body></div>`;
+    h.appendChild(sec);
+    RENDERERS[s.key](sec.querySelector('[data-body]'));
+  });
+}
+function showSpace(key){
+  document.querySelectorAll('.space').forEach(s => s.classList.toggle('active', s.dataset.key===key));
+  document.querySelectorAll('.rail-tab[data-key]').forEach(t => t.classList.toggle('active', t.dataset.key===key));
+  const s = SPACES.find(x=>x.key===key);
+  if (s) $('crumb').textContent = s.name;
+  $('host').scrollTop = 0;
+}
+
+function openModal(title, bodyHtml, footerHtml){
+  $('modal-title').textContent = title;
+  $('modal-body').innerHTML = bodyHtml;
+  $('modal-footer').innerHTML = footerHtml || `<button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>`;
+  $('modal').classList.add('open');
+}
+function closeModal(){ $('modal').classList.remove('open'); }
+
+let CMD_SEL = 0;
+function openCmd(){ $('cmd').classList.add('open'); $('cmd-input').value=''; CMD_SEL=0; renderCmd(); $('cmd-input').focus(); }
+function closeCmd(){ $('cmd').classList.remove('open'); }
+function cmdItems(){
+  const q = $('cmd-input').value.trim().toLowerCase();
+  const items = [];
+  SPACES.forEach(s => items.push({ group:'Spaces', icon:s.icon, label:'Go to '+s.name, sc:s.num, action:()=>{showSpace(s.key);closeCmd();} }));
+  CHAIN.slice().reverse().slice(0,8).forEach(r => items.push({ group:'Recent records', icon:'◆', label:`${SHORT(r.id)} · ${r.kind}`, sc:r.ref, action:()=>{showSpace('explorer');setTimeout(()=>openRecord(r.id),100);closeCmd();} }));
+  items.push({ group:'Actions', icon:'⛓', label:'Anchor head now', sc:'A', action:()=>{anchorNow();closeCmd();} });
+  items.push({ group:'Actions', icon:'⇣', label:'Export NDJSON',   sc:'E', action:()=>{exportChain();closeCmd();} });
+  items.push({ group:'Actions', icon:'✓', label:'Open Verify',     sc:'V', action:()=>{showSpace('verify');closeCmd();} });
+  if (!q) return items;
+  return items.filter(i => (i.label+' '+i.sc).toLowerCase().includes(q));
+}
+function renderCmd(){
+  const items = cmdItems();
+  if (CMD_SEL >= items.length) CMD_SEL = 0;
+  const r = $('cmd-results'); r.innerHTML = '';
+  let lastGroup = null;
+  items.forEach((it, i) => {
+    if (it.group !== lastGroup){ r.appendChild(el('div','cmd-group',it.group)); lastGroup = it.group; }
+    const row = el('div','cmd-item'+(i===CMD_SEL?' selected':''),
+      `<span class="cmd-item-icon">${it.icon}</span><span class="cmd-item-text">${it.label}</span><span class="cmd-item-shortcut">${it.sc||''}</span>`);
+    row.onclick = () => it.action();
+    r.appendChild(row);
+  });
+}
+function cmdKey(e){
+  const items = cmdItems();
+  if (e.key==='ArrowDown'){ CMD_SEL = Math.min(items.length-1, CMD_SEL+1); renderCmd(); e.preventDefault(); }
+  else if (e.key==='ArrowUp'){ CMD_SEL = Math.max(0, CMD_SEL-1); renderCmd(); e.preventDefault(); }
+  else if (e.key==='Enter'){ items[CMD_SEL] && items[CMD_SEL].action(); }
+  else if (e.key==='Escape'){ closeCmd(); }
+}
+window.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); openCmd(); }
+  if (e.key==='Escape'){ closeCmd(); closeModal(); }
+});
+
+function avatarFor(uid, sz){
+  const u = userOf(uid);
+  return `<div class="avatar ${sz==='sm'?'avatar-sm':sz==='lg'?'avatar-lg':''}" title="${u.name}">${u.init}</div>`;
+}
+function badgeFor(kind){
+  const map = {
+    'roadbook.publish':'badge-grad','carpool.message':'','roadtrip.reply':'',
+    'payment.received':'badge-ok','chain.anchor':'badge-grad','oracle.attest':'badge-grad',
+    'sign.request':'badge-pending','sign.signed':'badge-ok','sign.witness':'',
+    'file.write':'','note.update':'','version.create':'badge-line'
+  };
+  const cls = map[kind] || '';
+  if (cls === 'badge-line') return `<span class="badge-line">${kind}</span>`;
+  return `<span class="badge ${cls}"><span class="badge-dot"></span>${kind}</span>`;
+}
+function openRecord(id){
+  const r = CHAIN.find(x => x.id === id);
+  if (!r) return;
+  const idx = CHAIN.indexOf(r);
+  const next = CHAIN[idx+1];
+  const canon = JSON.stringify({ p:r.prev_id, k:r.kind, r:r.ref, d:'<binary>', a:null, t:r.created_at, u:r.user_id }, null, 2);
+  const body = `
+    <div class="row">
+      <div class="col">
+        <div class="input-label">Hash</div>
+        <div class="mono" style="margin-bottom:10px;cursor:pointer;word-break:break-all" onclick="copy('${r.id}')">${r.id}</div>
+        <div class="input-label">Prev</div>
+        <div class="mono-sm" style="margin-bottom:10px;cursor:pointer;word-break:break-all" onclick="${r.prev_id?`copy('${r.prev_id}')`:''}">${r.prev_id?r.prev_id:'— (genesis)'}</div>
+        <div class="input-label">Next</div>
+        <div class="mono-sm" style="margin-bottom:10px;word-break:break-all">${next?next.id:'— (head)'}</div>
+      </div>
+      <div class="col">
+        <div class="input-label">Kind</div>
+        <div style="margin-bottom:10px">${badgeFor(r.kind)}</div>
+        <div class="input-label">Ref</div>
+        <div class="mono-sm" style="margin-bottom:10px">${r.ref}</div>
+        <div class="input-label">By</div>
+        <div style="margin-bottom:10px;display:flex;align-items:center;gap:6px">${avatarFor(r.user_id,'sm')}<span style="font-size:12px">${userOf(r.user_id).name}</span></div>
+        <div class="input-label">Bytes / Time</div>
+        <div class="mono-sm">${r.byte_size} B · ${REL(r.created_at)}</div>
+      </div>
+    </div>
+    <div class="spacer-sm"></div>
+    <div class="input-label">Canonical hash input</div>
+    <div class="code-block">${ESC(canon)}</div>
+    <div class="spacer-sm"></div>
+    <div class="alert"><div class="alert-bar"></div><div><div class="alert-title">Verifiable</div><div class="alert-text">sha256 over the canonical JSON above equals the record id. Verify in Space 10.</div></div></div>`;
+  const footer = `
+    <button class="btn btn-outline btn-sm" onclick="copy('${r.id}')">Copy id</button>
+    <button class="btn btn-dark btn-sm" onclick="closeModal();showSpace('verify');setTimeout(()=>{document.getElementById('verify-input').value='${r.id}';verifyId();},80)">Verify</button>
+    <button class="btn btn-white btn-sm" onclick="closeModal()">Done</button>`;
+  openModal('Record · '+SHORT(r.id), body, footer);
+}
+
+function anchorNow(){
+  const id = fakeHash('anchor:'+Date.now());
+  toast(`Anchor written · <span class="mono">${SHORT(id)}</span>`);
+}
+function exportChain(){
+  toast(`Exporting <span class="mono">${CHAIN.length}</span> records as NDJSON…`);
+}
+
+const RENDERERS = {};
+
+RENDERERS.explorer = (root) => {
+  root.innerHTML = `
+    <div class="grid-4" style="margin-bottom:18px">
+      <div class="stat"><div class="stat-label">Head</div><div class="stat-value mono" style="font-size:14px;word-break:break-all">${SHORT(HEAD)}</div><div class="stat-bar"></div></div>
+      <div class="stat"><div class="stat-label">Total records</div><div class="stat-value">${CHAIN.length}</div><div class="stat-sub">+12 this week</div></div>
+      <div class="stat"><div class="stat-label">Active refs</div><div class="stat-value">8</div><div class="stat-sub">across 5 products</div></div>
+      <div class="stat"><div class="stat-label">Bytes stored</div><div class="stat-value">${(CHAIN.reduce((s,r)=>s+r.byte_size,0)/1024).toFixed(1)}K</div><div class="stat-bar"></div></div>
+    </div>
+    <div class="row" style="margin-bottom:14px;align-items:center">
+      <div class="col">
+        <div class="input-group"><span class="input-group-icon">⌕</span>
+          <input class="input input-mono" placeholder="Search by 0xhash, ref, or kind" id="exp-search" oninput="expFilter()">
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select class="input" id="exp-kind" style="width:auto" onchange="expFilter()">
+          <option value="">All kinds</option>
+          ${KINDS.map(k=>`<option>${k}</option>`).join('')}
+        </select>
+        <button class="btn btn-dark btn-sm" onclick="exportChain()">⇣ Export</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Id</th><th>Kind</th><th>Ref</th><th>By</th><th style="text-align:right">Bytes</th><th>When</th></tr></thead>
+        <tbody id="exp-rows"></tbody>
+      </table>
+    </div>`;
+  expFilter();
+};
+window.expFilter = () => {
+  const q = ($('exp-search').value||'').toLowerCase();
+  const k = $('exp-kind').value;
+  const rows = CHAIN.slice().reverse().filter(r => {
+    if (k && r.kind !== k) return false;
+    if (q && ![r.id, r.ref, r.kind].some(v=>v.toLowerCase().includes(q))) return false;
+    return true;
+  }).slice(0, 30);
+  $('exp-rows').innerHTML = rows.length ? rows.map(r => `
+    <tr class="row-clickable" onclick="openRecord('${r.id}')">
+      <td><span class="mono" onclick="event.stopPropagation();copy('${r.id}')">${SHORT(r.id)}</span></td>
+      <td>${badgeFor(r.kind)}</td>
+      <td><span class="mono-sm">${r.ref}</span></td>
+      <td>${avatarFor(r.user_id,'sm')}</td>
+      <td style="text-align:right" class="mono-sm">${r.byte_size}</td>
+      <td><span class="mono-sm">${REL(r.created_at)}</span></td>
+    </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No records match.</td></tr>`;
+};
+
+let HIST_SEL = [];
+RENDERERS.history = (root) => {
+  const refs = [...new Set(CHAIN.map(r=>r.ref))];
+  root.innerHTML = `
+    <div class="row" style="margin-bottom:18px;align-items:flex-end">
+      <div class="col" style="max-width:340px">
+        <div class="input-label">Ref</div>
+        <select class="input input-mono" id="hist-ref" onchange="histRender()">
+          ${refs.map(r=>`<option value="${r}">${r}</option>`).join('')}
+        </select>
+      </div>
+      <div class="col">
+        <div class="input-label">Selected for diff</div>
+        <div class="mono-sm" id="hist-sel">— · — (pick two records below)</div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button class="btn btn-dark btn-sm" onclick="histClear()">Clear</button>
+        <button class="btn btn-white btn-sm" onclick="histDiff()">Diff →</button>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="card-header" style="border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0"><div class="card-header-title">Commit graph</div><span class="badge badge-line">live</span></div>
+        <div class="card" style="border-radius:0 0 10px 10px;border-top:none;padding:18px;max-height:420px;overflow-y:auto">
+          <div class="timeline" id="hist-timeline"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card-header" style="border:1px solid var(--border);border-bottom:none;border-radius:10px 10px 0 0"><div class="card-header-title">Diff</div><span class="badge"><span class="badge-dot" style="background:var(--green)"></span>+ added</span></div>
+        <div class="card" style="border-radius:0 0 10px 10px;border-top:none;padding:14px;min-height:280px" id="hist-diff">
+          <div class="card-text" style="text-align:center;padding:60px 0">Pick two records on the left, then press Diff →</div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="input-label">Blame strip · who last touched each field</div>
+    <div class="card" style="padding:14px"><div class="row" id="hist-blame"></div></div>`;
+  histRender();
+};
+window.histRender = () => {
+  const ref = $('hist-ref').value;
+  const items = CHAIN.filter(r => r.ref === ref).reverse();
+  HIST_SEL = HIST_SEL.filter(id => items.find(r=>r.id===id));
+  $('hist-timeline').innerHTML = items.map((r,i) => {
+    const u = userOf(r.user_id);
+    const sel = HIST_SEL.includes(r.id);
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot ${i===0?'active':''}"></div>
+        <div class="flex-between">
+          <div style="min-width:0">
+            <div class="timeline-title">${u.name} · ${r.kind.split('.')[1]||r.kind}</div>
+            <div class="mono-sm" onclick="copy('${r.id}')" style="cursor:pointer;word-break:break-all">${SHORT(r.id)} · ${r.byte_size} B</div>
+            <div class="timeline-time">${REL(r.created_at)}</div>
+          </div>
+          <button class="btn btn-${sel?'white':'outline'} btn-sm" onclick="histPick('${r.id}')">${sel?'✓':'pick'}</button>
+        </div>
+      </div>`;
+  }).join('') || `<div class="card-text">No records on this ref yet.</div>`;
+  $('hist-sel').innerHTML = HIST_SEL.length ? HIST_SEL.map(SHORT).join(' · ') : '— · — (pick two records below)';
+  const fields = ['title','body','tags','status','price','version'];
+  $('hist-blame').innerHTML = fields.map((f,i) => {
+    const u = userOf(USERS[i].id);
+    return `<div style="flex:1;min-width:120px;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--bg)">
+      <div class="mono-sm" style="margin-bottom:6px;color:var(--white)">${f}</div>
+      <div style="display:flex;align-items:center;gap:6px">${avatarFor(u.id,'sm')}<span style="font-size:11px">${u.name}</span></div>
+      <div class="mono-sm" style="margin-top:4px;color:var(--muted)">${(i+1)*3}d ago</div>
+    </div>`;
+  }).join('');
+};
+window.histPick = (id) => {
+  const i = HIST_SEL.indexOf(id);
+  if (i>=0) HIST_SEL.splice(i,1);
+  else { HIST_SEL.push(id); if (HIST_SEL.length>2) HIST_SEL.shift(); }
+  histRender();
+};
+window.histClear = () => {
+  HIST_SEL = []; histRender();
+  $('hist-diff').innerHTML = '<div class="card-text" style="text-align:center;padding:60px 0">Pick two records on the left, then press Diff →</div>';
+};
+window.histDiff = () => {
+  if (HIST_SEL.length !== 2) return toast('Pick two records first');
+  const a = CHAIN.find(r=>r.id===HIST_SEL[0]);
+  const b = CHAIN.find(r=>r.id===HIST_SEL[1]);
+  $('hist-diff').innerHTML = `
+    <div class="diff-pane">
+      <div class="diff-side">
+        <div class="diff-head">${SHORT(a.id)} · ${REL(a.created_at)}</div>
+        <div class="diff-line diff-ctx">{</div>
+        <div class="diff-line diff-ctx">  "kind": "${a.kind}",</div>
+        <div class="diff-line diff-rem">- "title": "Road Pass · early draft",</div>
+        <div class="diff-line diff-rem">- "tags": ["road","pass"],</div>
+        <div class="diff-line diff-ctx">  "ref":  "${a.ref}",</div>
+        <div class="diff-line diff-ctx">  "byte_size": ${a.byte_size}</div>
+        <div class="diff-line diff-ctx">}</div>
+      </div>
+      <div class="diff-side">
+        <div class="diff-head">${SHORT(b.id)} · ${REL(b.created_at)}</div>
+        <div class="diff-line diff-ctx">{</div>
+        <div class="diff-line diff-ctx">  "kind": "${b.kind}",</div>
+        <div class="diff-line diff-add">+ "title": "Road Pass — five hours, then five dollars",</div>
+        <div class="diff-line diff-add">+ "tags": ["road","pass","pricing","public"],</div>
+        <div class="diff-line diff-ctx">  "ref":  "${b.ref}",</div>
+        <div class="diff-line diff-ctx">  "byte_size": ${b.byte_size}</div>
+        <div class="diff-line diff-ctx">}</div>
+      </div>
+    </div>`;
+};
+
+const SIGN_REQUESTS = [
+  { title:'Q2 Operator Agreement', mode:'sequential', status:'pending-you',
+    signers:[{u:'u_an',state:'signed'},{u:'u_al',state:'signed'},{u:'u_an',state:'awaiting'},{u:'u_oc',state:'queued'}],
+    ref:'sign:agreement_q2',
+    audit:[
+      {t:'2026-05-04 14:02', who:'u_an', what:'Created request'},
+      {t:'2026-05-04 14:05', who:'u_an', what:'Sent to alice'},
+      {t:'2026-05-04 14:18', who:'u_al', what:'Viewed'},
+      {t:'2026-05-04 14:22', who:'u_al', what:'Signed (witnessed by gematria)'},
+      {t:'2026-05-05 09:11', who:'u_an', what:'Awaiting your countersign'},
+    ]},
+  { title:'Road Pass — node operator addendum', mode:'parallel', status:'pending-you',
+    signers:[{u:'u_an',state:'awaiting'},{u:'u_ol',state:'signed'},{u:'u_ce',state:'awaiting'}],
+    ref:'sign:roadpass_addendum_v2',
+    audit:[
+      {t:'2026-05-05 11:00', who:'u_an', what:'Created request'},
+      {t:'2026-05-05 11:01', who:'u_an', what:'Fanned out to 3 signers (parallel)'},
+      {t:'2026-05-05 11:09', who:'u_ol', what:'Signed'},
+    ]},
+  { title:'Cecilia / Hailo lease — quarterly', mode:'sequential', status:'signed',
+    signers:[{u:'u_an',state:'signed'},{u:'u_ce',state:'signed'}],
+    ref:'sign:hailo_lease_q2',
+    audit:[
+      {t:'2026-05-01 10:00', who:'u_an', what:'Created request'},
+      {t:'2026-05-01 10:14', who:'u_ce', what:'Signed'},
+      {t:'2026-05-01 10:14', who:'system', what:'Anchored to chain'},
+    ]},
+];
+RENDERERS.sign = (root) => {
+  root.innerHTML = `
+    <div class="grid-3" style="margin-bottom:18px">
+      <div class="stat"><div class="stat-label">Awaiting you</div><div class="stat-value">2</div><div class="stat-sub">oldest 4h ago</div></div>
+      <div class="stat"><div class="stat-label">Awaiting others</div><div class="stat-value">5</div><div class="stat-sub">3 sequential, 2 parallel</div></div>
+      <div class="stat"><div class="stat-label">Signed this month</div><div class="stat-value">23</div><div class="stat-bar"></div></div>
+    </div>
+    <div class="grid-2" style="grid-template-columns:1fr 1.4fr">
+      <div>
+        <div class="input-label">Requests</div>
+        <div class="card" style="padding:0" id="sign-list">
+          ${SIGN_REQUESTS.map((r,i)=>`
+            <div class="list-pick ${i===0?'active':''}" data-sign="${i}" onclick="signOpen(${i})">
+              <div class="flex-between">
+                <div style="min-width:0">
+                  <div style="font-weight:600;font-size:13px;color:var(--white);margin-bottom:4px">${r.title}</div>
+                  <div class="mono-sm">${r.signers.length} signers · ${r.mode}</div>
+                </div>
+                <span class="badge ${r.status==='signed'?'badge-ok':'badge-pending'}"><span class="badge-dot"></span>${r.status}</span>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="input-label">Signing detail</div>
+        <div class="card" style="padding:18px" id="sign-detail"></div>
+      </div>
+    </div>`;
+  signOpen(0);
+};
+window.signOpen = (i) => {
+  document.querySelectorAll('[data-sign]').forEach(e=>e.classList.toggle('active', String(e.dataset.sign)===String(i)));
+  const r = SIGN_REQUESTS[i];
+  const arrow = r.mode==='sequential' ? '<span class="signer-arrow">→</span>' : '';
+  $('sign-detail').innerHTML = `
+    <div class="flex-between" style="margin-bottom:14px">
+      <div>
+        <div style="font-weight:600;font-size:15px;color:var(--white);margin-bottom:4px">${r.title}</div>
+        <div class="mono-sm">${r.ref} · ${r.mode}</div>
+      </div>
+      <span class="badge ${r.status==='signed'?'badge-ok':'badge-pending'}"><span class="badge-dot"></span>${r.status}</span>
+    </div>
+    <div class="input-label">Signer order</div>
+    <div class="signer-rail" style="margin-bottom:18px">
+      ${r.signers.map((s,j) => {
+        const u = userOf(s.u);
+        const ring = s.state==='signed';
+        return `${j>0?arrow:''}<div class="signer">
+          ${ring?`<div class="avatar-ring"><div class="avatar avatar-sm">${u.init}</div></div>`:`<div class="avatar avatar-sm">${u.init}</div>`}
+          <div class="signer-name">${u.name}</div>
+          <div class="signer-state">${s.state}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="input-label">Witnessed audit trail</div>
+    <div class="timeline" style="margin:8px 0 16px 6px">
+      ${r.audit.map((a,j)=>`
+        <div class="timeline-item" style="padding-bottom:14px">
+          <div class="timeline-dot ${j===r.audit.length-1?'active':''}"></div>
+          <div class="timeline-title" style="font-size:12px">${a.what}</div>
+          <div class="timeline-time">${a.t} · ${a.who==='system'?'system':userOf(a.who).name}</div>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px">
+      ${r.status!=='signed'
+        ? `<button class="btn btn-white btn-sm" onclick="signSignNow(${i})">Sign now</button>
+           <button class="btn btn-outline btn-sm" onclick="toast('Declined')">Decline</button>
+           <button class="btn btn-ghost btn-sm" onclick="toast('Forwarded')">Forward</button>`
+        : `<button class="btn btn-dark btn-sm" onclick="copy('${fakeHash('sign:'+r.ref)}')">Copy receipt id</button>
+           <button class="btn btn-outline btn-sm" onclick="toast('Bundle downloaded')">⇣ Download bundle</button>`}
+    </div>`;
+};
+window.signSignNow = (i) => {
+  const r = SIGN_REQUESTS[i];
+  const me = r.signers.find(s=>s.state==='awaiting');
+  if (me){ me.state='signed'; r.audit.push({t:new Date().toISOString().slice(0,16).replace('T',' '), who:'u_an', what:'Signed (witnessed by chain)'}); }
+  if (r.signers.every(s=>s.state==='signed')) r.status='signed';
+  signOpen(i);
+  toast('Signed · receipt anchored');
+};
+
+RENDERERS.oracles = (root) => {
+  root.innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:18px">
+      <span class="badge badge-grad"><span class="badge-dot"></span>live</span>
+      <div style="flex:1;display:flex;gap:24px;overflow:hidden;font-family:var(--jb);font-size:11px;color:var(--sub);white-space:nowrap">
+        <span>BTC/USD <b style="color:var(--white)">$67,420</b> ▲0.4%</span>
+        <span>ETH/USD <b style="color:var(--white)">$3,128</b> ▼0.2%</span>
+        <span>NYC weather <b style="color:var(--white)">62°F clear</b></span>
+        <span>GH stars · BlackRoad <b style="color:var(--white)">1,284</b> ▲12</span>
+        <span>SF wind <b style="color:var(--white)">11mph WNW</b></span>
+      </div>
+    </div>
+    <div class="grid-3" id="oracle-grid"></div>
+    <div class="spacer"></div>
+    <div class="card-header" style="border:1px solid var(--border);border-radius:8px 8px 0 0;border-bottom:none">
+      <div class="card-header-title">Multi-source quorum</div>
+      <button class="btn btn-dark btn-sm" onclick="oracleRequest()">+ Request attestation</button>
+    </div>
+    <div class="card" style="border-top:none;border-radius:0 0 8px 8px;padding:18px">
+      <div style="margin-bottom:14px">
+        <div class="flex-between" style="margin-bottom:6px">
+          <div style="font-size:13px;color:var(--white)">BTC/USD · 3 sources</div>
+          <span class="mono-sm">median $67,420 · σ 0.18% · quorum 3/3</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" style="width:100%"></div></div>
+      </div>
+      ${[
+        ['Source A','$67,418','12s ago'],
+        ['Source B','$67,425','9s ago'],
+        ['Source C','$67,419','14s ago'],
+      ].map(([s,v,t])=>`
+        <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px"><span class="mono">${s}</span></div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <span class="mono">${v}</span>
+            <span class="mono-sm">${t}</span>
+            <span class="badge badge-ok"><span class="badge-dot"></span>signed</span>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  const feeds = [
+    {n:'BTC/USD',     v:'$67,420',  src:'3 sources', freq:'10s',  c:'badge-grad'},
+    {n:'ETH/USD',     v:'$3,128',   src:'3 sources', freq:'10s',  c:'badge-grad'},
+    {n:'NYC weather', v:'62°F',     src:'2 sources', freq:'5m',   c:''},
+    {n:'GH · stars',  v:'1,284',    src:'1 source',  freq:'1h',   c:'badge-line'},
+    {n:'SF wind',     v:'11mph',    src:'2 sources', freq:'5m',   c:''},
+    {n:'GPU price',   v:'$0.42/h',  src:'4 sources', freq:'15m',  c:'badge-grad'},
+  ];
+  $('oracle-grid').innerHTML = feeds.map(f=>`
+    <div class="card">
+      <div class="card-grad"></div>
+      <div class="card-body">
+        <div class="flex-between" style="margin-bottom:8px">
+          <span class="card-title">${f.n}</span>
+          ${f.c==='badge-line'?`<span class="badge-line">${f.src}</span>`:`<span class="badge ${f.c}"><span class="badge-dot"></span>${f.src}</span>`}
+        </div>
+        <div style="font-size:24px;font-weight:700;color:var(--white);font-family:var(--jb)">${f.v}</div>
+        <div class="card-meta">every ${f.freq} · last attest 12s ago</div>
+        <div class="stat-bar" style="margin-top:10px"></div>
+      </div>
+    </div>`).join('');
+};
+window.oracleRequest = () => {
+  openModal('Request an attestation', `
+    <div class="input-label">Query</div>
+    <input class="input input-mono" placeholder="e.g. price.coingecko.btc-usd" style="margin-bottom:12px">
+    <div class="grid-2">
+      <div><div class="input-label">Sources</div><input class="input" type="number" value="3"></div>
+      <div><div class="input-label">Quorum</div><input class="input" type="number" value="2"></div>
+    </div>
+    <div class="spacer-sm"></div>
+    <div class="alert"><div class="alert-bar"></div><div><div class="alert-title">Verifiable</div><div class="alert-text">Each source response is hashed into the receipt. Anyone can replay the source URLs and recompute.</div></div></div>`,
+    `<button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-white btn-sm" onclick="closeModal();toast('Attestation queued')">Request</button>`);
+};
+
+const RADAR_RULES = [
+  {name:'High-frequency same-ref writes', cond:'count(ref) > 10 within 5m', severity:'high', on:true},
+  {name:'Unusual byte size',              cond:'byte_size > 4096',          severity:'med',  on:true},
+  {name:'New user · sensitive kind',      cond:'kind in (sign.*,payment.*) and user.age < 7d', severity:'high', on:true},
+  {name:'Anchor gap',                     cond:'time_since(chain.anchor) > 24h', severity:'low',  on:false},
+  {name:'Off-hours ledger writes',        cond:'hour < 5 or hour > 23',     severity:'low',  on:false},
+];
+function pickRule(r){ return RADAR_RULES[r.score % RADAR_RULES.length].name; }
+RENDERERS.radar = (root) => {
+  root.innerHTML = `
+    <div class="grid-4" style="margin-bottom:18px">
+      <div class="stat"><div class="stat-label">Scored today</div><div class="stat-value">142</div><div class="stat-sub">+8 last hour</div></div>
+      <div class="stat"><div class="stat-label">Flagged</div><div class="stat-value" style="color:var(--yellow)">7</div><div class="stat-sub">awaiting review</div></div>
+      <div class="stat"><div class="stat-label">Blocked</div><div class="stat-value" style="color:var(--red)">2</div><div class="stat-sub">last 24h</div></div>
+      <div class="stat"><div class="stat-label">False positive</div><div class="stat-value">1.4%</div><div class="stat-bar"></div></div>
+    </div>
+    <div class="input-label">24-hour activity</div>
+    <div class="card" style="padding:14px;margin-bottom:18px">
+      <div class="heat" id="radar-heat"></div>
+      <div class="flex-between" style="margin-top:10px"><span class="mono-sm">00:00</span><span class="mono-sm">12:00</span><span class="mono-sm">23:59</span></div>
+    </div>
+    <div class="grid-2" style="grid-template-columns:1.4fr 1fr">
+      <div>
+        <div class="input-label">Flagged queue</div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Id</th><th>Kind</th><th>Score</th><th>Rule</th><th></th></tr></thead>
+            <tbody id="radar-rows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="input-label">Rules</div>
+        <div class="card">
+          ${RADAR_RULES.map((r,i)=>`
+            <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+              <label class="toggle"><input type="checkbox" ${r.on?'checked':''} onchange="RADAR_RULES[${i}].on=this.checked;toast('Rule '+(this.checked?'on':'off'))"><span class="toggle-slider"></span></label>
+              <div style="flex:1">
+                <div style="font-size:12px;color:var(--white);font-weight:500">${r.name}</div>
+                <div class="mono-sm">${r.cond}</div>
+              </div>
+              <span class="badge"><span class="badge-dot" style="background:var(--g135)"></span>${r.severity}</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  const lvl = (n) => n>40?'l5':n>30?'l4':n>20?'l3':n>10?'l2':n>0?'l1':'';
+  $('radar-heat').innerHTML = Array.from({length:24}, (_,h) => {
+    const v = Math.round(20 + 30*Math.sin(h/3) + (h%5)*4);
+    return `<div class="heat-cell ${lvl(v)}" title="${h}:00 · ${v} events"></div>`;
+  }).join('');
+  const flagged = CHAIN.filter(r=>r.score>60).slice(0,8);
+  $('radar-rows').innerHTML = flagged.map(r => `
+    <tr>
+      <td><span class="mono" onclick="copy('${r.id}')" style="cursor:pointer">${SHORT(r.id)}</span></td>
+      <td>${badgeFor(r.kind)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="score-bar"><div class="score-fill" style="width:${r.score}%"></div></div>
+          <span class="mono-sm">${r.score}</span>
+        </div>
+      </td>
+      <td><span class="mono-sm">${pickRule(r)}</span></td>
+      <td style="text-align:right;white-space:nowrap"><button class="btn btn-outline btn-sm" onclick="toast('Allowed')">allow</button> <button class="btn btn-dark btn-sm" onclick="toast('Blocked')">block</button></td>
+    </tr>`).join('');
+};
+
+const FAKE_DIFFS = [
+  ['title: "Road Pass · early"','title: "Road Pass — five hours"'],
+  ['status: draft','status: published'],
+  ['price_cents: 0','price_cents: 500'],
+  ['tags: ["draft"]','tags: ["pricing","public"]'],
+  ['signers: 2','signers: 3'],
+  ['quorum: 1','quorum: 2'],
+];
+RENDERERS.audit = (root) => {
+  root.innerHTML = `
+    <div class="row" style="margin-bottom:14px;align-items:flex-end">
+      <div class="col" style="max-width:200px"><div class="input-label">User</div><select class="input" id="aud-user" onchange="audRender()"><option value="">all</option>${USERS.map(u=>`<option value="${u.id}">${u.name}</option>`).join('')}</select></div>
+      <div class="col" style="max-width:220px"><div class="input-label">Kind</div><select class="input" id="aud-kind" onchange="audRender()"><option value="">all</option>${KINDS.map(k=>`<option>${k}</option>`).join('')}</select></div>
+      <div class="col" style="max-width:200px"><div class="input-label">Ref pattern</div><input class="input input-mono" id="aud-ref" placeholder="roadbook:*" oninput="audRender()"></div>
+      <div class="col"><div class="input-label">From → To</div><div style="display:flex;gap:6px"><input class="input" type="date" value="2026-04-20"><input class="input" type="date" value="2026-05-06"></div></div>
+      <div><button class="btn btn-white btn-sm" onclick="exportChain()">⇣ Export NDJSON</button></div>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Ref</th><th>Before → After</th><th></th></tr></thead>
+        <tbody id="aud-rows"></tbody>
+      </table>
+    </div>
+    <div class="spacer"></div>
+    <div class="alert"><div class="alert-bar"></div><div><div class="alert-title">Append-only</div><div class="alert-text">Audit rows mirror the chain. Each entry is a content-addressed receipt — edits create new rows, never overwrites.</div></div></div>`;
+  audRender();
+};
+window.audRender = () => {
+  const u = $('aud-user').value, k = $('aud-kind').value, rp = ($('aud-ref').value||'').replace('*','');
+  const rows = CHAIN.slice().reverse().filter(r => {
+    if (u && r.user_id !== u) return false;
+    if (k && r.kind !== k) return false;
+    if (rp && !r.ref.includes(rp)) return false;
+    return true;
+  }).slice(0,20);
+  $('aud-rows').innerHTML = rows.length ? rows.map((r,i) => {
+    const d = FAKE_DIFFS[i % FAKE_DIFFS.length];
+    return `<tr>
+      <td><span class="mono-sm">${DAY(r.created_at)} ${HHMM(r.created_at)}</span></td>
+      <td><div style="display:flex;align-items:center;gap:6px">${avatarFor(r.user_id,'sm')}<span style="font-size:12px">${userOf(r.user_id).name}</span></div></td>
+      <td>${badgeFor(r.kind)}</td>
+      <td><span class="mono-sm">${r.ref}</span></td>
+      <td><div class="mono-sm" style="color:#ffa198">- ${d[0]}</div><div class="mono-sm" style="color:#7ee787">+ ${d[1]}</div></td>
+      <td style="text-align:right"><button class="btn btn-ghost btn-sm" onclick="openRecord('${r.id}')">→</button></td>
+    </tr>`;
+  }).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No matches.</td></tr>`;
+};
+
+const DOCS = [
+  { title:'Road Pass — pricing draft', revisions:[
+    {tag:null,  by:'u_an', t:'2026-04-22T14:00:00Z', body:'Road Pass: 5 free hours, $5/month after.', note:'Initial'},
+    {tag:'v1',  by:'u_an', t:'2026-04-23T10:00:00Z', body:'Road Pass: 5 free hours, $5/month after. Capacity-limited waitlist.', note:'First locked draft'},
+    {tag:null,  by:'u_ce', t:'2026-04-25T09:00:00Z', body:'Road Pass: 5 free hours, $5/month after. Capacity-limited waitlist. Node operators earn extra hours.', note:'Add operator credit'},
+    {tag:'v2',  by:'u_an', t:'2026-04-30T11:00:00Z', body:'Road Pass: 5 free hours, $5/month after. While the road has room. Node contributors earn extra hours.', note:'Brand voice pass'},
+    {tag:null,  by:'u_al', t:'2026-05-04T18:00:00Z', body:'Road Pass: 5 hours free. $5/month after. While the road has room.', note:'Tighten copy'},
+  ]},
+  { title:'Operator agreement Q2', revisions:[
+    {tag:null,    by:'u_an', t:'2026-04-15T10:00:00Z', body:'Section 1. Operator duties…', note:'Draft'},
+    {tag:'sent',  by:'u_an', t:'2026-04-20T16:00:00Z', body:'Section 1. Operator duties…\nSection 2. Compensation…', note:'Sent for review'},
+    {tag:'final', by:'u_an', t:'2026-05-04T14:00:00Z', body:'Section 1. Operator duties…\nSection 2. Compensation…\nSection 3. Termination.', note:'Locked'},
+  ]},
+  { title:'Wiki — Getting started', revisions:[
+    {tag:null, by:'u_ge', t:'2026-04-10T09:00:00Z', body:'# Getting started\nClone the repo and run `bun dev`.', note:'First page'},
+    {tag:null, by:'u_ce', t:'2026-04-12T11:00:00Z', body:'# Getting started\nClone the repo and run `bun dev`.\n\n## Hardware\nPi 5 + Hailo-8.', note:'Add hardware'},
+    {tag:'v1', by:'u_ge', t:'2026-04-20T10:00:00Z', body:'# Getting started\nClone the repo and run `bun dev`.\n\n## Hardware\nPi 5 + Hailo-8 (cecilia).', note:'Pin to v1'},
+  ]},
+];
+let VER_DOC = 0, VER_REV = null;
+RENDERERS.versions = (root) => {
+  root.innerHTML = `
+    <div style="display:grid;grid-template-columns:.8fr 1fr 1.4fr;gap:14px">
+      <div>
+        <div class="input-label">Documents</div>
+        <div class="card" style="padding:0">
+          ${DOCS.map((d,i)=>`<div class="list-pick ${i===0?'active':''}" data-doc="${i}" onclick="verPick(${i})">
+            <div style="font-weight:600;font-size:13px;color:var(--white);margin-bottom:3px">${d.title}</div>
+            <div class="mono-sm">${d.revisions.length} revisions</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="input-label">Revisions</div>
+        <div class="card" style="padding:18px;max-height:520px;overflow-y:auto"><div class="timeline" id="ver-timeline"></div></div>
+      </div>
+      <div>
+        <div class="input-label">Viewer</div>
+        <div class="card" style="padding:18px;min-height:280px" id="ver-view"></div>
+      </div>
+    </div>`;
+  verPick(0);
+};
+window.verPick = (i) => {
+  VER_DOC = i; VER_REV = null;
+  document.querySelectorAll('[data-doc]').forEach(e=>e.classList.toggle('active', String(e.dataset.doc)===String(i)));
+  const d = DOCS[i];
+  $('ver-timeline').innerHTML = d.revisions.slice().reverse().map((r,j) => {
+    const u = userOf(r.by);
+    const realIdx = d.revisions.length-1-j;
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot ${j===0?'active':''}"></div>
+        <div class="flex-between">
+          <div style="cursor:pointer;min-width:0" onclick="verView(${realIdx})">
+            <div class="timeline-title">${r.tag?`<span class="badge badge-line" style="margin-right:6px">${r.tag}</span>`:''}${r.note}</div>
+            <div class="timeline-text" style="font-size:12px">${u.name} · <span class="mono-sm">${REL(r.t)}</span></div>
+          </div>
+          <button class="btn btn-${r.tag?'white':'outline'} btn-sm" onclick="verRestore(${realIdx})">restore</button>
+        </div>
+      </div>`;
+  }).join('');
+  verView(d.revisions.length-1);
+};
+window.verView = (revIdx) => {
+  VER_REV = revIdx;
+  const r = DOCS[VER_DOC].revisions[revIdx];
+  $('ver-view').innerHTML = `
+    <div class="flex-between" style="margin-bottom:14px">
+      <div>
+        <div style="font-weight:600;color:var(--white);font-size:14px">${r.note}</div>
+        <div class="mono-sm">${userOf(r.by).name} · ${DAY(r.t)} ${HHMM(r.t)}</div>
+      </div>
+      ${r.tag?`<span class="badge badge-grad"><span class="badge-dot"></span>${r.tag}</span>`:''}
+    </div>
+    <div class="code-block">${ESC(r.body)}</div>
+    <div class="spacer-sm"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm" onclick="toast('Tagged')">Name this revision</button>
+      <button class="btn btn-dark btn-sm" onclick="verRestore(${revIdx})">Restore as new revision</button>
+    </div>`;
+};
+window.verRestore = (i) => {
+  const d = DOCS[VER_DOC];
+  const r = d.revisions[i];
+  d.revisions.push({ tag:null, by:'u_an', t:new Date().toISOString(), body:r.body, note:`Restored from ${r.tag||REL(r.t)}` });
+  toast('Restored · new revision anchored');
+  verPick(VER_DOC);
+};
+
+RENDERERS.wayback = (root) => {
+  const refs = [...new Set(CHAIN.map(r=>r.ref))];
+  root.innerHTML = `
+    <div class="row" style="margin-bottom:18px;align-items:flex-end">
+      <div class="col" style="max-width:380px"><div class="input-label">Ref</div><select class="input input-mono" id="way-ref" onchange="wayRender()">${refs.map(r=>`<option>${r}</option>`).join('')}</select></div>
+      <div class="col" style="max-width:140px"><div class="input-label">Year</div><select class="input" id="way-year" onchange="wayRender()"><option>2026</option><option>2025</option></select></div>
+      <div style="margin-left:auto"><span class="badge badge-line">snapshots indexed daily</span></div>
+    </div>
+    <div class="card" style="padding:20px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div style="font-weight:600;color:var(--white);font-size:14px">Snapshot calendar</div>
+        <span class="badge badge-grad"><span class="badge-dot"></span><span id="way-yearlbl">2026</span></span>
+        <div style="margin-left:auto;font-family:var(--jb);font-size:10px;color:var(--muted)">less ░ ▒ ▓ █ more</div>
+      </div>
+      <div class="cal" id="way-cal"></div>
+      <div style="margin-top:14px;display:flex;justify-content:space-between;font-family:var(--jb);font-size:10px;color:var(--muted)">
+        <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="input-label">Snapshots — selected day</div>
+        <div class="card" id="way-day" style="padding:14px;min-height:160px"><div class="card-text" style="text-align:center;padding:40px 0">Click a day in the calendar to load snapshots.</div></div>
+      </div>
+      <div>
+        <div class="input-label">"As of" replay</div>
+        <div class="card" id="way-replay" style="padding:14px;min-height:160px"><div class="card-text" style="text-align:center;padding:40px 0">Pick a snapshot to replay the record's state at that moment.</div></div>
+      </div>
+    </div>`;
+  wayRender();
+};
+window.wayRender = () => {
+  const ref = $('way-ref').value;
+  const year = $('way-year').value;
+  $('way-yearlbl').textContent = year;
+  const cells = [];
+  for (let w=0; w<53; w++){
+    for (let d=0; d<7; d++){
+      const idx = w*7+d;
+      const seed = idx + ref.length + year.charCodeAt(3);
+      const hasSnap = seed % 11 === 0 || seed % 7 === 3;
+      const lvl = hasSnap ? ['l1','l2','l3','l4'][seed%4] : '';
+      cells.push(`<div class="cal-cell ${lvl}" data-day="${idx}" onclick="wayDay(${idx},'${ref}','${year}')" title="day ${idx}${hasSnap?' · snapshots':''}"></div>`);
+    }
+  }
+  $('way-cal').innerHTML = cells.join('');
+};
+window.wayDay = (idx, ref, year) => {
+  const date = new Date(parseInt(year,10),0,1);
+  date.setDate(date.getDate()+idx);
+  const isoDay = date.toISOString().slice(0,10);
+  const snaps = ['08:14','11:42','15:09','19:30'].slice(0, 1+(idx%4));
+  $('way-day').innerHTML = `
+    <div class="flex-between" style="margin-bottom:10px"><div style="font-weight:600;color:var(--white);font-size:13px">${isoDay} · ${ref}</div><span class="badge"><span class="badge-dot"></span>${snaps.length} snaps</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${snaps.map(t=>`<button class="btn btn-dark btn-sm" onclick="wayReplay('${isoDay} ${t}','${ref}')">${t}</button>`).join('')}
+    </div>`;
+};
+window.wayReplay = (when, ref) => {
+  $('way-replay').innerHTML = `
+    <div class="flex-between" style="margin-bottom:10px"><div style="font-weight:600;color:var(--white);font-size:13px">As of ${when}</div><span class="badge badge-grad"><span class="badge-dot"></span>frozen</span></div>
+    <div class="mono-sm" style="margin-bottom:10px">${ref}</div>
+    <div class="code-block">${ESC(`{
+  "ref":     "${ref}",
+  "as_of":   "${when}",
+  "head_id": "${SHORT(fakeHash(when+ref))}",
+  "fields": {
+    "title":   "Road Pass · early draft",
+    "status":  "draft",
+    "tags":    ["road","pass"]
+  }
+}`)}</div>
+    <div class="spacer-sm"></div>
+    <button class="btn btn-outline btn-sm" onclick="toast('Snapshot URL copied')">Copy permalink</button>`;
+};
+
+const ANCHORS = [
+  { id:fakeHash('anc1'), head:HEAD,           total:CHAIN.length, calendar:'btc',   status:'pending',   t:new Date(Date.now()-2*3600*1000).toISOString(), bytes:CHAIN.reduce((s,r)=>s+r.byte_size,0) },
+  { id:fakeHash('anc2'), head:fakeHash('h2'), total:30,           calendar:'cal-a', status:'confirmed', t:new Date(Date.now()-2*86400*1000).toISOString(), bytes:8123 },
+  { id:fakeHash('anc3'), head:fakeHash('h3'), total:24,           calendar:'btc',   status:'confirmed', t:new Date(Date.now()-7*86400*1000).toISOString(), bytes:6201 },
+  { id:fakeHash('anc4'), head:fakeHash('h4'), total:18,           calendar:'cal-b', status:'confirmed', t:new Date(Date.now()-14*86400*1000).toISOString(), bytes:4002 },
+];
+RENDERERS.anchors = (root) => {
+  root.innerHTML = `
+    <div class="grid-3" style="margin-bottom:18px">
+      <div class="stat"><div class="stat-label">Anchors total</div><div class="stat-value">${ANCHORS.length}</div><div class="stat-sub">first 2026-02-04</div></div>
+      <div class="stat"><div class="stat-label">Pending confirm</div><div class="stat-value" style="color:var(--yellow)">1</div><div class="stat-sub">avg confirm 1.6h</div></div>
+      <div class="stat"><div class="stat-label">External calendars</div><div class="stat-value">3</div><div class="stat-sub">btc · cal-a · cal-b</div></div>
+    </div>
+    <div class="grid-2" style="grid-template-columns:1fr 1.2fr">
+      <div>
+        <div class="flex-between" style="margin-bottom:10px"><div class="input-label" style="margin:0">Anchor history</div><button class="btn btn-white btn-sm" onclick="anchorModal()">⛓ Anchor head now</button></div>
+        <div class="card" style="padding:0">
+          ${ANCHORS.map((a,i)=>`<div class="list-pick ${i===0?'active':''}" data-anc="${i}" onclick="ancPick(${i})">
+            <div class="flex-between" style="margin-bottom:4px">
+              <span class="mono">${SHORT(a.id)}</span>
+              <span class="badge ${a.status==='confirmed'?'badge-ok':'badge-pending'}"><span class="badge-dot"></span>${a.status}</span>
+            </div>
+            <div class="mono-sm">${a.calendar} · head ${SHORT(a.head)} · ${a.total} records</div>
+            <div class="mono-sm" style="color:var(--muted);margin-top:2px">${REL(a.t)}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="input-label">Proof bundle</div>
+        <div class="card" style="padding:18px" id="anc-detail"></div>
+      </div>
+    </div>`;
+  ancPick(0);
+};
+window.ancPick = (i) => {
+  const a = ANCHORS[i];
+  document.querySelectorAll('[data-anc]').forEach(e=>e.classList.toggle('active', String(e.dataset.anc)===String(i)));
+  $('anc-detail').innerHTML = `
+    <div class="flex-between" style="margin-bottom:14px">
+      <div>
+        <div style="font-weight:600;color:var(--white);font-size:14px">Anchor ${SHORT(a.id)}</div>
+        <div class="mono-sm">${a.calendar} calendar · ${REL(a.t)}</div>
+      </div>
+      <span class="badge ${a.status==='confirmed'?'badge-ok':'badge-pending'}"><span class="badge-dot"></span>${a.status}</span>
+    </div>
+    <div class="grid-2" style="margin-bottom:14px">
+      <div><div class="input-label">Head at anchor</div><div class="mono" style="cursor:pointer;word-break:break-all" onclick="copy('${a.head}')">${SHORT(a.head)}</div></div>
+      <div><div class="input-label">Total records</div><div class="mono">${a.total}</div></div>
+      <div><div class="input-label">Bytes</div><div class="mono">${a.bytes.toLocaleString()}</div></div>
+      <div><div class="input-label">Submitted</div><div class="mono-sm">${a.t.slice(0,16).replace('T',' ')}</div></div>
+    </div>
+    <div class="input-label">Merkle proof steps</div>
+    <div class="merkle">
+      ${[
+        ['hash',  'sha256(record_id)',     '=', '01ab…'],
+        ['concat','prev || sibling',       ' ', '9bb1…'],
+        ['hash',  'sha256(concat)',        '=', 'f8d2…'],
+        ['concat','step || sibling',       ' ', '22ee…'],
+        ['hash',  'sha256(concat)',        '=', 'ccaa…'],
+        ['root',  'calendar root',         '=', a.calendar==='btc' ? 'tx 8f4c…' : 'block 17312'],
+      ].map(([op,what,eq,val])=>`
+        <div class="merkle-step"><span class="merkle-op">${op}</span><span style="flex:1">${what}</span><span style="color:var(--muted)">${eq}</span><span style="color:var(--white)">${val}</span></div>
+      `).join('')}
+    </div>
+    <div class="spacer-sm"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="toast('Bundle copied')">Copy bundle</button>
+      <button class="btn btn-dark btn-sm" onclick="toast('Verifier instructions opened')">Verify off-network</button>
+      <button class="btn btn-white btn-sm" onclick="toast('Downloaded anchor proof JSON')">⇣ Download proof</button>
+    </div>`;
+};
+window.anchorModal = () => {
+  openModal('Anchor head now', `
+    <div class="input-label">Note (optional)</div>
+    <input class="input" placeholder="What does this anchor preserve?" style="margin-bottom:12px">
+    <div class="input-label">Calendar</div>
+    <select class="input" style="margin-bottom:12px"><option>btc</option><option>cal-a</option><option>cal-b</option></select>
+    <div class="alert"><div class="alert-bar"></div><div><div class="alert-title">Verifiable</div><div class="alert-text">Anchors snapshot the chain head and root into an external calendar. Anyone can recompute the root from the bundle.</div></div></div>`,
+    `<button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-white btn-sm" onclick="closeModal();anchorNow()">⛓ Anchor</button>`);
+};
+
+RENDERERS.verify = (root) => {
+  root.innerHTML = `
+    <div class="card" style="padding:24px;margin-bottom:18px;text-align:center;background:linear-gradient(180deg,var(--card),#080808)">
+      <div style="font-size:18px;font-weight:600;color:var(--white);margin-bottom:6px">Public verifier</div>
+      <div class="card-text" style="margin:0 auto 18px;max-width:520px">Paste any chain id. The verifier recomputes the canonical hash and walks the prev_id links you ask for. No auth, no body — receipts are content-addressed.</div>
+      <div class="input-group" style="max-width:560px;margin:0 auto 12px"><span class="input-group-icon">⌗</span>
+        <input class="input input-mono" id="verify-input" placeholder="0x… (paste a record id)" value="${HEAD}">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap">
+        <label class="mono-sm" style="color:var(--sub)">walk back</label>
+        <input type="range" min="0" max="64" value="4" id="verify-walk" oninput="document.getElementById('verify-walkv').textContent=this.value">
+        <span class="mono" id="verify-walkv">4</span>
+        <span class="mono-sm" style="color:var(--muted)">steps · 64 max</span>
+        <button class="btn btn-white btn-sm" onclick="verifyId()">Verify →</button>
+      </div>
+    </div>
+    <div id="verify-out"></div>`;
+  setTimeout(verifyId, 30);
+};
+window.verifyId = () => {
+  const id = ($('verify-input').value||'').trim();
+  const walk = parseInt($('verify-walk').value||'4',10);
+  const r = CHAIN.find(x => x.id === id);
+  if (!r){
+    $('verify-out').innerHTML = `<div class="alert"><div class="alert-bar" style="background:var(--red)"></div><div><div class="alert-title">Not found</div><div class="alert-text">No record with that id is published. Try a recent record from Explorer.</div></div></div>`;
+    return;
+  }
+  const trail = [r];
+  let cur = r;
+  for (let i=0;i<walk && cur.prev_id;i++){
+    const p = CHAIN.find(x => x.id === cur.prev_id);
+    if (!p) break;
+    trail.push(p); cur = p;
+  }
+  const badgeHtml =
+`<a href="https://blackroad.io/api/chain/verify/${r.id}"
+   class="roadchain-badge">
+  ✓ verified · ${SHORT(r.id)}
+</a>`;
+  $('verify-out').innerHTML = `
+    <div class="grid-2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="card-grad"></div>
+        <div class="card-body">
+          <div class="flex-between" style="margin-bottom:10px"><div class="card-title">Receipt</div><span class="badge badge-ok"><span class="badge-dot"></span>valid</span></div>
+          <div class="input-label">Id</div><div class="mono" style="cursor:pointer;word-break:break-all" onclick="copy('${r.id}')">${r.id}</div>
+          <div class="spacer-sm"></div>
+          <div class="grid-2">
+            <div><div class="input-label">Kind</div>${badgeFor(r.kind)}</div>
+            <div><div class="input-label">Bytes</div><div class="mono-sm">${r.byte_size}</div></div>
+            <div><div class="input-label">Ref</div><div class="mono-sm">${r.ref}</div></div>
+            <div><div class="input-label">When</div><div class="mono-sm">${r.created_at.slice(0,16).replace('T',' ')}</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-grad"></div>
+        <div class="card-body">
+          <div class="card-title" style="margin-bottom:10px">Hash recompute</div>
+          <div class="merkle">
+            ${[
+              ['canon',  '{p,k,r,d,a,t,u}', '→', 'json'],
+              ['utf8',   'encode',          '→', 'bytes'],
+              ['sha256', 'digest',          '=', SHORT(r.id)],
+              ['compare','vs stored id',    '=', '✓ match'],
+            ].map(([op,what,eq,val])=>`<div class="merkle-step"><span class="merkle-op">${op}</span><span style="flex:1">${what}</span><span style="color:var(--muted)">${eq}</span><span style="color:var(--white)">${val}</span></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="input-label">Walked ${trail.length-1} step${trail.length-1===1?'':'s'} back along prev_id</div>
+    <div class="card" style="padding:16px;margin-bottom:18px;max-height:420px;overflow-y:auto">
+      <div class="timeline">
+        ${trail.map((x,i)=>`
+          <div class="timeline-item">
+            <div class="timeline-dot ${i===0?'active':''}"></div>
+            <div class="flex-between">
+              <div style="min-width:0">
+                <div class="timeline-title">${i===0?'this record':'step −'+i} · ${x.kind}</div>
+                <div class="mono-sm" onclick="copy('${x.id}')" style="cursor:pointer;word-break:break-all">${x.id}</div>
+              </div>
+              <span class="badge badge-ok"><span class="badge-dot"></span>valid</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="input-label">Receipt JSON</div>
+        <div class="code-block">${ESC(JSON.stringify({id:r.id,prev_id:r.prev_id,kind:r.kind,ref:r.ref,byte_size:r.byte_size,created_at:r.created_at,valid:true}, null, 2))}</div>
+        <div class="spacer-sm"></div>
+        <button class="btn btn-outline btn-sm" onclick="toast('Receipt JSON downloaded')">⇣ Download receipt</button>
+      </div>
+      <div>
+        <div class="input-label">Embeddable badge</div>
+        <div class="code-block">${ESC(badgeHtml)}</div>
+        <div class="spacer-sm"></div>
+        <button class="btn btn-outline btn-sm" onclick="copy('roadchain badge for ${r.id}')">Copy badge HTML</button>
+      </div>
+    </div>`;
+};
+
+renderRail();
+renderHost();
+showSpace('explorer');
+$('status-head').textContent = SHORT(HEAD);
+$('status-total').textContent = CHAIN.length;
+</script>
+</body>
+</html>
