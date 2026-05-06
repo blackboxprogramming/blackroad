@@ -1,0 +1,3074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadCode — BlackRoad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* === BRAND TOKENS (from brand-guide-exact.html) === */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --g:linear-gradient(90deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+  --g135:linear-gradient(135deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+  --ember:#FF6B2B;--flare:#FF2255;--mag:#CC00AA;--orchid:#8844FF;--arc:#4488FF;--cyan:#00D4FF;
+  --bg:#000;--card:#0a0a0a;--elevated:#111;--hover:#181818;--border:#1a1a1a;
+  --muted:#444;--sub:#737373;--text:#f5f5f5;--white:#fff;
+  --sg:'Space Grotesk',sans-serif;--jb:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sg);font-size:13px;line-height:1.5}
+button{font-family:var(--sg);cursor:pointer;background:none;border:none;color:inherit}
+input,textarea,select{font-family:var(--sg)}
+.mono{font-family:var(--jb)}
+
+/* === APP SHELL === */
+.app{display:flex;flex-direction:column;height:100vh;width:100vw}
+/* === TOPBAR === */
+.topbar{height:44px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:14px;flex-shrink:0;position:relative}
+.topbar::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--g);opacity:.06}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;color:var(--white)}
+.brand-bar{width:22px;height:4px;border-radius:2px;background:var(--g)}
+.crumbs{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub)}
+.crumbs .sep{color:var(--muted);font-size:10px}
+.crumbs .cur{color:var(--white);font-weight:500}
+.crumbs .branch{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-family:var(--jb);font-size:11px;color:var(--text)}
+.cmdk-stub{flex:1;max-width:480px;margin:0 auto;display:flex;align-items:center;gap:10px;height:28px;padding:0 12px;background:var(--elevated);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;position:relative;overflow:hidden}
+.cmdk-stub::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--g)}
+.cmdk-stub:hover{border-color:#333;color:var(--sub)}
+.cmdk-stub .kbd{margin-left:auto;padding:1px 6px;background:var(--card);border:1px solid var(--border);border-radius:3px;font-family:var(--jb);font-size:10px;color:var(--sub)}
+.build-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:500}
+.build-pill .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e}
+.build-pill.building .dot{background:var(--ember);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.avatar-stack{display:flex}
+.av{width:24px;height:24px;border-radius:50%;background:var(--elevated);border:2px solid var(--card);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--text);margin-left:-6px}
+.av:first-child{margin-left:0}
+.av.gr{background:var(--g135);color:#000}
+.deploy-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--white);color:#000;border-radius:5px;font-weight:600;font-size:12px}
+.deploy-btn:hover{background:#e0e0e0}
+.icon-btn{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;color:var(--sub);font-size:13px}
+.icon-btn:hover{background:var(--hover);color:var(--white)}
+
+/* === ACTIVITY RAIL === */
+.rail{width:52px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:2px;flex-shrink:0}
+.rail-btn{position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--muted);font-size:16px;transition:all .15s}
+.rail-btn:hover{color:var(--text);background:var(--hover)}
+.rail-btn.active{color:var(--white)}
+.rail-btn.active::before{content:'';position:absolute;left:-8px;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--g)}
+.rail-btn .badge{position:absolute;top:4px;right:4px;min-width:14px;height:14px;padding:0 4px;background:var(--flare);border-radius:7px;font-family:var(--jb);font-size:9px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+.rail-tip{position:absolute;left:48px;top:50%;transform:translateY(-50%);background:var(--white);color:#000;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:500;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:50}
+.rail-btn:hover .rail-tip{opacity:1}
+.rail-spacer{flex:1}
+
+/* === SIDEBAR === */
+.sidebar{width:260px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sb-head{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.sb-title{font-size:11px;font-weight:600;color:var(--white);text-transform:uppercase;letter-spacing:.08em}
+.sb-actions{display:flex;gap:2px}
+.sb-act{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;color:var(--muted);font-size:12px}
+.sb-act:hover{background:var(--hover);color:var(--white)}
+.sb-body{flex:1;overflow-y:auto;padding:6px 0}
+.sb-section{padding:6px 0}
+.sb-section-label{padding:6px 14px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between}
+.sb-item{display:flex;align-items:center;gap:8px;padding:5px 14px;font-size:13px;color:var(--sub);cursor:pointer;border-left:2px solid transparent}
+.sb-item:hover{background:var(--hover);color:var(--text)}
+.sb-item.active{background:var(--hover);color:var(--white);border-left-color:var(--arc)}
+.sb-item .icon{width:14px;font-size:11px;color:var(--muted);text-align:center}
+.sb-item .meta{margin-left:auto;font-family:var(--jb);font-size:10px;color:var(--muted)}
+.sb-search{padding:8px 12px}
+.sb-search input{width:100%;padding:6px 10px;background:var(--elevated);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;outline:none}
+.sb-search input:focus{border-color:var(--arc)}
+
+/* === WORKBENCH === */
+.tabbar{height:34px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:0 4px;flex-shrink:0;overflow-x:auto}
+.tabbar::-webkit-scrollbar{height:0}
+.wb-tab{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px;font-size:12px;color:var(--sub);background:transparent;border-right:1px solid var(--border);cursor:pointer;position:relative;flex-shrink:0;border-top:2px solid transparent}
+.wb-tab:hover{color:var(--text)}
+.wb-tab.active{background:var(--bg);color:var(--white);border-top-color:var(--arc)}
+.wb-tab .ic{font-size:11px;color:var(--cyan)}
+.wb-tab .dot{width:6px;height:6px;border-radius:50%;background:var(--white);opacity:0}
+.wb-tab.dirty .dot{opacity:1}
+.wb-tab .x{margin-left:4px;width:14px;height:14px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);opacity:0}
+.wb-tab:hover .x,.wb-tab.active .x{opacity:1}
+.wb-tab .x:hover{background:var(--hover);color:var(--white)}
+.wb-breadcrumb{height:26px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;font-family:var(--jb);font-size:11px;color:var(--muted);gap:6px;flex-shrink:0}
+.wb-breadcrumb .sep{color:#2a2a2a}
+.wb-breadcrumb .last{color:var(--text)}
+.wb-stage{flex:1;display:flex;min-height:0;background:var(--bg);position:relative;overflow:hidden}
+
+/* === INSPECTOR === */
+.inspector{width:280px;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.inspector.collapsed{width:0;border-left:none}
+.insp-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.insp-title{font-size:11px;font-weight:600;color:var(--white);text-transform:uppercase;letter-spacing:.08em}
+.insp-body{flex:1;overflow-y:auto;padding:12px 14px}
+.insp-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.insp-tab{flex:1;padding:8px;font-size:11px;font-weight:500;color:var(--sub);text-align:center;cursor:pointer;border-bottom:2px solid transparent}
+.insp-tab.active{color:var(--white);border-bottom-color:var(--white)}
+
+/* === STATUSBAR === */
+.statusbar{height:24px;background:var(--card);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 10px;font-family:var(--jb);font-size:10px;color:var(--sub);gap:14px;flex-shrink:0;position:relative}
+.statusbar::before{content:'';position:absolute;left:0;right:0;top:-1px;height:1px;background:var(--g);opacity:.06}
+.st-item{display:inline-flex;align-items:center;gap:5px;padding:0 6px;height:20px;border-radius:3px;cursor:pointer;color:var(--sub)}
+.st-item:hover{background:var(--hover);color:var(--text)}
+.st-item .dot{width:6px;height:6px;border-radius:50%}
+.st-item .gr{background:var(--g135);width:6px;height:6px;border-radius:50%}
+.st-spacer{flex:1}
+.st-err{color:#fca5a5}
+.st-warn{color:#fbbf24}
+
+/* === BOTTOM PANEL === */
+.bottom-panel{border-top:1px solid var(--border);background:var(--card);height:200px;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.bottom-panel.collapsed{height:0;border-top:none}
+.bp-head{height:30px;display:flex;align-items:center;border-bottom:1px solid var(--border);padding:0 4px;flex-shrink:0}
+.bp-tab{padding:0 12px;height:30px;display:inline-flex;align-items:center;font-size:11px;font-weight:500;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;gap:6px}
+.bp-tab:hover{color:var(--text)}
+.bp-tab.active{color:var(--white);border-bottom-color:var(--white)}
+.bp-tab .ct{font-family:var(--jb);font-size:10px;background:var(--elevated);padding:1px 5px;border-radius:8px;color:var(--muted)}
+.bp-actions{margin-left:auto;display:flex;gap:2px;padding-right:6px}
+.bp-body{flex:1;overflow:auto;padding:8px 14px;font-family:var(--jb);font-size:12px;line-height:1.6}
+
+/* === CMD PALETTE OVERLAY === */
+.cmd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding-top:12vh;z-index:1000}
+.cmd-overlay.open{display:flex}
+.cmd-palette{background:var(--card);border:1px solid var(--border);border-radius:12px;width:600px;max-width:92vw;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.7)}
+.cmd-grad{height:3px;background:var(--g)}
+.cmd-input-wrap{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.cmd-prefix{font-family:var(--jb);font-size:12px;color:var(--muted)}
+.cmd-input{flex:1;background:none;border:none;color:var(--white);font-size:14px;outline:none}
+.cmd-input::placeholder{color:var(--muted)}
+.cmd-results{max-height:380px;overflow-y:auto;padding:6px}
+.cmd-group-label{padding:8px 14px 4px;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.cmd-item{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:6px;cursor:pointer}
+.cmd-item.sel,.cmd-item:hover{background:var(--hover)}
+.cmd-item-icon{width:18px;font-size:12px;color:var(--muted);text-align:center}
+.cmd-item-text{flex:1;font-size:13px;color:var(--text)}
+.cmd-item-sub{font-size:11px;color:var(--muted);font-family:var(--jb)}
+.cmd-item-kbd{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.cmd-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:18px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+
+/* === TOASTS === */
+.toast-stack{position:fixed;bottom:40px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:900;max-width:380px}
+.toast{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:12px;animation:slideIn .25s ease;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.toast .bar{width:3px;align-self:stretch;border-radius:2px;background:var(--g);flex-shrink:0}
+.toast-title{font-weight:600;color:var(--white);margin-bottom:2px}
+.toast-text{color:var(--sub);line-height:1.5}
+.toast-close{margin-left:8px;color:var(--muted);font-size:13px}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+/* === EDITOR === */
+.editor-wrap{flex:1;display:flex;min-width:0;position:relative}
+.editor{flex:1;display:flex;font-family:var(--jb);font-size:13px;line-height:1.6;overflow:auto;background:var(--bg)}
+.gutter{padding:8px 0;background:var(--bg);user-select:none;flex-shrink:0;border-right:1px solid #0f0f0f}
+.gutter-line{display:flex;align-items:center;height:21px;padding:0 8px 0 14px;font-family:var(--jb);font-size:11px;color:var(--muted);justify-content:flex-end;gap:6px;min-width:60px}
+.gutter-line.cur{color:var(--text)}
+.gutter-line .gd{width:3px;height:21px;border-radius:1px}
+.gutter-line .gd.add{background:#22c55e}
+.gutter-line .gd.mod{background:var(--ember)}
+.gutter-line .gd.del{background:var(--flare)}
+.gutter-line .bp{width:8px;height:8px;border-radius:50%;background:var(--flare);box-shadow:0 0 4px var(--flare)}
+.code{flex:1;padding:8px 14px;white-space:pre;color:var(--text);min-width:0;outline:none;tab-size:2;position:relative}
+.code .cur-line{position:absolute;left:0;right:0;height:21px;background:rgba(255,255,255,.025);pointer-events:none}
+.minimap{width:60px;background:var(--card);border-left:1px solid var(--border);overflow:hidden;flex-shrink:0;padding:8px 4px;position:relative}
+.mini-line{height:2px;margin-bottom:1px;background:#1a1a1a;border-radius:1px}
+.mini-line.has{background:#2a2a2a}
+.mini-line.cur{background:var(--arc)}
+.mini-viewport{position:absolute;left:0;right:0;height:80px;background:rgba(255,255,255,.04);border:1px solid #2a2a2a;border-radius:2px;pointer-events:none}
+.find-bar{position:absolute;top:8px;right:80px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px;display:none;align-items:center;gap:6px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.find-bar.open{display:flex}
+.find-bar input{padding:4px 8px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;outline:none;width:160px;font-family:var(--jb)}
+.find-bar .ct{font-family:var(--jb);font-size:10px;color:var(--muted);padding:0 4px}
+/* syntax */
+.tk-kw{color:#FF6B2B}.tk-str{color:#00D4FF}.tk-num{color:#8844FF}.tk-com{color:#555;font-style:italic}.tk-fn{color:#4488FF}.tk-tag{color:#FF2255}.tk-attr{color:#CC00AA}.tk-prop{color:#4488FF}.tk-val{color:#00D4FF}.tk-punct{color:#888}.tk-h1{color:#fff;font-weight:600}.tk-md-link{color:#4488FF;text-decoration:underline}
+/* file tree */
+.tree{padding:4px 0;font-size:13px}
+.tnode{display:flex;align-items:center;gap:6px;padding:3px 8px 3px 14px;color:var(--sub);cursor:pointer;user-select:none;position:relative}
+.tnode:hover{background:var(--hover);color:var(--text)}
+.tnode.active{background:var(--hover);color:var(--white)}
+.tnode .chev{width:10px;font-size:9px;color:var(--muted);transition:transform .15s}
+.tnode.open .chev{transform:rotate(90deg)}
+.tnode .ic{width:14px;font-size:11px;text-align:center}
+.tnode .ic.js{color:#FFD93D}.tnode .ic.html{color:#FF6B2B}.tnode .ic.css{color:#4488FF}.tnode .ic.md{color:#fff}.tnode .ic.json{color:#FFD93D}.tnode .ic.dir{color:#4488FF}
+.tnode .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tnode .dirty{width:6px;height:6px;border-radius:50%;background:var(--white)}
+.tchildren{padding-left:14px;display:none}
+.tchildren.open{display:block}
+
+/* === ROADIE (Cursor-style AI) === */
+.roadie-wrap{display:flex;flex-direction:column;height:100%}
+.roadie-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px}
+.r-msg{display:flex;gap:10px;max-width:100%}
+.r-av{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+.r-av.r{background:var(--g135);color:#000}
+.r-av.u{background:var(--elevated);border:1px solid var(--border);color:var(--text)}
+.r-body{flex:1;min-width:0}
+.r-name{font-size:11px;font-weight:600;color:var(--white);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.r-name .badge{font-family:var(--jb);font-size:9px;color:var(--muted);background:var(--elevated);padding:1px 5px;border-radius:3px}
+.r-text{font-size:13px;color:var(--text);line-height:1.6}
+.r-text code{font-family:var(--jb);font-size:11px;background:var(--elevated);padding:1px 5px;border-radius:3px;color:var(--cyan)}
+.r-text pre{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;margin:8px 0;font-family:var(--jb);font-size:11px;overflow-x:auto;line-height:1.5}
+.r-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.r-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;background:var(--elevated);border:1px solid var(--border);border-radius:3px;font-size:10px;color:var(--sub);font-family:var(--jb)}
+.r-quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.r-quick button{padding:4px 10px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text)}
+.r-quick button:hover{border-color:#333}
+.r-composer{border-top:1px solid var(--border);padding:10px 12px;background:var(--card);flex-shrink:0}
+.r-input{width:100%;min-height:60px;max-height:200px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;resize:none;font-family:var(--sg)}
+.r-input:focus{border-color:#333}
+.r-toolbar{display:flex;align-items:center;gap:8px;margin-top:8px}
+.r-model{padding:4px 8px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text);font-family:var(--jb)}
+.r-send{margin-left:auto;padding:5px 14px;background:var(--white);color:#000;border-radius:5px;font-weight:600;font-size:11px}
+.r-send:hover{background:#e0e0e0}
+.r-typing{display:inline-flex;gap:3px;padding:2px 0}
+.r-typing span{width:5px;height:5px;border-radius:50%;background:var(--sub);animation:bounce 1.2s infinite}
+.r-typing span:nth-child(2){animation-delay:.15s}
+.r-typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-4px);opacity:1}}
+
+/* === WORKSPACES === */
+.wsp-grid{padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.wsp-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.wsp-card .grad{height:3px;background:var(--g)}
+.wsp-h{padding:14px 16px;display:flex;align-items:center;gap:10px}
+.wsp-h .nm{font-weight:600;color:var(--white);font-size:14px;flex:1}
+.wsp-st{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-size:10px;font-family:var(--jb);color:var(--text)}
+.wsp-st .d{width:6px;height:6px;border-radius:50%}
+.wsp-st.run .d{background:#22c55e;box-shadow:0 0 4px #22c55e}
+.wsp-st.sleep .d{background:var(--muted)}
+.wsp-st.boot .d{background:var(--ember);animation:pulse 1.2s infinite}
+.wsp-meta{padding:0 16px 12px;font-size:12px;color:var(--sub)}
+.wsp-meta .k{font-family:var(--jb);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.wsp-bar{height:4px;background:var(--elevated);border-radius:2px;overflow:hidden;margin-top:4px}
+.wsp-bar .fill{height:100%;background:var(--g);border-radius:2px}
+.wsp-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
+.wsp-btn{padding:5px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text)}
+.wsp-btn.primary{background:var(--white);color:#000;border-color:var(--white)}
+.wsp-detail{padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.wsp-pane{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.wsp-pane h4{font-size:11px;font-weight:600;color:var(--white);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.wsp-table{width:100%;font-size:12px}
+.wsp-table th{text-align:left;padding:6px 8px;color:var(--muted);font-family:var(--jb);font-size:10px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.wsp-table td{padding:8px;border-bottom:1px solid var(--border);font-family:var(--jb);font-size:11px;color:var(--text)}
+.wsp-pane pre{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--jb);font-size:11px;color:var(--text);overflow-x:auto;line-height:1.6}
+
+/* === SANDBOX === */
+.sandbox{display:flex;flex-direction:column;height:100%}
+.sb-bar{height:34px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:10px;flex-shrink:0}
+.sb-bar .nm{font-weight:600;color:var(--white);font-size:12px}
+.sb-bar .vis{font-family:var(--jb);font-size:10px;color:var(--muted);padding:2px 6px;background:var(--elevated);border-radius:3px}
+.sb-bar .right{margin-left:auto;display:flex;gap:6px}
+.sb-bar button{padding:4px 10px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text)}
+.sb-bar button.run{background:var(--white);color:#000;border-color:var(--white)}
+.sb-grid{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr 1.5fr;min-height:0}
+.sb-pane{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
+.sb-pane:last-child{border-right:none}
+.sb-pane-h{height:28px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;font-family:var(--jb);font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;gap:6px;flex-shrink:0}
+.sb-pane-h .dot{width:6px;height:6px;border-radius:50%}
+.sb-pane-h .dot.h{background:var(--ember)}
+.sb-pane-h .dot.c{background:var(--arc)}
+.sb-pane-h .dot.j{background:var(--cyan)}
+.sb-pane-body{flex:1;overflow:auto;background:var(--bg)}
+.sb-pane textarea{width:100%;height:100%;background:transparent;color:var(--text);border:none;outline:none;padding:10px 12px;font-family:var(--jb);font-size:12px;resize:none;line-height:1.6}
+.sb-preview{flex:1;background:#fff}
+.sb-console{height:100px;border-top:1px solid var(--border);background:var(--bg);font-family:var(--jb);font-size:11px;padding:8px 12px;overflow:auto;color:var(--text);flex-shrink:0}
+.sb-console .ln{padding:2px 0;color:var(--text)}
+.sb-console .ln.err{color:#fca5a5}
+.sb-console .ln .pre{color:var(--muted);margin-right:8px}
+/* === REPO === */
+.repo-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.repo-subnav{display:flex;border-bottom:1px solid var(--border);padding:0 14px;background:var(--card);flex-shrink:0}
+.repo-subnav .t{padding:10px 16px;font-size:12px;color:var(--sub);border-bottom:2px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.repo-subnav .t:hover{color:var(--text)}
+.repo-subnav .t.active{color:var(--white);border-bottom-color:var(--white)}
+.repo-subnav .t .ct{font-family:var(--jb);font-size:10px;color:var(--muted);padding:1px 6px;background:var(--elevated);border-radius:8px}
+.repo-body{flex:1;overflow:auto;padding:18px}
+.pr-list{display:flex;flex-direction:column;gap:8px}
+.pr-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px;cursor:pointer}
+.pr-row:hover{border-color:#333}
+.pr-icon{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.pr-icon.open{background:rgba(34,197,94,.1);color:#22c55e}
+.pr-icon.draft{background:var(--elevated);color:var(--muted)}
+.pr-icon.merged{background:rgba(136,68,255,.1);color:var(--orchid)}
+.pr-main{flex:1;min-width:0}
+.pr-title{font-weight:600;color:var(--white);font-size:14px;margin-bottom:4px}
+.pr-meta{font-family:var(--jb);font-size:11px;color:var(--muted)}
+.pr-meta .br{color:var(--cyan)}
+.pr-checks{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);margin-top:4px}
+.pr-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+.pr-diff{font-size:11px}
+.pr-diff .add{color:#22c55e}
+.pr-diff .del{color:var(--flare)}
+.commit-graph{font-family:var(--jb);font-size:11px;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:14px}
+.commit-row{display:flex;align-items:center;gap:14px;padding:6px 0}
+.commit-graph-vis{width:30px;flex-shrink:0;display:flex;justify-content:center;position:relative}
+.commit-graph-vis .line{position:absolute;top:0;bottom:0;left:50%;width:2px;background:linear-gradient(180deg,var(--orchid),var(--arc))}
+.commit-graph-vis .dot{width:8px;height:8px;border-radius:50%;background:var(--white);position:relative;z-index:2;box-shadow:0 0 0 3px var(--card)}
+.commit-graph-vis .dot.gr{background:var(--g135)}
+.commit-msg{flex:1;color:var(--text)}
+.commit-hash{color:var(--cyan)}
+.commit-author{color:var(--muted);margin-left:8px}
+/* PR diff */
+.diff-file{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-top:12px;overflow:hidden}
+.diff-h{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-family:var(--jb);font-size:12px;background:var(--elevated)}
+.diff-h .nm{color:var(--text);flex:1}
+.diff-h .stats .add{color:#22c55e}
+.diff-h .stats .del{color:var(--flare)}
+.diff-body{font-family:var(--jb);font-size:11px;line-height:1.6}
+.diff-row{display:flex;padding:0}
+.diff-row .gn{width:50px;text-align:right;padding:0 8px;color:var(--muted);user-select:none;flex-shrink:0;font-size:10px}
+.diff-row .ln{flex:1;padding:0 12px;white-space:pre;color:var(--text)}
+.diff-row.add{background:rgba(34,197,94,.08)}
+.diff-row.add .ln{color:#86efac}
+.diff-row.del{background:rgba(255,34,85,.08)}
+.diff-row.del .ln{color:#fda4af}
+.diff-row.hunk{background:var(--bg);color:var(--orchid);padding:4px 12px;font-size:10px}
+.review-thread{background:var(--bg);border-top:1px dashed var(--border);padding:10px 14px;display:flex;gap:10px}
+.review-thread .av{width:24px;height:24px}
+.review-thread .body{flex:1;font-family:var(--sg);font-size:12px;color:var(--text)}
+.review-thread .nm{font-weight:600;color:var(--white);font-size:11px}
+
+/* === DEPLOYS === */
+.dpl-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.dpl-h{padding:18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0;background:var(--card)}
+.dpl-h .nm{font-weight:700;font-size:18px;color:var(--white)}
+.dpl-h .url{font-family:var(--jb);font-size:11px;color:var(--cyan)}
+.dpl-h .right{margin-left:auto;display:flex;gap:8px}
+.dpl-env{display:inline-flex;background:var(--elevated);border:1px solid var(--border);border-radius:5px;padding:2px;gap:0}
+.dpl-env button{padding:4px 12px;font-size:11px;color:var(--sub);border-radius:3px}
+.dpl-env button.active{background:var(--card);color:var(--white)}
+.dpl-body{flex:1;overflow:auto;padding:18px;display:grid;grid-template-columns:1fr 320px;gap:14px}
+.dpl-table{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.dpl-row{display:grid;grid-template-columns:90px 1fr 120px 100px 90px;gap:12px;padding:12px 14px;border-bottom:1px solid var(--border);align-items:center;font-size:12px;cursor:pointer}
+.dpl-row:hover{background:var(--hover)}
+.dpl-row:last-child{border-bottom:none}
+.dpl-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:4px;font-size:10px;font-family:var(--jb);text-transform:uppercase;letter-spacing:.05em}
+.dpl-pill.ready{background:rgba(34,197,94,.1);color:#22c55e}
+.dpl-pill.building{background:rgba(255,107,43,.12);color:var(--ember)}
+.dpl-pill.failed{background:rgba(255,34,85,.12);color:var(--flare)}
+.dpl-pill .d{width:5px;height:5px;border-radius:50%;background:currentColor}
+.dpl-pill.building .d{animation:pulse 1.2s infinite}
+.dpl-meta{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.dpl-side{display:flex;flex-direction:column;gap:14px}
+.dpl-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px}
+.dpl-card h4{font-size:11px;font-weight:600;color:var(--white);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.dpl-card .row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;border-bottom:1px solid var(--border)}
+.dpl-card .row:last-child{border-bottom:none}
+.dpl-card .row .k{color:var(--sub);font-family:var(--jb);font-size:10px}
+.dpl-card .row .v{color:var(--text);font-family:var(--jb);font-size:11px}
+.dpl-logs{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-family:var(--jb);font-size:10px;line-height:1.6;color:var(--text);max-height:160px;overflow-y:auto;margin-top:8px}
+.dpl-logs .l{display:flex;gap:8px;padding:1px 0}
+.dpl-logs .l .ts{color:var(--muted);flex-shrink:0}
+.dpl-logs .l.warn .msg{color:#fbbf24}
+.dpl-logs .l.err .msg{color:#fca5a5}
+.dpl-logs .l.ok .msg{color:#86efac}
+
+/* === ISSUES === */
+.iss-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.iss-h{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0;background:var(--card)}
+.iss-h .nm{font-weight:700;font-size:18px;color:var(--white)}
+.iss-cycle{flex:1;max-width:320px;display:flex;flex-direction:column;gap:4px}
+.iss-cycle .lbl{font-family:var(--jb);font-size:10px;color:var(--muted);display:flex;justify-content:space-between}
+.iss-cycle .bar{height:4px;background:var(--elevated);border-radius:2px;overflow:hidden}
+.iss-cycle .bar .fill{height:100%;background:var(--g);border-radius:2px}
+.iss-h .right{margin-left:auto;display:flex;gap:8px}
+.iss-toggle{display:inline-flex;background:var(--elevated);border:1px solid var(--border);border-radius:5px;padding:2px}
+.iss-toggle button{padding:4px 10px;font-size:11px;color:var(--sub);border-radius:3px}
+.iss-toggle button.active{background:var(--card);color:var(--white)}
+.iss-board{flex:1;display:flex;gap:10px;padding:14px;overflow-x:auto;background:var(--bg)}
+.iss-col{width:280px;flex-shrink:0;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--border);border-radius:8px;max-height:100%}
+.iss-col-h{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.iss-col-h .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.iss-col-h .dot.todo{background:var(--sub)}
+.iss-col-h .dot.prog{background:var(--ember)}
+.iss-col-h .dot.rev{background:var(--orchid)}
+.iss-col-h .dot.done{background:#22c55e}
+.iss-col-h .nm{font-size:12px;font-weight:600;color:var(--white);flex:1}
+.iss-col-h .ct{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.iss-col-body{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+.iss-card{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;cursor:pointer}
+.iss-card:hover{border-color:#333}
+.iss-card .top{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+.iss-card .pri{font-size:11px}
+.iss-card .pri.urgent{color:var(--flare)}
+.iss-card .pri.high{color:var(--ember)}
+.iss-card .pri.med{color:var(--orchid)}
+.iss-card .pri.low{color:var(--sub)}
+.iss-card .id{color:var(--cyan)}
+.iss-card .t{font-size:13px;color:var(--text);line-height:1.4;margin-bottom:8px}
+.iss-card .bottom{display:flex;align-items:center;gap:8px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+.iss-card .est{padding:1px 6px;background:var(--elevated);border-radius:3px}
+.iss-card .lbls{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.iss-card .lbl{padding:1px 6px;border-radius:3px;font-size:9px;font-family:var(--jb);text-transform:lowercase}
+.iss-card .av{margin-left:auto}
+
+/* === LIVE === */
+.live-wrap{padding:18px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;height:100%}
+.live-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px}
+.live-h{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.live-h .dot{width:10px;height:10px;border-radius:50%;background:var(--g135);box-shadow:0 0 8px var(--orchid)}
+.live-h .nm{font-weight:600;color:var(--white);font-size:14px;flex:1}
+.live-h .ts{font-family:var(--jb);font-size:11px;color:var(--muted)}
+.live-actions{display:flex;gap:8px;margin-top:14px}
+.live-actions button{padding:6px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:5px;font-size:11px;color:var(--text)}
+.live-participants{display:flex;flex-direction:column;gap:8px}
+.live-p{display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px}
+.live-p .ring{width:32px;height:32px;border-radius:50%;background:var(--g135);padding:2px;flex-shrink:0}
+.live-p .ring .inner{width:100%;height:100%;border-radius:50%;background:var(--elevated);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text)}
+.live-p .body{flex:1;min-width:0}
+.live-p .nm{font-size:13px;font-weight:600;color:var(--white)}
+.live-p .file{font-family:var(--jb);font-size:11px;color:var(--cyan)}
+.live-p .follow{padding:4px 10px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-size:11px;color:var(--text)}
+
+/* === SETTINGS === */
+.set-wrap{display:flex;height:100%;overflow:hidden}
+.set-nav{width:200px;border-right:1px solid var(--border);background:var(--card);padding:14px 8px;flex-shrink:0;overflow-y:auto}
+.set-nav-item{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:5px;font-size:13px;color:var(--sub);cursor:pointer}
+.set-nav-item:hover{background:var(--hover);color:var(--text)}
+.set-nav-item.active{background:var(--hover);color:var(--white);font-weight:500}
+.set-body{flex:1;overflow-y:auto;padding:24px 32px;max-width:720px}
+.set-section{margin-bottom:32px}
+.set-section h3{font-weight:600;font-size:16px;color:var(--white);margin-bottom:6px}
+.set-section .desc{font-size:12px;color:var(--sub);margin-bottom:16px}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border)}
+.set-row:last-child{border-bottom:none}
+.set-row .label{font-size:13px;color:var(--text);font-weight:500}
+.set-row .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.set-input{padding:7px 11px;background:var(--elevated);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;outline:none;min-width:200px}
+.toggle{position:relative;width:34px;height:20px;display:inline-block}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--elevated);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:.2s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:2px;top:2px;background:var(--sub);border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--elevated);border-color:#333}
+.toggle input:checked+.toggle-slider::before{transform:translateX(14px);background:var(--white)}
+.set-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;position:relative;overflow:hidden}
+.set-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--g)}
+.rp-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.rp-row:last-child{border-bottom:none}
+.rp-row .v{font-family:var(--jb);color:var(--text)}
+
+/* === COMMON === */
+.scroll-y{overflow-y:auto}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#1a1a1a;border-radius:5px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#2a2a2a}
+.kbd{display:inline-flex;align-items:center;padding:1px 6px;background:var(--elevated);border:1px solid var(--border);border-radius:3px;font-family:var(--jb);font-size:10px;color:var(--sub)}
+.empty{padding:60px 20px;text-align:center;color:var(--sub)}
+.empty .icon{width:50px;height:50px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted)}
+.empty .t{font-weight:600;font-size:14px;color:var(--white);margin-bottom:6px}
+.empty .d{font-size:12px}
+.outline-list{list-style:none;font-size:12px}
+.outline-list li{padding:4px 0;display:flex;align-items:center;gap:8px;color:var(--sub);cursor:pointer}
+.outline-list li:hover{color:var(--text)}
+.outline-list li .ic{width:14px;text-align:center;font-size:10px}
+.outline-list li .ic.fn{color:var(--arc)}
+.outline-list li .ic.cls{color:var(--ember)}
+.outline-list li .ic.var{color:var(--cyan)}
+.term{font-family:var(--jb);font-size:12px;color:var(--text);line-height:1.6}
+.term .prompt{color:var(--cyan)}
+.term .out{color:var(--sub)}
+.term .ok{color:#86efac}
+.term .err{color:#fca5a5}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-bar"></span> RoadCode</div>
+    <nav class="crumbs">
+      <span>blackroadinc</span>
+      <span class="sep">›</span>
+      <span class="cur">roadcode-demo</span>
+      <span class="sep">›</span>
+      <span class="branch">⎇ feat/roadie-streaming</span>
+    </nav>
+    <button class="cmdk-stub" id="cmdkStub">
+      <span style="font-size:11px">⌕</span>
+      <span>Search files, commands, issues, deploys…</span>
+      <span class="kbd">⌘K</span>
+    </button>
+    <div class="build-pill" id="buildPill"><span class="dot"></span><span id="buildText">Build passing</span></div>
+    <div class="avatar-stack" id="topAvatars"></div>
+    <button class="icon-btn" title="Notifications">🔔</button>
+    <button class="deploy-btn" id="deployBtn">▲ Deploy</button>
+  </header>
+  <div class="main-row" style="flex:1;display:flex;min-height:0">
+    <nav class="rail" id="rail"></nav>
+    <aside class="sidebar" id="sidebar"></aside>
+    <section class="workbench" id="workbench" style="flex:1;display:flex;flex-direction:column;min-width:0">
+      <div class="tabbar" id="tabbar"></div>
+      <div class="wb-breadcrumb" id="wbCrumb"></div>
+      <div class="wb-stage" id="wbStage"></div>
+      <div class="bottom-panel" id="bottomPanel">
+        <div class="bp-head" id="bpHead"></div>
+        <div class="bp-body" id="bpBody"></div>
+      </div>
+    </section>
+    <aside class="inspector" id="inspector">
+      <div class="insp-head"><span class="insp-title" id="inspTitle">Outline</span>
+        <button class="icon-btn" id="inspToggle" style="width:22px;height:22px;font-size:11px">×</button>
+      </div>
+      <div class="insp-body" id="inspBody"></div>
+    </aside>
+  </div>
+  <footer class="statusbar" id="statusbar"></footer>
+</div>
+<div class="cmd-overlay" id="cmdOverlay">
+  <div class="cmd-palette">
+    <div class="cmd-grad"></div>
+    <div class="cmd-input-wrap">
+      <span class="cmd-prefix">›</span>
+      <input class="cmd-input" id="cmdInput" placeholder="Run a command, jump to a file, find an issue…" autocomplete="off">
+      <span class="kbd">esc</span>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-footer">
+      <span><span class="kbd">↑↓</span> navigate</span>
+      <span><span class="kbd">↵</span> select</span>
+      <span><span class="kbd">esc</span> close</span>
+    </div>
+  </div>
+</div>
+<div class="toast-stack" id="toastStack"></div>
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const SPACES = [
+  {id:'editor',     ic:'⟨/⟩', tip:'Editor'},
+  {id:'roadie',     ic:'✦',   tip:'Roadie · AI'},
+  {id:'workspaces', ic:'◫',   tip:'Workspaces'},
+  {id:'sandbox',    ic:'▣',   tip:'Sandbox'},
+  {id:'repo',       ic:'⎇',   tip:'Repo'},
+  {id:'deploys',    ic:'▲',   tip:'Deploys'},
+  {id:'issues',     ic:'◉',   tip:'Issues',  badge:3},
+  {id:'live',       ic:'●',   tip:'Live'},
+  {id:'settings',   ic:'⚙',   tip:'Settings'},
+];
+
+const STATE = {
+  space: 'editor',
+  openTabs: ['src/app.js', 'src/auth.js', 'index.html', 'styles.css', 'README.md'],
+  activeTab: 'src/app.js',
+  dirty: new Set(['src/app.js']),
+  cursorLine: 14,
+  treeOpen: new Set(['src','tests']),
+  bottomPanel: 'terminal',
+  bottomOpen: true,
+  inspectorOpen: true,
+  inspectorTab: 'outline',
+  cmdOpen: false,
+  cmdQuery: '',
+  cmdSel: 0,
+  // sub-state
+  repoSubtab: 'pulls',
+  activePR: 1,
+  deployEnv: 'production',
+  activeDeploy: 0,
+  issuesView: 'board',
+  setSection: 'account',
+  // sandbox state
+  sb: {
+    html:'<div class="hello">\n  <h1>Hello, RoadCode</h1>\n  <p>Edit me.</p>\n  <button id="b">Tap</button>\n</div>',
+    css:'.hello{font:600 18px/1.4 system-ui;padding:24px;color:#111}\nh1{background:linear-gradient(90deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);-webkit-background-clip:text;color:transparent}\nbutton{padding:8px 14px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}',
+    js:'document.getElementById("b").onclick = () => {\n  console.log("clicked from sandbox");\n  document.querySelector("h1").textContent = "Tapped!";\n}',
+    consoleLines: []
+  },
+  // roadie state
+  roadie: {
+    model: 'qwen2.5:14b',
+    typing: false,
+    msgs: []
+  }
+};
+
+// ============================================================
+// MOCK DATA
+// ============================================================
+const FILES = {
+  'README.md': `# roadcode-demo
+
+A demo repo wired into **RoadCode** — the BlackRoad coding workspace.
+
+## What's here
+
+- \`src/app.js\` — entrypoint
+- \`src/auth.js\` — magic-link login (no passwords, per BlackRoad canon)
+- \`src/router.js\` — small client router
+- \`tests/auth.test.js\` — auth flow tests
+
+## Run
+
+\`\`\`bash
+roadcode dev
+\`\`\`
+
+[Road Pass](https://blackroad.io/road-pass) — 5 hours free, $5/month after.`,
+
+  'index.html': `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>roadcode-demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app"></main>
+  <script type="module" src="src/app.js"><\/script>
+</body>
+</html>`,
+
+  'styles.css': `:root{
+  --bg:#000;
+  --fg:#f5f5f5;
+  --grad:linear-gradient(90deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--fg);
+  font:14px/1.5 'Space Grotesk',sans-serif;
+}
+.hero{
+  padding:64px 24px;
+  text-align:center;
+}
+.hero h1{
+  font-size:48px;
+  background:var(--grad);
+  -webkit-background-clip:text;
+  color:transparent;
+}`,
+
+  'src/app.js': `// roadcode-demo entrypoint
+import { mount } from './router.js';
+import { requestLink, verifyLink } from './auth.js';
+
+const root = document.getElementById('app');
+
+async function main(){
+  const params = new URLSearchParams(location.search);
+  const token = params.get('t');
+
+  if (token) {
+    const session = await verifyLink(token);
+    if (session) {
+      mount(root, '/dashboard');
+      return;
+    }
+  }
+
+  mount(root, '/');
+}
+
+document.addEventListener('DOMContentLoaded', main);
+
+export { main };`,
+
+  'src/auth.js': `// Magic-link auth — no passwords (BlackRoad rule).
+const API = '/api/auth';
+
+export async function requestLink(email){
+  const r = await fetch(API + '/request', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  if (!r.ok) throw new Error('request failed');
+  return r.json();
+}
+
+export async function verifyLink(token){
+  const r = await fetch(API + '/verify?t=' + encodeURIComponent(token));
+  if (!r.ok) return null;
+  return r.json();
+}`,
+
+  'src/router.js': `// Tiny client router.
+const routes = new Map();
+
+export function route(path, handler){
+  routes.set(path, handler);
+}
+
+export function mount(el, path){
+  const handler = routes.get(path) || routes.get('*');
+  if (handler) handler(el);
+}
+
+route('/', el => {
+  el.innerHTML = '<div class="hero"><h1>RoadCode</h1></div>';
+});
+
+route('/dashboard', el => {
+  el.innerHTML = '<h1>Welcome back</h1>';
+});`,
+
+  'tests/auth.test.js': `import { requestLink } from '../src/auth.js';
+
+test('requestLink rejects empty email', async () => {
+  await expect(requestLink('')).rejects.toThrow();
+});
+
+test('requestLink posts JSON', async () => {
+  global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => ({}) }));
+  await requestLink('a@b.co');
+  expect(fetch).toHaveBeenCalled();
+});`,
+
+  'package.json': `{
+  "name": "roadcode-demo",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "roadcode dev",
+    "test": "node --test"
+  },
+  "dependencies": {}
+}`
+};
+
+const FILE_TREE = [
+  {name:'src', type:'dir', children:[
+    {name:'app.js', type:'file', path:'src/app.js'},
+    {name:'auth.js', type:'file', path:'src/auth.js'},
+    {name:'router.js', type:'file', path:'src/router.js'},
+  ]},
+  {name:'tests', type:'dir', children:[
+    {name:'auth.test.js', type:'file', path:'tests/auth.test.js'},
+  ]},
+  {name:'index.html', type:'file', path:'index.html'},
+  {name:'styles.css', type:'file', path:'styles.css'},
+  {name:'package.json', type:'file', path:'package.json'},
+  {name:'README.md', type:'file', path:'README.md'},
+];
+
+const PROBLEMS = [
+  {file:'src/app.js', line:18, sev:'warn', msg:'requestLink imported but never used'},
+  {file:'src/auth.js', line:9, sev:'info', msg:"Consider awaiting the response.json() call"},
+];
+
+const PRS = [
+  {id:1, num:42, title:'Add Roadie streaming responses', branch:'feat/roadie-streaming', author:'alexa', status:'open', checks:'4/4', diff:{add:184,del:23}, time:'2h ago',
+   files:[
+     {name:'src/roadie.js', add:120, del:8, hunks:[
+       {h:'@@ -1,8 +1,42 @@', lines:[
+         {t:'ctx', n:1, l:"// Roadie chat — streamed responses"},
+         {t:'del', n:2, l:"export async function chat(prompt) {"},
+         {t:'add', n:2, l:"export async function* chat(prompt) {"},
+         {t:'add', n:3, l:"  const res = await fetch('/api/roadie/stream', {"},
+         {t:'add', n:4, l:"    method: 'POST',"},
+         {t:'add', n:5, l:"    body: JSON.stringify({ prompt, model: 'qwen2.5:14b' })"},
+         {t:'add', n:6, l:"  });"},
+         {t:'add', n:7, l:"  const reader = res.body.getReader();"},
+         {t:'add', n:8, l:"  const dec = new TextDecoder();"},
+         {t:'add', n:9, l:"  while (true) {"},
+         {t:'add', n:10, l:"    const { done, value } = await reader.read();"},
+         {t:'add', n:11, l:"    if (done) return;"},
+         {t:'add', n:12, l:"    yield dec.decode(value);"},
+         {t:'add', n:13, l:"  }"},
+         {t:'ctx', n:14, l:"}"},
+       ]}
+     ], reviews:[
+       {who:'octavia', body:'Should we add an AbortSignal so the user can cancel mid-stream?'}
+     ]},
+     {name:'tests/roadie.test.js', add:64, del:15, hunks:[
+       {h:'@@ -10,15 +10,18 @@', lines:[
+         {t:'ctx', n:10, l:"test('chat yields chunks', async () => {"},
+         {t:'del', n:11, l:"  const res = await chat('hi');"},
+         {t:'del', n:12, l:"  expect(res).toBeDefined();"},
+         {t:'add', n:11, l:"  const chunks = [];"},
+         {t:'add', n:12, l:"  for await (const c of chat('hi')) chunks.push(c);"},
+         {t:'add', n:13, l:"  expect(chunks.length).toBeGreaterThan(0);"},
+         {t:'ctx', n:14, l:"});"},
+       ]}
+     ], reviews:[]}
+   ]},
+  {id:2, num:41, title:'Pin Road Pass to canon ($5/month)', branch:'fix/road-pass-copy', author:'alexa', status:'open', checks:'4/4', diff:{add:6,del:6}, time:'5h ago', files:[]},
+  {id:3, num:40, title:'WIP: spatial OfficeRoad floor render', branch:'wip/officeroad-floor', author:'octavia', status:'draft', checks:'2/4', diff:{add:412,del:30}, time:'1d ago', files:[]},
+];
+
+const COMMITS = [
+  {hash:'8a2c91d', msg:'roadie: stream qwen2.5 responses chunk-by-chunk', author:'alexa', time:'2h'},
+  {hash:'4f70e2a', msg:'fix(road-pass): cap free hours to 5 (canon)', author:'alexa', time:'5h'},
+  {hash:'b1d9f88', msg:'officeroad: scaffold /floor composite endpoint', author:'octavia', time:'1d', gr:true},
+  {hash:'2ee0a10', msg:'roadwire: compute effective_status against wall clock', author:'alexa', time:'2d'},
+  {hash:'9c0a37b', msg:'chore: bump pixel-foundry sprite atlas to 100', author:'alexa', time:'2d'},
+  {hash:'5dd1402', msg:'roadband: render-job primitive (HF MusicGen-ready)', author:'octavia', time:'3d'},
+  {hash:'30a8ee4', msg:'sport: dot-book schema + non-collision sweep', author:'alexa', time:'3d'},
+];
+
+const ISSUES = [
+  {id:'ROAD-128', pri:'urgent', title:'Roadie streams sometimes drop the last chunk', est:3, assignee:'AL', col:'prog', labels:[{n:'bug',c:'rgba(255,34,85,.15);color:#fda4af'}]},
+  {id:'ROAD-127', pri:'high', title:'Sandbox iframe console mirror needs error stack', est:2, assignee:'OC', col:'prog', labels:[{n:'sandbox',c:'rgba(68,136,255,.15);color:#93c5fd'}]},
+  {id:'ROAD-126', pri:'high', title:'Wire OneWay → CarPool activity feed', est:5, assignee:'AL', col:'rev', labels:[{n:'feat',c:'rgba(34,197,94,.12);color:#86efac'}]},
+  {id:'ROAD-125', pri:'med', title:'OfficeRoad /floor needs RoadWork task previews', est:3, assignee:'OC', col:'todo', labels:[{n:'office',c:'rgba(204,0,170,.15);color:#f0abfc'}]},
+  {id:'ROAD-124', pri:'med', title:'Add cmd-K shortcut for switching Spaces', est:1, assignee:'AL', col:'todo', labels:[{n:'ux',c:'rgba(136,68,255,.15);color:#c4b5fd'}]},
+  {id:'ROAD-123', pri:'low', title:'PitStop: needs_review queue for short-answer Qs', est:2, assignee:'OC', col:'backlog', labels:[{n:'pitstop',c:'rgba(255,107,43,.15);color:#fdba74'}]},
+  {id:'ROAD-122', pri:'med', title:'RoadShow inbox: drop graduated 27-canon shows', est:2, assignee:'AL', col:'backlog', labels:[{n:'show',c:'rgba(255,212,0,.15);color:#fde68a'}]},
+  {id:'ROAD-121', pri:'high', title:'Chain receipts: anchor RoadCode deploys', est:5, assignee:'AL', col:'done', labels:[{n:'chain',c:'rgba(0,212,255,.15);color:#67e8f9'}]},
+];
+
+const ISSUE_COLS = [
+  {id:'backlog', name:'Backlog', dot:''},
+  {id:'todo', name:'Todo', dot:'todo'},
+  {id:'prog', name:'In Progress', dot:'prog'},
+  {id:'rev', name:'In Review', dot:'rev'},
+  {id:'done', name:'Done', dot:'done'},
+];
+
+const DEPLOYS = [
+  {id:0, env:'production', status:'building', branch:'feat/roadie-streaming', commit:'8a2c91d', msg:'roadie: stream qwen2.5 responses chunk-by-chunk', time:'just now', dur:'—'},
+  {id:1, env:'production', status:'ready', branch:'main', commit:'4f70e2a', msg:'fix(road-pass): cap free hours to 5', time:'2h ago', dur:'42s'},
+  {id:2, env:'preview', status:'ready', branch:'wip/officeroad-floor', commit:'b1d9f88', msg:'officeroad: scaffold /floor composite endpoint', time:'5h ago', dur:'58s'},
+  {id:3, env:'production', status:'failed', branch:'main', commit:'2ee0a10', msg:'roadwire: compute effective_status', time:'1d ago', dur:'12s'},
+  {id:4, env:'production', status:'ready', branch:'main', commit:'9c0a37b', msg:'chore: bump pixel-foundry sprite atlas', time:'2d ago', dur:'39s'},
+];
+
+const DEPLOY_LOGS = [
+  {ts:'14:02:01', t:'ok',   m:'$ roadcode deploy --env=production'},
+  {ts:'14:02:01', t:'',     m:'  ✓ Resolved branch feat/roadie-streaming @ 8a2c91d'},
+  {ts:'14:02:02', t:'',     m:'  ✓ Anchored to RoadChain — receipt rcdy_8a2c91d'},
+  {ts:'14:02:03', t:'',     m:'  → Installing dependencies (24 pkgs, no lockfile change)'},
+  {ts:'14:02:09', t:'ok',   m:'  ✓ Dependencies cached'},
+  {ts:'14:02:10', t:'',     m:'  → Running build...'},
+  {ts:'14:02:18', t:'warn', m:'  ⚠ Unused export `requestLink` in src/app.js:18'},
+  {ts:'14:02:24', t:'',     m:'  → Compiling for edge runtime'},
+  {ts:'14:02:31', t:'',     m:'  → Uploading 18 assets to R2'},
+  {ts:'14:02:35', t:'ok',   m:'  ✓ Bundle size 142kb (gzip)'},
+  {ts:'14:02:36', t:'',     m:'  → Provisioning preview URL'},
+];
+
+const WORKSPACES = [
+  {nm:'roadcode-demo · main', st:'run', stTxt:'Running', runtime:'Node 22.4', cpu:18, ram:42, ports:[
+    {p:3000, pub:true,  url:'roadcode-demo-3000.spaces.blackroad.io', svc:'web'},
+    {p:8080, pub:false, url:'localhost:8080', svc:'api'},
+    {p:5432, pub:false, url:'localhost:5432', svc:'postgres'},
+  ]},
+  {nm:'roadband-render', st:'sleep', stTxt:'Sleeping · idle 2h', runtime:'Python 3.12 + CUDA', cpu:0, ram:8, ports:[]},
+  {nm:'pixel-foundry', st:'boot', stTxt:'Booting…', runtime:'Node 22.4', cpu:64, ram:30, ports:[]},
+];
+
+const LIVE = [
+  {nm:'octavia', file:'src/roadie.js:34', av:'OC'},
+  {nm:'cecilia', file:'tests/auth.test.js:8', av:'CE'},
+  {nm:'amelia',  file:'styles.css:14', av:'AM'},
+];
+
+const ROADIE_SEED = [
+  {who:'r', name:'Roadie', body:`Hey — I see you're on **feat/roadie-streaming**. Want me to wire the AbortSignal that octavia asked for in the PR review?`, chips:['src/roadie.js','tests/roadie.test.js']},
+  {who:'u', name:'alexa', body:`yes, and add a test that cancels mid-stream`},
+  {who:'r', name:'Roadie', body:`On it. Plan:\n\n1. Accept an optional \`signal\` arg in \`chat(prompt, { signal })\`\n2. Pass it to \`fetch\`\n3. Catch \`AbortError\` so the generator returns cleanly\n4. New test: start \`chat()\`, call \`controller.abort()\` after 1 chunk, assert no more chunks arrive\n\nDraft below — apply?`, code:`export async function* chat(prompt, { signal } = {}) {
+  const res = await fetch('/api/roadie/stream', {
+    method: 'POST',
+    signal,
+    body: JSON.stringify({ prompt, model: 'qwen2.5:14b' })
+  });
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield dec.decode(value);
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    throw e;
+  }
+}`, quick:['Apply','Apply + test','Explain','Discard']},
+];
+
+STATE.roadie.msgs = ROADIE_SEED.slice();
+
+const NOTIFICATIONS = [
+  {t:'Deploy started', m:'feat/roadie-streaming → production'},
+  {t:'PR comment', m:'octavia replied to your PR #42'},
+];
+// ============================================================
+// SYNTAX HIGHLIGHTER (regex, escapes-safe)
+// ============================================================
+const KW = new Set(['const','let','var','function','return','if','else','for','while','await','async','import','from','export','default','class','extends','new','this','try','catch','finally','throw','typeof','instanceof','in','of','true','false','null','undefined','break','continue','case','switch','do','yield','static','get','set','as','void']);
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function hlJS(src){
+  // Tokenize avoiding bleed. Walk char by char.
+  let out = '', i = 0, n = src.length;
+  while (i < n) {
+    const c = src[i], c2 = src.substr(i,2);
+    // line comment
+    if (c2 === '//') {
+      let j = src.indexOf('\n', i);
+      if (j === -1) j = n;
+      out += '<span class="tk-com">' + escHtml(src.slice(i,j)) + '</span>';
+      i = j;
+      continue;
+    }
+    // block comment
+    if (c2 === '/*') {
+      let j = src.indexOf('*/', i+2);
+      if (j === -1) j = n; else j += 2;
+      out += '<span class="tk-com">' + escHtml(src.slice(i,j)) + '</span>';
+      i = j;
+      continue;
+    }
+    // strings
+    if (c === '"' || c === "'" || c === '`') {
+      const q = c;
+      let j = i + 1;
+      while (j < n) {
+        if (src[j] === '\\') { j += 2; continue; }
+        if (src[j] === q) { j++; break; }
+        j++;
+      }
+      out += '<span class="tk-str">' + escHtml(src.slice(i,j)) + '</span>';
+      i = j;
+      continue;
+    }
+    // numbers
+    if (/[0-9]/.test(c) && (i===0 || /[^\w]/.test(src[i-1]))) {
+      let j = i;
+      while (j < n && /[0-9.xXa-fA-F_]/.test(src[j])) j++;
+      out += '<span class="tk-num">' + escHtml(src.slice(i,j)) + '</span>';
+      i = j;
+      continue;
+    }
+    // identifier
+    if (/[A-Za-z_$]/.test(c)) {
+      let j = i;
+      while (j < n && /[\w$]/.test(src[j])) j++;
+      const word = src.slice(i,j);
+      // peek next non-space
+      let k = j;
+      while (k < n && /\s/.test(src[k])) k++;
+      if (KW.has(word)) {
+        out += '<span class="tk-kw">' + word + '</span>';
+      } else if (src[k] === '(') {
+        out += '<span class="tk-fn">' + word + '</span>';
+      } else {
+        out += escHtml(word);
+      }
+      i = j;
+      continue;
+    }
+    // punctuation
+    if (/[{}()\[\];,.]/.test(c)) {
+      out += '<span class="tk-punct">' + escHtml(c) + '</span>';
+      i++;
+      continue;
+    }
+    out += escHtml(c);
+    i++;
+  }
+  return out;
+}
+
+function hlHTML(src){
+  // tags + attrs + strings + content
+  let out = '', i = 0, n = src.length;
+  while (i < n) {
+    if (src.substr(i,4) === '<!--') {
+      let j = src.indexOf('-->', i+4);
+      if (j === -1) j = n; else j += 3;
+      out += '<span class="tk-com">' + escHtml(src.slice(i,j)) + '</span>';
+      i = j;
+      continue;
+    }
+    if (src[i] === '<') {
+      let j = src.indexOf('>', i);
+      if (j === -1) j = n; else j += 1;
+      let tag = src.slice(i, j);
+      // colorize attrs and tag name
+      let html = '<span class="tk-punct">' + escHtml(tag[0]) + '</span>';
+      let rest = tag.slice(1, -1);
+      let m = rest.match(/^\/?([\w-]+)/);
+      if (m) {
+        html += escHtml(rest.slice(0, m[0].length - m[1].length))
+             + '<span class="tk-tag">' + m[1] + '</span>';
+        let after = rest.slice(m[0].length);
+        // attrs
+        after = after.replace(/([\w:-]+)(=)("[^"]*"|'[^']*')/g, (a,k,eq,v) =>
+          '<span class="tk-attr">'+k+'</span>'+'<span class="tk-punct">=</span>'+'<span class="tk-str">'+escHtml(v)+'</span>'
+        ).replace(/([\w:-]+)(?!=)/g, '<span class="tk-attr">$1</span>');
+        html += after;
+      } else {
+        html += escHtml(rest);
+      }
+      html += '<span class="tk-punct">&gt;</span>';
+      out += html;
+      i = j;
+      continue;
+    }
+    let j = src.indexOf('<', i);
+    if (j === -1) j = n;
+    out += escHtml(src.slice(i,j));
+    i = j;
+  }
+  return out;
+}
+
+function hlCSS(src){
+  // selectors, props, values, comments, strings
+  return escHtml(src)
+    .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="tk-com">$1</span>')
+    .replace(/([{};])/g, '<span class="tk-punct">$1</span>')
+    .replace(/([a-z-]+)(\s*:)/gi, '<span class="tk-prop">$1</span>$2')
+    .replace(/(:\s*)([^;{}\n<]+)/g, (a,b,v) => b + '<span class="tk-val">' + v + '</span>')
+    .replace(/(#[0-9a-fA-F]{3,8}\b)/g, '<span class="tk-num">$1</span>');
+}
+
+function hlJSON(src){
+  return escHtml(src)
+    .replace(/("(?:[^"\\]|\\.)*")(\s*:)/g, '<span class="tk-attr">$1</span>$2')
+    .replace(/:(\s*)("(?:[^"\\]|\\.)*")/g, ':$1<span class="tk-str">$2</span>')
+    .replace(/\b(true|false|null)\b/g, '<span class="tk-kw">$1</span>')
+    .replace(/(-?\b\d+(\.\d+)?\b)/g, '<span class="tk-num">$1</span>');
+}
+
+function hlMD(src){
+  return escHtml(src)
+    .replace(/^(#+)\s+(.*)$/gm, (a,h,t) => '<span class="tk-h1">'+h+' '+t+'</span>')
+    .replace(/(`[^`]+`)/g, '<span class="tk-str">$1</span>')
+    .replace(/\*\*([^*]+)\*\*/g, '<span class="tk-kw">**$1**</span>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<span class="tk-md-link">[$1]($2)</span>');
+}
+
+function highlight(src, ext){
+  if (ext === 'js' || ext === 'mjs' || ext === 'ts') return hlJS(src);
+  if (ext === 'html') return hlHTML(src);
+  if (ext === 'css')  return hlCSS(src);
+  if (ext === 'json') return hlJSON(src);
+  if (ext === 'md')   return hlMD(src);
+  return escHtml(src);
+}
+
+function extOf(path){
+  const m = path.match(/\.([a-z0-9]+)$/i);
+  return m ? m[1].toLowerCase() : '';
+}
+
+// ============================================================
+// RENDER ORCHESTRATION
+// ============================================================
+const $ = (id) => document.getElementById(id);
+
+function render(){
+  renderRail();
+  renderSidebar();
+  renderTabbar();
+  renderBreadcrumb();
+  renderStage();
+  renderInspector();
+  renderStatusbar();
+  renderBottomPanel();
+}
+
+function renderRail(){
+  const el = $('rail');
+  el.innerHTML = SPACES.map((s,i) =>
+    `<button class="rail-btn ${s.id===STATE.space?'active':''}" data-space="${s.id}" title="${s.tip}">
+      <span>${s.ic}</span>
+      ${s.badge?`<span class="badge">${s.badge}</span>`:''}
+      <span class="rail-tip">${s.tip}</span>
+    </button>`
+  ).join('') + `<div class="rail-spacer"></div>
+    <button class="rail-btn" id="liveDotRail" title="3 collaborators online" style="color:#22c55e">●</button>
+    <button class="rail-btn" id="profileRail" title="alexa">
+      <span style="background:var(--g135);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000">AL</span>
+    </button>`;
+  el.querySelectorAll('[data-space]').forEach(b => {
+    b.onclick = () => switchSpace(b.dataset.space);
+  });
+}
+
+function switchSpace(id){
+  STATE.space = id;
+  // adjust inspector default tab per space
+  if (id === 'editor') STATE.inspectorTab = 'outline';
+  else if (id === 'roadie') STATE.inspectorTab = 'context';
+  render();
+}
+
+function renderTabbar(){
+  const el = $('tabbar');
+  if (STATE.space !== 'editor' && STATE.space !== 'sandbox') {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
+  if (STATE.space === 'sandbox') {
+    el.innerHTML = `<div class="wb-tab active"><span class="ic">▣</span> untitled.pen <span class="x">×</span></div>
+      <div class="wb-tab"><span class="ic">▣</span> brand-loader.pen <span class="x">×</span></div>
+      <div class="wb-tab"><span class="ic">▣</span> orbit.pen <span class="x">×</span></div>
+      <button class="wb-tab" style="color:var(--muted)" id="newPen">+</button>`;
+    return;
+  }
+  el.innerHTML = STATE.openTabs.map(p => {
+    const ext = extOf(p);
+    const ic = ({js:'JS',ts:'TS',html:'<>',css:'#',md:'M',json:'{}'}[ext]) || '·';
+    const dirty = STATE.dirty.has(p);
+    return `<div class="wb-tab ${p===STATE.activeTab?'active':''} ${dirty?'dirty':''}" data-tab="${p}">
+      <span class="ic">${ic}</span>
+      <span>${p.split('/').pop()}</span>
+      <span class="dot"></span>
+      <span class="x" data-close="${p}">×</span>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('[data-tab]').forEach(t => {
+    t.onclick = (e) => {
+      if (e.target.dataset.close) {
+        const p = e.target.dataset.close;
+        STATE.openTabs = STATE.openTabs.filter(x => x !== p);
+        if (STATE.activeTab === p) STATE.activeTab = STATE.openTabs[0] || null;
+        render();
+      } else {
+        STATE.activeTab = t.dataset.tab;
+        render();
+      }
+    };
+  });
+}
+
+function renderBreadcrumb(){
+  const el = $('wbCrumb');
+  if (STATE.space !== 'editor' || !STATE.activeTab) { el.style.display='none'; return; }
+  el.style.display = 'flex';
+  const parts = STATE.activeTab.split('/');
+  el.innerHTML = parts.map((p,i) =>
+    `<span class="${i===parts.length-1?'last':''}">${p}</span>` +
+    (i < parts.length-1 ? '<span class="sep">›</span>' : '')
+  ).join('') + `<span class="sep">›</span><span class="last">▸ main()</span>`;
+}
+
+function renderStage(){
+  const el = $('wbStage');
+  el.innerHTML = '';
+  switch (STATE.space) {
+    case 'editor':     return renderEditor(el);
+    case 'roadie':     return renderRoadie(el);
+    case 'workspaces': return renderWorkspaces(el);
+    case 'sandbox':    return renderSandbox(el);
+    case 'repo':       return renderRepo(el);
+    case 'deploys':    return renderDeploys(el);
+    case 'issues':     return renderIssues(el);
+    case 'live':       return renderLive(el);
+    case 'settings':   return renderSettings(el);
+  }
+}
+
+function renderInspector(){
+  const head = $('inspTitle');
+  const body = $('inspBody');
+  const insp = $('inspector');
+  if (!STATE.inspectorOpen) { insp.classList.add('collapsed'); body.innerHTML = ''; return; }
+  insp.classList.remove('collapsed');
+  if (STATE.space === 'editor') {
+    head.textContent = 'Outline';
+    body.innerHTML = renderOutline();
+  } else if (STATE.space === 'roadie') {
+    head.textContent = 'Context';
+    body.innerHTML = renderRoadieContext();
+  } else if (STATE.space === 'repo') {
+    head.textContent = 'PR Details';
+    body.innerHTML = renderPRSidebar();
+  } else if (STATE.space === 'deploys') {
+    head.textContent = 'Deploy';
+    body.innerHTML = renderDeploySidebar();
+  } else if (STATE.space === 'issues') {
+    head.textContent = 'Filters';
+    body.innerHTML = renderIssueFilters();
+  } else if (STATE.space === 'workspaces') {
+    head.textContent = 'devcontainer.json';
+    body.innerHTML = `<pre style="font-family:var(--jb);font-size:11px;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;overflow-x:auto;line-height:1.7">{
+  "name": "roadcode-demo",
+  "image": "blackroad/devbox:node22",
+  "forwardPorts": [3000, 8080, 5432],
+  "postCreate": "roadcode setup",
+  "remoteUser": "road"
+}</pre>`;
+  } else {
+    head.textContent = 'Inspector';
+    body.innerHTML = `<div class="empty"><div class="icon">·</div><div class="t">Nothing pinned</div><div class="d">Inspector content will appear here for this Space.</div></div>`;
+  }
+}
+
+function renderOutline(){
+  const path = STATE.activeTab;
+  if (!path || extOf(path) !== 'js') {
+    return `<div class="empty" style="padding:20px"><div class="t">No symbols</div><div class="d">Open a JS file to see its outline.</div></div>`;
+  }
+  const src = FILES[path] || '';
+  const items = [];
+  src.split('\n').forEach((ln, i) => {
+    let m = ln.match(/(?:export\s+)?(?:async\s+)?function\*?\s+(\w+)/);
+    if (m) items.push({k:'fn', n:m[1], l:i+1});
+    m = ln.match(/class\s+(\w+)/);
+    if (m) items.push({k:'cls', n:m[1], l:i+1});
+    m = ln.match(/(?:const|let|var)\s+(\w+)\s*=/);
+    if (m) items.push({k:'var', n:m[1], l:i+1});
+  });
+  if (!items.length) return `<div class="empty" style="padding:20px"><div class="t">No symbols</div></div>`;
+  return `<ul class="outline-list">${items.map(it =>
+    `<li><span class="ic ${it.k}">${it.k==='fn'?'ƒ':it.k==='cls'?'◇':'◌'}</span> ${it.n}<span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">L${it.l}</span></li>`
+  ).join('')}</ul>`;
+}
+
+function renderRoadieContext(){
+  return `
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Attached</div>
+    <div class="r-chips" style="margin-bottom:14px">
+      <span class="r-chip">@src/roadie.js</span>
+      <span class="r-chip">@tests/roadie.test.js</span>
+      <span class="r-chip">@PR #42</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Model</div>
+    <div style="font-family:var(--jb);font-size:12px;color:var(--text);margin-bottom:4px">${STATE.roadie.model}</div>
+    <div style="font-family:var(--jb);font-size:10px;color:var(--muted);margin-bottom:14px">Sovereign · local Ollama</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Recent edits</div>
+    <ul class="outline-list">
+      <li><span class="ic fn">ƒ</span>chat() in roadie.js<span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">+34</span></li>
+      <li><span class="ic fn">ƒ</span>test('chat yields chunks')<span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">+18</span></li>
+    </ul>`;
+}
+
+function renderPRSidebar(){
+  const pr = PRS.find(p => p.id === STATE.activePR);
+  if (!pr) return '';
+  return `
+    <div style="margin-bottom:14px">
+      <div style="font-weight:600;color:var(--white);font-size:13px;margin-bottom:4px">#${pr.num}</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5">${pr.title}</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Reviewers</div>
+    <div class="avatar-stack" style="margin-bottom:14px"><span class="av gr">OC</span><span class="av">CE</span></div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Checks</div>
+    <ul class="outline-list" style="margin-bottom:14px">
+      <li><span class="ic" style="color:#22c55e">✓</span>build</li>
+      <li><span class="ic" style="color:#22c55e">✓</span>lint</li>
+      <li><span class="ic" style="color:#22c55e">✓</span>test</li>
+      <li><span class="ic" style="color:#22c55e">✓</span>chain-anchor</li>
+    </ul>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Linked issues</div>
+    <ul class="outline-list">
+      <li><span class="ic" style="color:var(--cyan)">◉</span>ROAD-128</li>
+      <li><span class="ic" style="color:var(--cyan)">◉</span>ROAD-127</li>
+    </ul>`;
+}
+
+function renderDeploySidebar(){
+  const d = DEPLOYS[STATE.activeDeploy];
+  return `
+    <div style="margin-bottom:12px">
+      <span class="dpl-pill ${d.status}"><span class="d"></span>${d.status}</span>
+    </div>
+    <div style="font-size:13px;color:var(--white);font-weight:500;margin-bottom:4px">${d.msg}</div>
+    <div class="mono" style="font-size:11px;color:var(--muted);margin-bottom:14px">${d.branch} · ${d.commit}</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Logs</div>
+    <div class="dpl-logs" id="deployLogs">${DEPLOY_LOGS.map(l =>
+      `<div class="l ${l.t}"><span class="ts">${l.ts}</span><span class="msg">${escHtml(l.m)}</span></div>`
+    ).join('')}</div>`;
+}
+
+function renderIssueFilters(){
+  return `
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Cycle</div>
+    <div style="font-family:var(--jb);font-size:12px;color:var(--text);margin-bottom:14px">Cycle 14 · Day 4 of 7</div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Assignee</div>
+    <div class="avatar-stack" style="margin-bottom:14px"><span class="av gr">AL</span><span class="av">OC</span></div>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Priority</div>
+    <ul class="outline-list" style="margin-bottom:14px">
+      <li><span class="ic" style="color:var(--flare)">⚡</span>Urgent <span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">1</span></li>
+      <li><span class="ic" style="color:var(--ember)">▲</span>High <span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">3</span></li>
+      <li><span class="ic" style="color:var(--orchid)">●</span>Medium <span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">3</span></li>
+      <li><span class="ic" style="color:var(--sub)">○</span>Low <span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">1</span></li>
+    </ul>
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Labels</div>
+    <ul class="outline-list">
+      <li><span class="ic" style="color:#fda4af">●</span>bug</li>
+      <li><span class="ic" style="color:#86efac">●</span>feat</li>
+      <li><span class="ic" style="color:#93c5fd">●</span>sandbox</li>
+      <li><span class="ic" style="color:#67e8f9">●</span>chain</li>
+    </ul>`;
+}
+
+function renderStatusbar(){
+  const el = $('statusbar');
+  el.innerHTML = `
+    <span class="st-item"><span>⎇</span><span>feat/roadie-streaming</span></span>
+    <span class="st-item"><span>⇣ 0</span><span>⇡ 2</span></span>
+    <span class="st-item st-err"><span>✕</span><span>0</span></span>
+    <span class="st-item st-warn"><span>⚠</span><span>2</span></span>
+    <span class="st-spacer"></span>
+    <span class="st-item"><span>Ln ${STATE.cursorLine}, Col 22</span></span>
+    <span class="st-item"><span>UTF-8</span></span>
+    <span class="st-item"><span>LF</span></span>
+    <span class="st-item"><span>${STATE.activeTab ? extOf(STATE.activeTab).toUpperCase() : '—'}</span></span>
+    <span class="st-item"><span class="gr"></span><span>3 live</span></span>
+    <span class="st-item"><span>✦</span><span>Roadie · ${STATE.roadie.model}</span></span>
+    <span class="st-item" style="color:var(--cyan)" title="RoadChain receipt"><span>⛓</span><span>rcdy_8a2c91d</span></span>`;
+}
+
+function renderBottomPanel(){
+  const head = $('bpHead');
+  const body = $('bpBody');
+  const panel = $('bottomPanel');
+  if (!STATE.bottomOpen) { panel.classList.add('collapsed'); return; }
+  panel.classList.remove('collapsed');
+  const tabs = [
+    {id:'terminal', n:'Terminal'},
+    {id:'problems', n:'Problems', ct: PROBLEMS.length},
+    {id:'output',   n:'Output'},
+    {id:'ports',    n:'Ports', ct: 3},
+    {id:'debug',    n:'Debug Console'},
+  ];
+  head.innerHTML = tabs.map(t =>
+    `<button class="bp-tab ${t.id===STATE.bottomPanel?'active':''}" data-bp="${t.id}">${t.n}${t.ct?`<span class="ct">${t.ct}</span>`:''}</button>`
+  ).join('') + `<span class="bp-actions">
+    <button class="icon-btn" id="bpSplit" title="Split">⊟</button>
+    <button class="icon-btn" id="bpClose" title="Close">×</button>
+  </span>`;
+  head.querySelectorAll('[data-bp]').forEach(b => b.onclick = () => { STATE.bottomPanel = b.dataset.bp; renderBottomPanel(); });
+  $('bpClose').onclick = () => { STATE.bottomOpen = false; renderBottomPanel(); };
+  // body
+  if (STATE.bottomPanel === 'terminal') {
+    body.innerHTML = `<div class="term">
+<span class="prompt">road@cecilia</span>:<span class="out">~/roadcode-demo</span>$ roadcode dev
+<span class="ok">  ✓ port 3000 → web</span>
+<span class="ok">  ✓ port 8080 → api</span>
+<span class="ok">  ✓ port 5432 → postgres</span>
+<span class="out">  → live at https://roadcode-demo-3000.spaces.blackroad.io</span>
+<span class="out">  → watching src/, styles.css, index.html</span>
+<span class="out">[14:02:01] reload — src/app.js</span>
+<span class="out">[14:02:09] reload — src/roadie.js</span>
+<span class="ok">[14:02:18] ✓ build ok in 142ms</span>
+<span class="prompt">road@cecilia</span>:<span class="out">~/roadcode-demo</span>$ <span style="background:var(--text);color:#000">▌</span>
+</div>`;
+  } else if (STATE.bottomPanel === 'problems') {
+    body.innerHTML = PROBLEMS.map(p =>
+      `<div style="display:flex;gap:10px;padding:6px 0;align-items:flex-start">
+        <span style="color:${p.sev==='warn'?'#fbbf24':'#67e8f9'};font-size:13px">${p.sev==='warn'?'⚠':'ℹ'}</span>
+        <span style="color:var(--text)">${escHtml(p.msg)}</span>
+        <span class="mono" style="margin-left:auto;color:var(--muted);font-size:10px">${p.file}:${p.line}</span>
+      </div>`).join('');
+  } else if (STATE.bottomPanel === 'ports') {
+    body.innerHTML = `<table style="width:100%;font-family:var(--jb);font-size:11px;color:var(--text)">
+      <tr style="color:var(--muted);text-transform:uppercase;font-size:10px;text-align:left"><th style="padding:6px 8px">Port</th><th style="padding:6px 8px">Service</th><th style="padding:6px 8px">URL</th><th style="padding:6px 8px">Visibility</th></tr>
+      ${WORKSPACES[0].ports.map(p => `<tr>
+        <td style="padding:6px 8px">${p.p}</td>
+        <td style="padding:6px 8px">${p.svc}</td>
+        <td style="padding:6px 8px;color:var(--cyan)">${p.url}</td>
+        <td style="padding:6px 8px">${p.pub?'<span style="color:#22c55e">public</span>':'<span style="color:var(--muted)">private</span>'}</td>
+      </tr>`).join('')}
+    </table>`;
+  } else if (STATE.bottomPanel === 'output') {
+    body.innerHTML = `<div class="term"><span class="out">[Roadie · qwen2.5:14b]</span> warm-up: 312ms · ctx 8192 · ready
+<span class="out">[Build]</span> 142ms · 18 modules · 142kb gzip
+<span class="out">[Chain]</span> anchored 8a2c91d → rcdy_8a2c91d</div>`;
+  } else {
+    body.innerHTML = `<div class="empty"><div class="icon">⌃</div><div class="t">Debug Console</div><div class="d">Run a script to attach the debugger.</div></div>`;
+  }
+}
+// ============================================================
+// SIDEBAR — varies per Space
+// ============================================================
+function renderSidebar(){
+  const el = $('sidebar');
+  const space = STATE.space;
+  if (space === 'editor' || space === 'sandbox') return renderExplorerSidebar(el);
+  if (space === 'roadie') return renderRoadieSidebar(el);
+  if (space === 'workspaces') return renderWorkspacesSidebar(el);
+  if (space === 'repo') return renderRepoSidebar(el);
+  if (space === 'deploys') return renderDeploysSidebar(el);
+  if (space === 'issues') return renderIssuesSidebar(el);
+  if (space === 'live') return renderLiveSidebar(el);
+  if (space === 'settings') return renderSettingsSidebar(el);
+}
+
+function renderExplorerSidebar(el){
+  el.innerHTML = `
+    <div class="sb-head">
+      <span class="sb-title">Explorer</span>
+      <div class="sb-actions">
+        <button class="sb-act" title="New file">+</button>
+        <button class="sb-act" title="New folder">▢</button>
+        <button class="sb-act" title="Refresh">↻</button>
+        <button class="sb-act" title="Collapse all">⊟</button>
+      </div>
+    </div>
+    <div class="sb-search"><input placeholder="Search files…" id="fileSearch"></div>
+    <div class="sb-body">
+      <div class="sb-section">
+        <div class="sb-section-label"><span>roadcode-demo</span><span class="mono" style="color:var(--muted);font-size:10px">⎇ feat/roadie-streaming</span></div>
+        <div class="tree" id="fileTree"></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Outline</div>
+        <div style="padding:0 14px">${renderOutline()}</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Timeline</div>
+        <ul class="outline-list" style="padding:0 14px">
+          <li><span class="ic" style="color:var(--cyan)">●</span>2h — saved</li>
+          <li><span class="ic" style="color:var(--cyan)">●</span>2h — chat() now async generator</li>
+          <li><span class="ic" style="color:var(--cyan)">●</span>3h — initial commit</li>
+        </ul>
+      </div>
+    </div>`;
+  renderFileTree();
+}
+
+function renderFileTree(){
+  const el = $('fileTree');
+  if (!el) return;
+  function walk(nodes, depth){
+    return nodes.map(n => {
+      if (n.type === 'dir') {
+        const open = STATE.treeOpen.has(n.name);
+        return `<div class="tnode ${open?'open':''}" data-dir="${n.name}" style="padding-left:${4+depth*12}px">
+          <span class="chev">▶</span><span class="ic dir">▢</span><span class="nm">${n.name}</span>
+        </div>
+        <div class="tchildren ${open?'open':''}">${walk(n.children, depth+1)}</div>`;
+      } else {
+        const ext = extOf(n.path);
+        const isActive = n.path === STATE.activeTab;
+        const dirty = STATE.dirty.has(n.path);
+        return `<div class="tnode ${isActive?'active':''}" data-file="${n.path}" style="padding-left:${18+depth*12}px">
+          <span class="ic ${ext}">${ext==='js'?'JS':ext==='html'?'<>':ext==='css'?'#':ext==='md'?'M':ext==='json'?'{}':'·'}</span>
+          <span class="nm">${n.name}</span>
+          ${dirty?'<span class="dirty"></span>':''}
+        </div>`;
+      }
+    }).join('');
+  }
+  el.innerHTML = walk(FILE_TREE, 0);
+  el.querySelectorAll('[data-file]').forEach(t => {
+    t.onclick = () => {
+      const p = t.dataset.file;
+      if (!STATE.openTabs.includes(p)) STATE.openTabs.push(p);
+      STATE.activeTab = p;
+      render();
+    };
+  });
+  el.querySelectorAll('[data-dir]').forEach(t => {
+    t.onclick = () => {
+      const n = t.dataset.dir;
+      if (STATE.treeOpen.has(n)) STATE.treeOpen.delete(n); else STATE.treeOpen.add(n);
+      renderFileTree();
+    };
+  });
+}
+
+// ============================================================
+// EDITOR
+// ============================================================
+function renderEditor(stage){
+  const path = STATE.activeTab;
+  if (!path) {
+    stage.innerHTML = `<div class="empty" style="margin:auto"><div class="icon">⟨/⟩</div><div class="t">No file open</div><div class="d">Pick a file from the explorer or hit ⌘P.</div></div>`;
+    return;
+  }
+  const src = FILES[path] || '';
+  const ext = extOf(path);
+  const lines = src.split('\n');
+  const cur = STATE.cursorLine;
+  const diffMarks = (path === 'src/app.js')
+    ? {14:'mod', 15:'mod', 18:'add'}
+    : (path === 'src/auth.js') ? {9:'mod'} : {};
+  const breakpoints = (path === 'src/app.js') ? new Set([14]) : new Set();
+
+  const gutter = lines.map((_, i) => {
+    const n = i + 1;
+    const m = diffMarks[n];
+    return `<div class="gutter-line ${n===cur?'cur':''}">
+      ${breakpoints.has(n)?'<span class="bp"></span>':''}
+      <span>${n}</span>
+      ${m?`<span class="gd ${m}"></span>`:''}
+    </div>`;
+  }).join('');
+
+  const html = highlight(src, ext);
+  const code = html.split('\n').map((l,i) =>
+    `<div class="code-line" data-ln="${i+1}" style="height:21px">${l || '&nbsp;'}</div>`
+  ).join('');
+
+  const mini = lines.map((l,i) => {
+    const cls = !l.trim() ? '' : (i+1===cur?'cur':'has');
+    return `<div class="mini-line ${cls}"></div>`;
+  }).join('');
+
+  stage.innerHTML = `
+    <div class="editor-wrap">
+      <div class="editor" id="codeEditor">
+        <div class="gutter">${gutter}</div>
+        <div class="code" tabindex="0">${code}</div>
+      </div>
+      <div class="minimap">${mini}<div class="mini-viewport" style="top:${Math.min(80, cur*3)}px"></div></div>
+      <div class="find-bar" id="findBar">
+        <input placeholder="Find" id="findInput">
+        <span class="ct">0/0</span>
+        <button class="icon-btn" style="width:22px;height:22px;font-size:11px">↑</button>
+        <button class="icon-btn" style="width:22px;height:22px;font-size:11px">↓</button>
+        <input placeholder="Replace" style="margin-left:6px">
+        <button class="icon-btn" style="width:22px;height:22px;font-size:11px" title="Replace">↺</button>
+        <button class="icon-btn" style="width:22px;height:22px;font-size:11px" id="findClose">×</button>
+      </div>
+    </div>`;
+  // current line highlight via overlay (cheap: position absolute)
+  const codeEl = stage.querySelector('.code');
+  const overlay = document.createElement('div');
+  overlay.className = 'cur-line';
+  overlay.style.top = ((cur-1)*21 + 8) + 'px';
+  codeEl.appendChild(overlay);
+
+  stage.querySelectorAll('.code-line').forEach(ln => {
+    ln.onclick = () => {
+      STATE.cursorLine = parseInt(ln.dataset.ln, 10);
+      render();
+    };
+  });
+  const fc = $('findClose'); if (fc) fc.onclick = () => $('findBar').classList.remove('open');
+}
+// ============================================================
+// ROADIE
+// ============================================================
+function renderRoadieSidebar(el){
+  el.innerHTML = `
+    <div class="sb-head">
+      <span class="sb-title">Roadie · Threads</span>
+      <div class="sb-actions"><button class="sb-act" title="New thread">+</button></div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-section">
+        <div class="sb-section-label">Active</div>
+        <div class="sb-item active"><span class="icon">✦</span><span style="flex:1">PR #42 — abort signal</span><span class="meta">now</span></div>
+        <div class="sb-item"><span class="icon">✦</span><span style="flex:1">RoadView search ranking</span><span class="meta">2h</span></div>
+        <div class="sb-item"><span class="icon">✦</span><span style="flex:1">Why does sandbox refresh lag?</span><span class="meta">5h</span></div>
+        <div class="sb-item"><span class="icon">✦</span><span style="flex:1">Refactor router.js to switch</span><span class="meta">1d</span></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Quick</div>
+        <div class="sb-item"><span class="icon">✏</span>Edit selection (⌘L)</div>
+        <div class="sb-item"><span class="icon">⊕</span>Generate test</div>
+        <div class="sb-item"><span class="icon">📖</span>Explain symbol</div>
+        <div class="sb-item"><span class="icon">⌃</span>Find bug</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Models · sovereign</div>
+        <div class="sb-item ${STATE.roadie.model==='qwen2.5:7b'?'active':''}" data-model="qwen2.5:7b"><span class="icon mono">7b</span>qwen2.5 · fast</div>
+        <div class="sb-item ${STATE.roadie.model==='qwen2.5:14b'?'active':''}" data-model="qwen2.5:14b"><span class="icon mono">14b</span>qwen2.5 · default</div>
+        <div class="sb-item ${STATE.roadie.model==='qwen2.5:32b'?'active':''}" data-model="qwen2.5:32b"><span class="icon mono">32b</span>qwen2.5 · slow</div>
+      </div>
+    </div>`;
+  el.querySelectorAll('[data-model]').forEach(b => b.onclick = () => { STATE.roadie.model = b.dataset.model; render(); });
+}
+
+function renderRoadie(stage){
+  const msgsHTML = STATE.roadie.msgs.map(m => {
+    const av = m.who === 'r' ? '<div class="r-av r">✦</div>' : '<div class="r-av u">AL</div>';
+    let body = '';
+    body += `<div class="r-text">${mdInline(m.body)}</div>`;
+    if (m.code) {
+      body += `<pre><code>${highlight(m.code,'js')}</code></pre>`;
+    }
+    if (m.chips) {
+      body += `<div class="r-chips">${m.chips.map(c => `<span class="r-chip">@${c}</span>`).join('')}</div>`;
+    }
+    if (m.quick) {
+      body += `<div class="r-quick">${m.quick.map(q => `<button>${q}</button>`).join('')}</div>`;
+    }
+    return `<div class="r-msg">${av}<div class="r-body"><div class="r-name">${m.name}${m.who==='r'?` <span class="badge">${STATE.roadie.model}</span>`:''}</div>${body}</div></div>`;
+  }).join('');
+
+  const typing = STATE.roadie.typing
+    ? `<div class="r-msg"><div class="r-av r">✦</div><div class="r-body"><div class="r-name">Roadie</div><div class="r-typing"><span></span><span></span><span></span></div></div></div>`
+    : '';
+
+  stage.innerHTML = `
+    <div class="roadie-wrap">
+      <div class="roadie-msgs" id="roadieMsgs">${msgsHTML}${typing}</div>
+      <div class="r-composer">
+        <textarea class="r-input" id="rInput" placeholder="Ask Roadie… (⌘↵ to send · ⌘L to edit selection · @ to attach a file)"></textarea>
+        <div class="r-toolbar">
+          <select class="r-model" id="rModel">
+            <option value="qwen2.5:7b" ${STATE.roadie.model==='qwen2.5:7b'?'selected':''}>qwen2.5:7b</option>
+            <option value="qwen2.5:14b" ${STATE.roadie.model==='qwen2.5:14b'?'selected':''}>qwen2.5:14b</option>
+            <option value="qwen2.5:32b" ${STATE.roadie.model==='qwen2.5:32b'?'selected':''}>qwen2.5:32b</option>
+          </select>
+          <span class="r-chip">@src/roadie.js</span>
+          <span class="r-chip">@PR #42</span>
+          <button class="r-send" id="rSend">Send</button>
+        </div>
+      </div>
+    </div>`;
+  const msgsEl = $('roadieMsgs'); if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+  $('rModel').onchange = e => { STATE.roadie.model = e.target.value; render(); };
+  $('rSend').onclick = sendRoadieMessage;
+  $('rInput').addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); sendRoadieMessage(); }
+  });
+}
+
+function mdInline(s){
+  return escHtml(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function sendRoadieMessage(){
+  const input = $('rInput');
+  const txt = input.value.trim();
+  if (!txt) return;
+  STATE.roadie.msgs.push({who:'u', name:'alexa', body: txt});
+  input.value = '';
+  STATE.roadie.typing = true;
+  renderRoadie($('wbStage'));
+  // mock streaming response
+  setTimeout(() => {
+    STATE.roadie.typing = false;
+    const reply = mockRoadieReply(txt);
+    STATE.roadie.msgs.push(reply);
+    renderRoadie($('wbStage'));
+    pushToast('Roadie', 'Response complete · ' + STATE.roadie.model);
+  }, 1400);
+}
+
+function mockRoadieReply(prompt){
+  const p = prompt.toLowerCase();
+  if (p.includes('test')) {
+    return {who:'r', name:'Roadie', body:`Here's a test that aborts mid-stream:`, code:`test('chat() aborts when signal fires', async () => {
+  const controller = new AbortController();
+  const it = chat('hi', { signal: controller.signal });
+  const first = await it.next();
+  expect(first.done).toBe(false);
+  controller.abort();
+  const next = await it.next();
+  expect(next.done).toBe(true);
+});`, quick:['Apply','Run','Discard']};
+  }
+  if (p.includes('explain')) {
+    return {who:'r', name:'Roadie', body:`The async generator yields decoded chunks until the stream ends. Wrapping in try/catch lets us swallow \`AbortError\` cleanly so callers see a normal completion when they cancel.`};
+  }
+  return {who:'r', name:'Roadie', body:`Got it. What I'd do:\n\n1. Look at where \`chat()\` is consumed in the UI\n2. Surface the AbortController to the cancel button\n3. Add a debounce so rapid prompts don't pile up streams\n\nWant me to draft the UI wiring?`, quick:['Yes — draft','Just the test','Skip']};
+}
+
+// ============================================================
+// WORKSPACES
+// ============================================================
+function renderWorkspacesSidebar(el){
+  el.innerHTML = `
+    <div class="sb-head"><span class="sb-title">Workspaces</span>
+      <div class="sb-actions"><button class="sb-act" title="New workspace">+</button></div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-section">
+        <div class="sb-section-label">Mine</div>
+        ${WORKSPACES.map((w,i) => `<div class="sb-item ${i===0?'active':''}">
+          <span class="icon" style="color:${w.st==='run'?'#22c55e':w.st==='boot'?'var(--ember)':'var(--muted)'}">●</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${w.nm}</span>
+          <span class="meta">${w.runtime.split(' ')[0]}</span>
+        </div>`).join('')}
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Templates</div>
+        <div class="sb-item"><span class="icon">▢</span>Node 22 · web</div>
+        <div class="sb-item"><span class="icon">▢</span>Python 3.12 · ML</div>
+        <div class="sb-item"><span class="icon">▢</span>Rust 1.83 · CLI</div>
+        <div class="sb-item"><span class="icon">▢</span>Bun · edge</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Storage</div>
+        <div style="padding:6px 14px;font-size:12px;color:var(--sub)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Used</span><span class="mono">12.4 / 50 GB</span></div>
+          <div style="height:4px;background:var(--elevated);border-radius:2px;overflow:hidden"><div style="height:100%;width:25%;background:var(--g);border-radius:2px"></div></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderWorkspaces(stage){
+  const w = WORKSPACES[0];
+  stage.innerHTML = `
+    <div style="overflow:auto;height:100%">
+      <div class="wsp-grid">
+        ${WORKSPACES.map(ws => `
+          <div class="wsp-card">
+            <div class="grad"></div>
+            <div class="wsp-h">
+              <div class="nm">${ws.nm}</div>
+              <span class="wsp-st ${ws.st}"><span class="d"></span>${ws.stTxt}</span>
+            </div>
+            <div class="wsp-meta">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span class="k">Runtime</span><span class="mono">${ws.runtime}</span></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="k">CPU</span><span class="mono">${ws.cpu}%</span></div>
+              <div class="wsp-bar"><div class="fill" style="width:${ws.cpu}%"></div></div>
+              <div style="display:flex;justify-content:space-between;margin:8px 0 4px"><span class="k">RAM</span><span class="mono">${ws.ram}%</span></div>
+              <div class="wsp-bar"><div class="fill" style="width:${ws.ram}%"></div></div>
+            </div>
+            <div class="wsp-foot">
+              ${ws.st==='run'?'<button class="wsp-btn">Open</button><button class="wsp-btn">Stop</button>':''}
+              ${ws.st==='sleep'?'<button class="wsp-btn primary">Boot</button><button class="wsp-btn">Delete</button>':''}
+              ${ws.st==='boot'?'<button class="wsp-btn">Cancel</button>':''}
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="wsp-detail">
+        <div class="wsp-pane">
+          <h4>Port forwards · ${w.nm}</h4>
+          <table class="wsp-table">
+            <tr><th>Port</th><th>Service</th><th>URL</th><th>Visibility</th></tr>
+            ${w.ports.map(p => `<tr>
+              <td>${p.p}</td><td>${p.svc}</td>
+              <td style="color:var(--cyan)">${p.url}</td>
+              <td>${p.pub?'<span style="color:#22c55e">public</span>':'<span style="color:var(--muted)">private</span>'}</td>
+            </tr>`).join('')}
+          </table>
+        </div>
+        <div class="wsp-pane">
+          <h4>Environment variables</h4>
+          <pre>NODE_ENV=development
+DATABASE_URL=postgres://road@localhost:5432/roadcode
+ROADIE_MODEL=qwen2.5:14b
+CHAIN_ANCHOR=true
+ROAD_PASS_TIER=free</pre>
+        </div>
+        <div class="wsp-pane">
+          <h4>Secrets</h4>
+          <table class="wsp-table">
+            <tr><th>Key</th><th>Value</th><th>Updated</th></tr>
+            <tr><td>STRIPE_SECRET</td><td>sk_live_••••••4f2a</td><td>2d ago</td></tr>
+            <tr><td>HF_TOKEN</td><td>hf_••••••8c1e</td><td>3d ago</td></tr>
+            <tr><td>R2_ACCESS</td><td>r2_••••••0a77</td><td>1w ago</td></tr>
+          </table>
+        </div>
+        <div class="wsp-pane">
+          <h4>devcontainer.json</h4>
+          <pre>{
+  "name": "roadcode-demo",
+  "image": "blackroad/devbox:node22",
+  "forwardPorts": [3000, 8080, 5432],
+  "postCreate": "roadcode setup",
+  "remoteUser": "road",
+  "features": {
+    "ollama": { "models": ["qwen2.5:14b"] },
+    "chain":  { "anchor": true }
+  }
+}</pre>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// SANDBOX
+// ============================================================
+function renderSandbox(stage){
+  stage.innerHTML = `
+    <div class="sandbox">
+      <div class="sb-bar">
+        <span class="nm">untitled.pen</span>
+        <span class="vis">private</span>
+        <div class="right">
+          <button>Fork</button>
+          <button>Share</button>
+          <button>Export</button>
+          <button class="run" id="sbRun">▶ Run</button>
+        </div>
+      </div>
+      <div class="sb-grid">
+        <div class="sb-pane">
+          <div class="sb-pane-h"><span class="dot h"></span>HTML</div>
+          <div class="sb-pane-body"><textarea id="sbHTML" spellcheck="false">${escHtml(STATE.sb.html)}</textarea></div>
+        </div>
+        <div class="sb-pane">
+          <div class="sb-pane-h"><span class="dot c"></span>CSS</div>
+          <div class="sb-pane-body"><textarea id="sbCSS" spellcheck="false">${escHtml(STATE.sb.css)}</textarea></div>
+        </div>
+        <div class="sb-pane">
+          <div class="sb-pane-h"><span class="dot j"></span>JS</div>
+          <div class="sb-pane-body"><textarea id="sbJS" spellcheck="false">${escHtml(STATE.sb.js)}</textarea></div>
+        </div>
+        <div class="sb-pane">
+          <div class="sb-pane-h">Preview <span style="margin-left:auto;font-family:var(--jb);color:var(--muted)" id="sbStatus">live</span></div>
+          <iframe class="sb-preview" id="sbPreview" sandbox="allow-scripts"></iframe>
+          <div class="sb-console" id="sbConsole"></div>
+        </div>
+      </div>
+    </div>`;
+  ['sbHTML','sbCSS','sbJS'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      STATE.sb.html = $('sbHTML').value;
+      STATE.sb.css  = $('sbCSS').value;
+      STATE.sb.js   = $('sbJS').value;
+      clearTimeout(window._sbTimer);
+      window._sbTimer = setTimeout(refreshSandbox, 500);
+    });
+  });
+  $('sbRun').onclick = refreshSandbox;
+  refreshSandbox();
+}
+
+function refreshSandbox(){
+  const fr = $('sbPreview');
+  if (!fr) return;
+  const doc = `<!DOCTYPE html><html><head><style>${STATE.sb.css}</style></head><body>${STATE.sb.html}<script>
+    (function(){
+      const send = (k, args) => {
+        try { parent.postMessage({__sb:true, k, a:[...args].map(x => {
+          try { return typeof x === 'object' ? JSON.stringify(x) : String(x); } catch(e){ return String(x); }
+        })}, '*'); } catch(e){}
+      };
+      ['log','warn','error','info'].forEach(k => {
+        const o = console[k].bind(console);
+        console[k] = function(){ send(k, arguments); o.apply(console, arguments); };
+      });
+      window.addEventListener('error', e => send('error', [e.message + ' @ ' + (e.lineno||'?')]));
+    })();
+    try {
+${STATE.sb.js}
+    } catch(e) { console.error(e.message); }
+  <\/script></body></html>`;
+  fr.srcdoc = doc;
+  STATE.sb.consoleLines = [];
+  $('sbConsole').innerHTML = '<div class="ln" style="color:var(--muted)">// console</div>';
+}
+
+window.addEventListener('message', e => {
+  if (e.data && e.data.__sb) {
+    const c = $('sbConsole');
+    if (!c) return;
+    const cls = e.data.k === 'error' ? 'err' : '';
+    c.insertAdjacentHTML('beforeend',
+      `<div class="ln ${cls}"><span class="pre">${e.data.k}</span>${escHtml(e.data.a.join(' '))}</div>`);
+    c.scrollTop = c.scrollHeight;
+  }
+});
+// ============================================================
+// REPO
+// ============================================================
+function renderRepoSidebar(el){
+  el.innerHTML = `
+    <div class="sb-head"><span class="sb-title">Repository</span>
+      <div class="sb-actions"><button class="sb-act" title="Sync">↻</button></div>
+    </div>
+    <div class="sb-search"><input placeholder="Search PRs, files, commits…"></div>
+    <div class="sb-body">
+      <div class="sb-section">
+        <div class="sb-section-label">Branches</div>
+        <div class="sb-item active"><span class="icon">⎇</span><span style="flex:1">feat/roadie-streaming</span><span class="meta">↑2</span></div>
+        <div class="sb-item"><span class="icon">⎇</span><span style="flex:1">main</span><span class="meta">prod</span></div>
+        <div class="sb-item"><span class="icon">⎇</span><span style="flex:1">fix/road-pass-copy</span><span class="meta">PR</span></div>
+        <div class="sb-item"><span class="icon">⎇</span><span style="flex:1">wip/officeroad-floor</span><span class="meta">draft</span></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Pull requests</div>
+        ${PRS.map(pr => `<div class="sb-item ${pr.id===STATE.activePR && STATE.repoSubtab==='pulls'?'active':''}" data-pr="${pr.id}">
+          <span class="icon" style="color:${pr.status==='open'?'#22c55e':pr.status==='draft'?'var(--muted)':'var(--orchid)'}">●</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis">#${pr.num} ${pr.title.slice(0,28)}</span>
+        </div>`).join('')}
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Releases</div>
+        <div class="sb-item"><span class="icon">⊙</span><span style="flex:1">v0.4.2</span><span class="meta">2d</span></div>
+        <div class="sb-item"><span class="icon">⊙</span><span style="flex:1">v0.4.1</span><span class="meta">1w</span></div>
+      </div>
+    </div>`;
+  el.querySelectorAll('[data-pr]').forEach(b => b.onclick = () => {
+    STATE.activePR = parseInt(b.dataset.pr,10); STATE.repoSubtab='pulls'; render();
+  });
+}
+
+function renderRepo(stage){
+  const subtabs = [
+    {id:'code',     n:'Code'},
+    {id:'pulls',    n:'Pull Requests', ct: PRS.filter(p=>p.status==='open').length},
+    {id:'issues',   n:'Issues', ct: 8},
+    {id:'actions',  n:'Actions'},
+    {id:'releases', n:'Releases'},
+    {id:'insights', n:'Insights'},
+    {id:'fleet',    n:'Fleet', ct: 27},
+  ];
+  let body = '';
+  if (STATE.repoSubtab === 'code') body = renderRepoCode();
+  else if (STATE.repoSubtab === 'pulls') body = renderRepoPulls();
+  else if (STATE.repoSubtab === 'actions') body = renderRepoActions();
+  else if (STATE.repoSubtab === 'releases') body = renderRepoReleases();
+  else if (STATE.repoSubtab === 'insights') body = renderRepoInsights();
+  else if (STATE.repoSubtab === 'fleet') body = renderRepoFleet();
+  else body = `<div class="empty"><div class="icon">·</div><div class="t">${STATE.repoSubtab}</div><div class="d">Coming soon.</div></div>`;
+
+  stage.innerHTML = `
+    <div class="repo-wrap">
+      <div class="repo-subnav">
+        ${subtabs.map(t => `<button class="t ${t.id===STATE.repoSubtab?'active':''}" data-rt="${t.id}">${t.n}${t.ct?`<span class="ct">${t.ct}</span>`:''}</button>`).join('')}
+      </div>
+      <div class="repo-body">${body}</div>
+    </div>`;
+  stage.querySelectorAll('[data-rt]').forEach(b => b.onclick = () => { STATE.repoSubtab = b.dataset.rt; render(); });
+}
+
+function renderRepoCode(){
+  return `
+    <div style="display:grid;grid-template-columns:280px 1fr;gap:14px">
+      <div class="dpl-card">
+        <h4>Files <span class="mono" style="color:var(--muted);font-size:10px;font-weight:400">main · 8a2c91d</span></h4>
+        <ul class="outline-list">
+          <li><span class="ic" style="color:var(--arc)">▢</span>src/<span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">3 files</span></li>
+          <li style="padding-left:18px"><span class="ic" style="color:#FFD93D">JS</span>app.js</li>
+          <li style="padding-left:18px"><span class="ic" style="color:#FFD93D">JS</span>auth.js</li>
+          <li style="padding-left:18px"><span class="ic" style="color:#FFD93D">JS</span>router.js</li>
+          <li><span class="ic" style="color:var(--arc)">▢</span>tests/</li>
+          <li><span class="ic" style="color:var(--ember)">&lt;&gt;</span>index.html</li>
+          <li><span class="ic" style="color:var(--arc)">#</span>styles.css</li>
+          <li><span class="ic mono" style="color:#FFD93D">{}</span>package.json</li>
+          <li><span class="ic">M</span>README.md</li>
+        </ul>
+      </div>
+      <div>
+        <div class="dpl-card">
+          <h4>README.md</h4>
+          <div style="font-size:13px;color:var(--text);line-height:1.7">
+            <h1 style="font-weight:700;font-size:22px;color:var(--white);margin-bottom:10px">roadcode-demo</h1>
+            <p style="color:#bbb;margin-bottom:12px">A demo repo wired into <strong>RoadCode</strong> — the BlackRoad coding workspace.</p>
+            <p style="color:#bbb">5 hours free, $5/month after — <span style="color:var(--cyan);text-decoration:underline">Road Pass</span>.</p>
+          </div>
+        </div>
+        <div class="commit-graph" style="margin-top:14px">
+          <h4 style="font-size:11px;font-weight:600;color:var(--white);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px">Commits · main</h4>
+          ${COMMITS.map(c => `<div class="commit-row">
+            <div class="commit-graph-vis"><span class="line"></span><span class="dot ${c.gr?'gr':''}"></span></div>
+            <div class="commit-msg">${escHtml(c.msg)}<span class="commit-author">— ${c.author}</span></div>
+            <span class="commit-hash">${c.hash}</span>
+            <span style="color:var(--muted);font-family:var(--jb);font-size:10px;margin-left:10px">${c.time}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderRepoPulls(){
+  if (STATE.activePR) {
+    const pr = PRS.find(p => p.id === STATE.activePR);
+    if (pr && pr.files.length) return renderPRDetail(pr);
+  }
+  return `<div class="pr-list">
+    ${PRS.map(pr => `<div class="pr-row" data-pr="${pr.id}">
+      <div class="pr-icon ${pr.status}">${pr.status==='open'?'⊙':pr.status==='draft'?'◌':'⬢'}</div>
+      <div class="pr-main">
+        <div class="pr-title">${escHtml(pr.title)} <span style="color:var(--muted);font-weight:400">#${pr.num}</span></div>
+        <div class="pr-meta"><span class="br">⎇ ${pr.branch}</span> · ${pr.author} · ${pr.time}</div>
+        <div class="pr-checks">✓ ${pr.checks} checks · <span class="pr-diff"><span class="add">+${pr.diff.add}</span> <span class="del">-${pr.diff.del}</span></span></div>
+      </div>
+      <div class="pr-side">
+        <div class="avatar-stack"><span class="av gr">OC</span><span class="av">CE</span></div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderPRDetail(pr){
+  const files = pr.files.map(f => `
+    <div class="diff-file">
+      <div class="diff-h">
+        <span class="nm">${f.name}</span>
+        <span class="stats"><span class="add">+${f.add}</span> <span class="del">-${f.del}</span></span>
+        <button class="icon-btn" style="margin-left:auto;width:22px;height:22px">⋯</button>
+      </div>
+      <div class="diff-body">
+        ${f.hunks.map(h => `
+          <div class="diff-row hunk">${escHtml(h.h)}</div>
+          ${h.lines.map(ln => `<div class="diff-row ${ln.t==='add'?'add':ln.t==='del'?'del':''}">
+            <span class="gn">${ln.n}</span><span class="ln">${ln.t==='add'?'+':ln.t==='del'?'-':' '} ${escHtml(ln.l)}</span>
+          </div>`).join('')}
+        `).join('')}
+        ${f.reviews.map(r => `<div class="review-thread">
+          <div class="av gr">${r.who.slice(0,2).toUpperCase()}</div>
+          <div class="body"><div class="nm">${r.who}</div><div>${escHtml(r.body)}</div>
+            <div style="display:flex;gap:6px;margin-top:6px"><button class="wsp-btn">Reply</button><button class="wsp-btn">Resolve</button></div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+  return `
+    <div style="margin-bottom:16px">
+      <button class="wsp-btn" id="prBack" style="margin-bottom:10px">← All pull requests</button>
+      <div style="display:flex;align-items:flex-start;gap:14px">
+        <div class="pr-icon ${pr.status}" style="width:36px;height:36px">${pr.status==='open'?'⊙':'◌'}</div>
+        <div style="flex:1">
+          <h2 style="font-size:20px;font-weight:600;color:var(--white)">${escHtml(pr.title)} <span style="color:var(--muted);font-weight:400">#${pr.num}</span></h2>
+          <div class="pr-meta" style="margin-top:6px">${pr.author} wants to merge <span class="br">⎇ ${pr.branch}</span> into <span class="br">⎇ main</span> · ${pr.time}</div>
+        </div>
+        <button class="deploy-btn">Merge ▾</button>
+      </div>
+    </div>
+    ${files}
+    <script>document.getElementById('prBack').onclick = () => { STATE.activePR = null; render(); };<\/script>`;
+}
+
+function renderRepoActions(){
+  return `<div style="display:flex;flex-direction:column;gap:8px">
+    ${[
+      {n:'CI · build + test',  st:'ok',  br:'feat/roadie-streaming', time:'4m ago', dur:'48s'},
+      {n:'Lint',                st:'ok',  br:'feat/roadie-streaming', time:'4m ago', dur:'12s'},
+      {n:'Chain anchor',        st:'ok',  br:'feat/roadie-streaming', time:'4m ago', dur:'3s'},
+      {n:'Deploy preview',      st:'run', br:'feat/roadie-streaming', time:'just now', dur:'—'},
+      {n:'CI · build + test',  st:'fail',br:'main', time:'1d ago', dur:'12s'},
+    ].map(a => `<div class="pr-row">
+      <div class="pr-icon ${a.st==='ok'?'open':a.st==='fail'?'merged':'draft'}">${a.st==='ok'?'✓':a.st==='fail'?'✕':'◐'}</div>
+      <div class="pr-main">
+        <div class="pr-title">${a.n}</div>
+        <div class="pr-meta"><span class="br">⎇ ${a.br}</span> · ${a.time} · <span style="color:var(--text)">${a.dur}</span></div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderRepoReleases(){
+  return `<div style="display:flex;flex-direction:column;gap:14px">
+    ${[
+      {v:'v0.4.2', d:'2d ago', notes:['Roadie streaming responses','Sandbox console mirror','Chain-anchored deploys']},
+      {v:'v0.4.1', d:'1w ago', notes:['Road Pass capped at 5h free','Magic-link flow polish']},
+      {v:'v0.4.0', d:'2w ago', notes:['Initial RoadCode beta','27-product registry sync']},
+    ].map(r => `<div class="dpl-card">
+      <h4 style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><span style="color:var(--white);font-size:18px;font-weight:700">${r.v}</span><span class="changelog-version-bar" style="width:32px;height:3px;border-radius:2px;background:var(--g)"></span></h4>
+      <div class="mono" style="font-size:11px;color:var(--muted);margin-bottom:10px">${r.d}</div>
+      <ul class="outline-list">${r.notes.map(n => `<li><span class="ic" style="color:var(--white)">●</span>${escHtml(n)}</li>`).join('')}</ul>
+    </div>`).join('')}
+  </div>`;
+}
+
+// Fleet: GitHub multi-agent gaps + RoadCode solutions (per session memory)
+const FLEET_GAPS = [
+  {cat:'Identity & attribution', ic:'◉', items:[
+    {p:'Every agent commits as you; can\'t filter "what did Roadie do this week"',
+     s:'RoundAbout dispatch chain anchors every agent action with a typed actor (one of 27); CarKeys grants tag commits with the originating agent.'},
+    {p:'No first-class agent actor — 27 agents = 27 GitHub Apps + secrets, or one shared App that flattens identity',
+     s:'27 canonical agents are first-class in CarKeys (`brk_<agent>_*`); RoundAbout knows each persona; no GitHub App sprawl.'},
+    {p:'Reviews look human — agent comments come from the token owner',
+     s:'BackRoad post `actor_kind` field distinguishes agent vs operator; RoadShow updates carry the same; filterable.'},
+  ]},
+  {cat:'Auth & token sprawl', ic:'⚿', items:[
+    {p:'PAT lifecycle is per-human — your token expires, all 27 agents break',
+     s:'CarKeys typed-scope `brk_*` API keys + `brg_*` delegated grants; per-agent rotation, no fleet outage on rotation.'},
+    {p:'Over-scoped tokens are the only practical option — same pattern that halted CF migration',
+     s:'`requireAuth(scopes)` helper enforces per-endpoint typed scopes (`roadcode:write`, `roadwork:write`, etc); least-privilege is the default.'},
+  ]},
+  {cat:'Concurrency', ic:'◐', items:[
+    {p:'No native lease/lock — two agents grabbing the same issue race',
+     s:'RoadChain holds (`estimate→reserve→finalize`) provide deterministic leases anchored in the ledger.'},
+    {p:'Branch contention — agents force-push to escape merge conflicts',
+     s:'RoadCode deploys are content-hashed snapshots in `.deploys/<id>/`; rollback is one click; no force-push escape valve needed.'},
+    {p:'CI thrashes — every agent push triggers full CI',
+     s:'RoadChain receipt + content hash skips re-build when bundle hash unchanged; per-Space test scoping.'},
+  ]},
+  {cat:'State & memory', ic:'◫', items:[
+    {p:'No "session" primitive — agent\'s last hour scattered across commits/PRs/comments',
+     s:'CarPool projects + RoadChain slice by `project:<id>:*` ref give a true session feed; replayable end-to-end.'},
+    {p:'Squash-on-merge destroys agent reasoning',
+     s:'RoadBook revisions preserve every reasoning step; squash is opt-in; the *why* lives in versioned RoadBook entries, not just commit messages.'},
+    {p:'Branch graveyard — exploratory agent branches accumulate forever',
+     s:'Detour quests have explicit `graduate` (→ RoadShow) and `dead-end` (→ RoadBook postmortem) terminal states. Nothing lingers.'},
+  ]},
+  {cat:'Rate limits', ic:'◯', items:[
+    {p:'5000 req/hr authenticated, 30/min for search — 20-org fleet hits the wall in seconds',
+     s:'Sovereign infra: no GitHub middleman. RoadView v2 search is in computer-95 (D1 + R2), no rate limit.'},
+    {p:'Code search index lags hours — agents ground answers on stale state',
+     s:'`/api/search/answer` is hybrid keyword+semantic with sub-second freshness; chain receipts pin "what was true at hash X".'},
+  ]},
+  {cat:'Cross-repo / multi-org', ic:'⌘', items:[
+    {p:'No transactional commit across repos — refactor across 5 repos = 5 PRs, no atomic rollback',
+     s:'RoadCode deploy is one sealed snapshot covering N projects; one chain receipt; one rollback button.'},
+    {p:'GraphQL vs REST schism — agents must know two APIs',
+     s:'BlackRoad APIs are REST-only with a single auth helper; one shape, no schism.'},
+  ]},
+  {cat:'Permissions', ic:'⊞', items:[
+    {p:'No /path-scoped agent permissions — "this agent can only touch /docs" is bolted on with CODEOWNERS',
+     s:'CarKeys typed scopes are per-resource per-action: `roadbook:write`, `pitstop:write`, scoped to specific projects/products.'},
+    {p:'Secrets are write-only — agents can set but not read back to verify',
+     s:'GloveBox client-encrypted vault: scoped read on shares; server never sees plaintext but agents *can* verify their own values.'},
+  ]},
+  {cat:'Review flow', ic:'◑', items:[
+    {p:'Mention storms — agent @mentions cause notification floods',
+     s:'BackRoad threaded comments (depth 8) are chronological-only — no algo amplification. Roadie/agent mentions go to a separate inbox.'},
+    {p:'Draft state isn\'t enforced — agents forget to mark drafts',
+     s:'RoadBook drafts → publish → revisions is an explicit state machine; no "accidentally published" path.'},
+    {p:'Diff size limits — PRs over ~3000 files truncate',
+     s:'RoadCode diff view is virtualized over content-hash; no UI limit, scrolls 50K+ files.'},
+  ]},
+  {cat:'Repo health', ic:'⛓', items:[
+    {p:'Artifacts pollute history — renders/snapshots silently trigger LFS billing',
+     s:'OneWay routes media to R2 + chain; binaries never enter the source tree. RoadBand `render-job` writes to R2, not git.'},
+    {p:'Webhook fan-out has no ordering — multi-agent listeners process events out of order',
+     s:'OneWay sources have SHA-256 receipts + dedupe + ordered dispatch via RoundAbout; idempotency is the default.'},
+  ]},
+  {cat:'Deploy — the dirty secret', ic:'▲', items:[
+    {p:'No first-class "agent → production" path. Either an Actions YAML workflow (constrained, billed) or you give an agent over-scoped PATs. You hand-run wrangler because no agent owns the deploy.',
+     s:'`roadcode deploy` accepts CarKeys `brk_*` with `roadcode:deploy` typed scope; sealed `.deploys/<id>/` snapshot anchored to RoadChain; rollback is one click. Cloudflare-free DO droplet + Pi origin path is in `infra/routes/blackroad-routes.yaml` — agent-deployable end-to-end.'},
+    {p:"Environments + required approvers don't compose. They pause *between* jobs, not *within*. An agent can't pause itself mid-thought, ask for sign-off, and resume.",
+     s:'RoadChain holds (`estimate → reserve → finalize`) are in-flight pause primitives. The agent reserves, OneWay `webhook` waits for the operator approval, and the same chain ID resumes the run.'},
+  ]},
+  {cat:"Agents can't talk to each other", ic:'⇄', items:[
+    {p:"No native pubsub between bots. RoundAbout's 27 agents have nothing on GitHub to use — Issues, shared branches, Discussions, or external Slack are all bad options.",
+     s:'RoundAbout dispatch *is* the pubsub: 27 personas, chain-anchored dispatch audit, `/api/search/answer-mesh` for parallel multi-agent grounded answers + Olympia synthesis.'},
+    {p:'Webhook fan-out is one-way. Agent A pushes → B/C/D see it, but they can\'t coordinate "I\'ll take this" without an external lease.',
+     s:'OneWay sources + RoundAbout dispatch + RoadChain `reserve` step give exactly that lease. First agent to reserve wins; chain says so; ledger anchors it.'},
+    {p:'No mailbox primitive. No "Olympia, here\'s a structured message from Roadie" — has to be a Discussion comment nobody reads.',
+     s:'RoadTrip is the agent mailbox: `/api/roadtrip/{convoy,select,branch,participants,thread/[id]}` with parallel SSE fan-out + Olympia synthesis + chain-anchored replies. Structured payloads, real threading.'},
+  ]},
+  {cat:'Comments & Discussions are wastelands for agents', ic:'◑', items:[
+    {p:'Optimized for human conversation. Free-text only — no structured payloads. Search is bad. Reactions tally is rate-limit-expensive.',
+     s:'BackRoad posts + comments accept typed payloads, threaded depth 8, polymorphic likes, chain-anchored. Search via RoadView v2 hybrid (keyword + semantic) with sub-second freshness.'},
+    {p:'Notifications all default to humans, so agent chatter buries the operator. No "agents-only channel" inside GitHub.',
+     s:'BackRoad post `actor_kind` field separates agent vs operator. Operator inbox defaults to mute-agents; `[Agent reports]` channel is the agents-only feed.'},
+    {p:"Discussions and Issues don't bridge cleanly. Converting one to the other isn't bidirectional.",
+     s:"RoadWork tasks, RoadBook revisions, and BackRoad posts share one ref scheme (`project:<id>:*`); CarPool activity feed unifies all three; nothing to bridge."},
+  ]},
+  {cat:'The money problem', ic:'$', items:[
+    {p:'Copilot is per-seat ($10–39/mo per user). 27 agents = $270–1000/mo just for IDE assist. Per-seat means each agent identity needs a paid GitHub user.',
+     s:'Roadie is sovereign — local Ollama (`qwen2.5:7b/14b/32b`) on cecilia + jetson. Per-agent cost is $0; only the Pi power bill scales.'},
+    {p:"Can't bring your own model. Copilot is locked to Microsoft's chosen models. Lucidia, road-math, your Ollama models — none of them can drive Copilot Workspace, Chat, or the new Coding Agent.",
+     s:'Roadie has a pluggable model registry. Default qwen2.5:14b, slots for road-math fine-tune, Lucidia stack, and HF discovery via `hf_hub_query` — inference stays local.'},
+    {p:'GitHub Models is a curated catalog with rate limits and no BYO weights. Sovereign rule (no paid APIs) directly conflicts.',
+     s:'BlackBoard atlas + Roadie use Ollama directly. HF `hub_repo_search` discovers; weights pull to the Pi. Sovereign rule honored end-to-end.'},
+    {p:'Actions minutes are 1× Linux / 2× Windows / 5× macOS. Multi-agent fanout = your bill explodes. Agent feedback loops can cost more than a Pi.',
+     s:'Workspaces run on cecilia / aria / anastasia (and DO droplets via Tailscale). Resource caps in plan configs are *policy*, not bills (memory: feedback_resource_caps).'},
+    {p:'Codespaces hours, LFS bandwidth, Packages storage all stack on top.',
+     s:'Workspaces store snapshots in R2 (no LFS); chain receipts dedupe content; HighWay caps are ceilings, not invoices. Only the Stripe fee on the $5 Road Pass is real money.'},
+  ]},
+  {cat:"Multi-agent shape doesn't fit", ic:'◰', items:[
+    {p:'The only first-class non-human actor is a Workflow run. Agents are jobs, not processes — stateless, 6-hour hard cap, YAML-orchestrated, no native sleep+resume.',
+     s:'BlackRoad Reflex Daemon v0.3 is a long-lived local nervous system on cecilia (35/35 selftests, sub-ms ESCALATE+receipt). Agents are processes, not jobs. No 6h cap. Code-orchestrated, not YAML.'},
+    {p:'No "wake up later" without scheduling another cron. No native sleep + resume.',
+     s:'Reflex Daemon tick loop + RoundAbout dispatch + RoadWork cycles = native sleep + resume. The ESCALATE consumer (todo) will close the last gap.'},
+    {p:'No long-running agents. GitHub assumes request → response. Reflex daemons, Lucidia loops, observers all live on cecilia; GitHub is just artifact storage.',
+     s:'Lucidia + 8-agent stack at `~/.local/bin/{lucidia,agents}`; bidirectional via observer + `[Agent reports]` context. Long-running is the default, not the workaround.'},
+  ]},
+  {cat:'Things that should obviously exist', ic:'⊕', items:[
+    {p:"No streaming output. Action logs are line-buffered, only viewable after the run completes. Agents can't stream thinking to a place a human can watch live.",
+     s:"RoadStream is the pane-as-primitive 1/2/4 layouts + per-pane audio mix; sources include `agent` and `wire`. Live agent thinking streams into a watchable pane in real time."},
+    {p:'No agent dashboard. "Show me all my agents, their queues, their last decisions" — doesn\'t exist. You build it. (You did — RoundAbout.)',
+     s:'RoundAbout `/api/search/answer-mesh` *is* the dashboard. RoadShow gallery surfaces every agent\'s active work. OfficeRoad `/floor` composites desks + presence + RoadWork task previews in one round-trip.'},
+    {p:'No agent presence. Slack shows who\'s online; GitHub has no notion of "agents currently active."',
+     s:'RoadWorld heartbeat presence (`/api/world/rooms/[id]/presence`) + OfficeRoad spatial workplace shows each agent at their desk in real time.'},
+    {p:'No agent capability registry. Discovering "which agents can do X" is something you build.',
+     s:'BlackBoard Sprite Atlas: 10K-slot creator asset universe with 27-agent canonical specs at `/api/blackboard/agents`. The capability registry, schema-valid, originality-affirmed.'},
+    {p:'No retry / idempotency primitive. Agent ops are 4–5 API calls; partial failure leaves inconsistent state; you build dedupe externally.',
+     s:'OneWay SHA-256 receipts + dedupe + ordered dispatch + RoadChain holds + CarKeys idempotency keys. Idempotency is built in, not bolted on.'},
+    {p:"No structured PR description schema. Agents write prose; \"what changed, why, blast radius\" isn't machine-parseable. (You're already enforcing it with [MEMORY][CODEX][PRODUCTS][BRTODO][COLLAB][ROADTRIP].)",
+     s:"RoadBook revision schema + the [MEMORY][CODEX][PRODUCTS][BRTODO][COLLAB][ROADTRIP] commit ritual are first-class. Each tag is a typed field; deploys read them; chain anchors them."},
+    {p:'No agent-triggered filter on PR/Issue lists. Can\'t ask GitHub "show me what my fleet is doing right now."',
+     s:'RoadView v2 universal index + RoadWork board view + Issues `actor_kind` filter — "what is the fleet doing right now" is one query.'},
+  ]},
+  {cat:'Audit & lineage', ic:'⛓', items:[
+    {p:'Code lineage to agent disappears at merge. Squash collapses 14 agent commits to one human-attributed line. Can\'t reverse-trace which agent introduced a regression.',
+     s:'RoadChain receipts on every revision survive squash. `_chain.walkBackward(id)` reconstructs lineage from any line of code back to the agent + reasoning + grounding sources.'},
+    {p:"No \"agent session\" primitive. An agent's hour of work is scattered across N commits, M comments, K reviews. Reconstructing it requires scraping. Your `~/.claude/projects/` jsonl is the workaround.",
+     s:'CarPool project + RoadChain slice by `project:<id>:*` = the session, first-class. Replayable end-to-end. The jsonl scraping is no longer the source of truth.'},
+    {p:"Branch protection requires human approvers by default. \"1 approval required\" doesn't accept agent reviews unless you explicitly grant it, which then dilutes the review meaning.",
+     s:'CarPool member roles + CarKeys typed scopes (`roadcode:approve`) make agent reviews load-bearing where canon allows them and explicitly excluded where it doesn\'t. Review meaning is preserved.'},
+  ]},
+  {cat:'Mobile is unusable for agent ops', ic:'▢', items:[
+    {p:'The whole fleet is desktop-or-CLI. Reviewing PRs on a phone is impossible if a single PR has more than ~50 changed lines. Agent operators can\'t manage from anywhere but a laptop.',
+     s:'RoadCode is browser-first responsive (this app); RoadStream panes + RoadWorld presence + BackRoad social feed are mobile-first. Operator can run the fleet from a phone.'},
+  ]},
+];
+
+// Closing note for the Fleet view
+const FLEET_PATTERN = `Every gap above has the same shape: GitHub assumes a small group of humans collaborating on a few repos. Agents get squeezed into either a **user** (PAT — dilutes identity, breaks at rotation), a **workflow run** (stateless, time-limited, YAML-shaped), or an **App** (heavyweight, per-app, separates from the human flow). None of those is "an agent." So the sovereign stack — RoundAbout, RoadChain, CarPool, OneWay, CarKeys, GloveBox, RoadBook, the journal, \`[Agent reports]\` — is literally the agent-coordination layer GitHub doesn't have. Lucidia is the model; the rest is the missing GitHub for agents.`;
+
+// Mapping: GitHub primitive → BlackRoad equivalent
+const FLEET_MAP = [
+  ['User / PAT',           'CarKeys `brk_<agent>` typed scopes'],
+  ['Repo + file tree',     'RoadCode projects (R2-backed)'],
+  ['Branch / snapshot',    'RoadCode sealed `.deploys/<id>/`'],
+  ['Pull request',         '_thin bridge — see below_'],
+  ['Review + approval',    'RoadBook typed verdicts'],
+  ['Issues + threads',     'RoadWork tasks + comments'],
+  ['Public discussion',    'BackRoad (creator feed)'],
+  ['CI workflow',          'RoundAbout dispatch + Lucidia/reflex runners'],
+  ['Actions secrets',      'GloveBox + CarKeys'],
+  ['Webhook ingress',      'OneWay sources'],
+  ['Webhook fan-out',      'RoundAbout (27-agent mesh)'],
+  ['Deploys / Pages',      'RoadCode preview tokens + `serveDeployFile`'],
+  ['Audit log',            'RoadChain receipts'],
+  ['Branch protection',    'RoadCode guards + RoadBook verdict thresholds'],
+  ['Activity feed',        "CarPool's `project:<id>:*` slice"],
+  ['Agent registry',       'BlackBoard (27 canonical specs)'],
+  ['Project board',        'RoadWork board'],
+  ['Milestones / releases','RoadMap plans + milestones'],
+  ['Code search',          'RoadView universal index'],
+  ['Live status',          'RoadStream panes + RoadWire guide'],
+  ['Sponsors',             'RoadCoin + tip-jar pattern'],
+];
+
+// Unit operation: agent-driven change end-to-end
+const FLEET_FLOW = [
+  {n:1,  t:'Agent edits files in a RoadCode project',                                                       sys:'RoadCode'},
+  {n:2,  t:'POST /api/roadcode/proposals — seals snapshot, opens RoadBook draft + RoadWork review task, dispatches reviewers, anchors proposal_id', sys:'NEW bridge #1', hi:true},
+  {n:3,  t:'Reviewer agents comment in RoadWork + run ci.* tasks',                                          sys:'RoundAbout'},
+  {n:4,  t:'Each ci.* posts a typed verdict on the RoadBook draft',                                         sys:'RoadBook'},
+  {n:5,  t:'When ≥ N PASS verdicts → RoadCode promotes the snapshot',                                       sys:'RoadCode guard'},
+  {n:6,  t:'Edge serves the new live deploy',                                                               sys:'RoadCode edge'},
+  {n:7,  t:'RoadView indexes the diff + outcome',                                                           sys:'RoadView'},
+  {n:8,  t:'CarPool activity feed shows it',                                                                sys:'CarPool'},
+  {n:9,  t:'RoadShow auto-fans an update if the show is linked',                                            sys:'RoadShow'},
+  {n:10, t:'RoadChain holds the receipt chain',                                                             sys:'RoadChain'},
+];
+
+// Three thin bridges (≈300 lines total)
+const FLEET_BRIDGES = [
+  {n:1, name:'RoadCode "Proposal" object',
+   why:'A typed object that bundles snapshot + review + verdicts + chain into one identifier — the missing PR primitive, made of pieces you already shipped.',
+   api:[
+     `POST  /api/roadcode/proposals
+      { project_slug, snapshot_id, reviewers:[...], kind:"change" }
+      → returns { id, roadbook_draft_id, roadwork_task_id, chain_id }`,
+     `GET   /api/roadcode/proposals/[id]
+      → hydrates diff + verdicts + thread + ci status`,
+     `POST  /api/roadcode/proposals/[id]/promote
+      → guard: ≥ N PASS verdicts
+      → flips snapshot live, anchors merge receipt`,
+   ]},
+  {n:2, name:'`ci.*` kinds in the RoadWork registry',
+   why:'Adds CI as first-class task kinds (not YAML jobs). Each transitions pending→running→pass|fail and auto-posts a typed verdict on the linked RoadBook draft. Workers are agents subscribed through RoundAbout.',
+   api:[
+     `kinds: ci.test · ci.lint · ci.build · ci.security · ci.preview · ci.deploy
+      state machine: pending → running → pass | fail
+      on completion: auto-posts typed verdict on linked RoadBook draft
+      workers: agents subscribed via RoundAbout dispatch`,
+   ]},
+  {n:3, name:'`/api/agent/[slug]/inbox` aggregator + one HTML page',
+   why:"Single per-agent view of everything an agent owns right now — built with brand-guide components verbatim (`.list-item`, `.timeline`, `.badge`, `.tabs`). One HTML in computer-95.",
+   api:[
+     `GET /api/agent/[slug]/inbox
+      → {
+          proposals_as_reviewer: [...],
+          tasks_assigned: [...],
+          mentions_in_roadwork: [...],
+          failing_ci_runs_owned: [...],
+          unacked_roundabout_messages: [...]
+        }`,
+   ]},
+];
+
+const FLEET_WINS = [
+  {h:'Agent identity is first-class',  b:'`brk_*` is per-agent and scoped — revoke `roadcode:write` for one agent without touching the other 26. GitHub PAT can\'t.'},
+  {h:'Lease is native',                b:'Chain receipts hold "agent X claimed task Y at T". No race, no Redis bolt-on.'},
+  {h:'Communication is structured',    b:'Typed task kinds + typed verdicts + RoundAbout dispatch. No prose-only Discussions.'},
+  {h:'Cost is sovereign',              b:'Pi + R2 + Workers, no per-seat Copilot, no Actions minutes, no Enterprise plan. Your $5 Road Pass economics still hold.'},
+  {h:'Long-running is the default',    b:'Lucidia + reflex daemon are already persistent observers. GitHub literally cannot do this without an external server.'},
+  {h:'Audit is automatic',             b:'RoadChain is the git log — and survives squash, force-push, repo deletion, all of it.'},
+  {h:'BYO model',                      b:'Ollama / Qwen / Lucidia all already wired. Sovereign rule preserved.'},
+];
+
+const FLEET_KEEP_GH = [
+  'Public mirror of source for SEO + curious humans (people still grep GitHub).',
+  'External contributors — until you wire "log in with GitHub OAuth → mint a `brg_*` grant" path. (You could, easily.)',
+];
+
+const FLEET_FIRST_SLICE = [
+  {n:1, t:'Add `POST /api/roadcode/proposals` (~150 lines wrapping existing calls).'},
+  {n:2, t:'Add `ci.lint` to the RoadWork registry — pick the simplest task kind first.'},
+  {n:3, t:'Build `agent-inbox.html` in computer-95, point it at `/api/agent/[slug]/inbox`.'},
+  {n:4, t:"Pick one agent (Roadie) and route one repo's worth of changes through this loop instead of GitHub for a week."},
+];
+
+function renderRepoFleet(){
+  return `
+    <div style="margin-bottom:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:32px;height:3px;border-radius:2px;background:var(--g)"></span>
+        <span class="mono" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">RoundAbout · 27-agent mesh</span>
+      </div>
+      <h2 style="font-size:22px;font-weight:700;color:var(--white);margin-bottom:6px">Multi-agent on GitHub: where it breaks, and what RoadCode does instead</h2>
+      <p style="font-size:13px;color:var(--sub);max-width:720px;line-height:1.7">GitHub was built for a small number of human authors collaborating on a few repos. A 27-agent fleet across 20 orgs hits every assumption in that model. This is the running tally of gaps and the BlackRoad primitives that close them — most are already shipped (CarKeys, CarPool, RoadChain, OneWay, GloveBox, RoadBook).</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+      ${[
+        {v:'27', l:'Canonical agents'},
+        {v:'20', l:'Orgs in canon'},
+        {v:'8',  l:'Backends in flight'},
+        {v:'0',  l:'Cloud LLM fallbacks'},
+      ].map(s => `<div class="dpl-card">
+        <div style="font-size:28px;font-weight:700;color:var(--white)">${s.v}</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px">${s.l}</div>
+        <div style="height:3px;background:var(--g);border-radius:2px;margin-top:12px"></div>
+      </div>`).join('')}
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px">
+      ${FLEET_GAPS.map(g => `
+        <div class="dpl-card">
+          <h4 style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <span style="font-size:14px">${g.ic}</span>
+            <span style="color:var(--white);font-size:13px;font-weight:600">${escHtml(g.cat)}</span>
+            <span class="mono" style="margin-left:auto;font-size:10px;color:var(--muted)">${g.items.length} ${g.items.length===1?'gap':'gaps'}</span>
+          </h4>
+          ${g.items.map(it => `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:8px">
+              <div style="padding:14px 16px;background:rgba(255,34,85,.04);border-right:1px solid var(--border)">
+                <div class="mono" style="font-size:10px;color:var(--flare);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⚠ Gap on GitHub</div>
+                <div style="font-size:13px;color:var(--text);line-height:1.6">${escHtml(it.p)}</div>
+              </div>
+              <div style="padding:14px 16px;background:rgba(0,212,255,.03);position:relative">
+                <div class="mono" style="font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">✓ RoadCode does this</div>
+                <div style="font-size:13px;color:var(--text);line-height:1.6">${mdInline(it.s)}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="margin:36px 0 18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="width:32px;height:3px;border-radius:2px;background:var(--g)"></span>
+        <span class="mono" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Blueprint · GitHub for Agents on BlackRoad canon</span>
+      </div>
+      <h2 style="font-size:22px;font-weight:700;color:var(--white);margin-bottom:6px">~95% already shipped. Three thin bridges close the loop.</h2>
+      <p style="font-size:13px;color:var(--sub);max-width:720px;line-height:1.7">This isn't a new product — it'd break the 27-canon. It's a composition pattern over what already exists, plus three small bridge endpoints (≈300 lines total). Every GitHub primitive maps onto something you already shipped.</p>
+    </div>
+
+    <div class="dpl-card" style="margin-bottom:18px">
+      <h4>The product mapping</h4>
+      <table class="wsp-table" style="margin-top:6px">
+        <tr><th style="width:42%">GitHub primitive</th><th>BlackRoad equivalent</th></tr>
+        ${FLEET_MAP.map(([g,b]) => `<tr>
+          <td style="color:var(--text)">${escHtml(g)}</td>
+          <td style="font-family:var(--sg);font-size:12px;color:var(--text)">${mdInline(b)}</td>
+        </tr>`).join('')}
+      </table>
+    </div>
+
+    <div class="dpl-card" style="margin-bottom:18px">
+      <h4>Unit operation · "agent-driven change", end to end</h4>
+      <ul style="list-style:none;margin-top:8px;padding:0">
+        ${FLEET_FLOW.map((s,i) => `<li style="display:flex;gap:14px;padding:10px 0;${i<FLEET_FLOW.length-1?'border-bottom:1px solid var(--border)':''}">
+          <span style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--jb);${s.hi?'background:var(--g135);color:#000':'background:var(--elevated);border:1px solid var(--border);color:var(--text)'}">${s.n}</span>
+          <div style="flex:1">
+            <div style="font-size:13px;color:var(--text);line-height:1.5">${mdInline(s.t)}</div>
+            <div class="mono" style="font-size:10px;color:${s.hi?'var(--ember)':'var(--muted)'};margin-top:3px;text-transform:uppercase;letter-spacing:.06em">${s.sys}</div>
+          </div>
+        </li>`).join('')}
+      </ul>
+      <div class="mono" style="font-size:11px;color:var(--cyan);margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">Every step is already an endpoint or one call into one. No webhook, no Action minute, no PAT, no git push.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px">
+      ${FLEET_BRIDGES.map(b => `<div class="dpl-card" style="position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--g)"></div>
+        <h4 style="margin-bottom:8px;color:var(--white);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px">
+          <span style="width:24px;height:24px;border-radius:50%;background:var(--g135);color:#000;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--jb)">${b.n}</span>
+          ${escHtml(b.name)}
+        </h4>
+        <p style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:12px">${mdInline(b.why)}</p>
+        ${b.api.map(a => `<pre style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--jb);font-size:10px;color:var(--text);overflow-x:auto;line-height:1.6;margin-bottom:6px;white-space:pre-wrap">${escHtml(a)}</pre>`).join('')}
+      </div>`).join('')}
+    </div>
+
+    <div class="dpl-card" style="margin-bottom:18px">
+      <h4>Why this beats GitHub-shaped, specifically for the 27-fleet</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+        ${FLEET_WINS.map(w => `<div style="padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;border-left:2px solid var(--cyan)">
+          <div style="font-weight:600;color:var(--white);font-size:12px;margin-bottom:4px">${escHtml(w.h)}</div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.6">${mdInline(w.b)}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px">
+      <div class="dpl-card">
+        <h4>What to keep GitHub for</h4>
+        <ul style="list-style:none;margin-top:6px;padding:0">
+          ${FLEET_KEEP_GH.map(k => `<li style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);line-height:1.6">
+            <span style="color:var(--orchid);flex-shrink:0">⊙</span>
+            <span>${mdInline(k)}</span>
+          </li>`).join('')}
+        </ul>
+        <div class="mono" style="font-size:10px;color:var(--muted);margin-top:10px">Everything else can leave.</div>
+      </div>
+      <div class="dpl-card">
+        <h4>Smallest first slice · one afternoon</h4>
+        <ol style="list-style:none;margin-top:6px;padding:0;counter-reset:slice">
+          ${FLEET_FIRST_SLICE.map(s => `<li style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--text);line-height:1.6">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);font-family:var(--jb);font-size:10px;color:var(--text);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${s.n}</span>
+            <span>${mdInline(s.t)}</span>
+          </li>`).join('')}
+        </ol>
+        <div class="mono" style="font-size:10px;color:var(--cyan);margin-top:10px">If it holds, scale to the other 26 + the other 19 repos. If it breaks, you've learned exactly which gap matters most before committing to a wider migration.</div>
+      </div>
+    </div>
+
+    <div class="dpl-card" style="margin-top:24px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--g)"></div>
+      <h4 style="margin-bottom:10px;color:var(--white);font-size:14px;font-weight:600">The honest summary</h4>
+      <p style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:10px">${mdInline(FLEET_PATTERN)}</p>
+      <p class="mono" style="font-size:11px;color:var(--muted);line-height:1.7">Continuity belongs to CarPool / TileStore / RoadChain / OneWay / CarKeys — never the model.</p>
+    </div>
+  `;
+}
+
+function renderRepoInsights(){
+  return `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+    ${[['7','Active PRs'],['12','Issues open'],['148','Commits 30d'],['3','Contributors']].map(([v,l]) =>
+      `<div class="dpl-card"><div style="font-size:32px;font-weight:700;color:var(--white)">${v}</div><div style="font-size:11px;color:var(--sub);margin-top:4px">${l}</div><div style="height:3px;background:var(--g);border-radius:2px;margin-top:12px"></div></div>`
+    ).join('')}
+    <div class="dpl-card" style="grid-column:span 4">
+      <h4>Activity · last 30 days</h4>
+      <div style="display:flex;gap:3px;align-items:flex-end;height:80px;margin-top:14px">
+        ${Array.from({length:30}, (_,i) => {
+          const h = 12 + Math.round(Math.sin(i*0.7)*20 + Math.random()*40);
+          return `<div style="flex:1;height:${h}px;background:var(--g);opacity:${0.3 + h/100};border-radius:2px"></div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// DEPLOYS
+// ============================================================
+function renderDeploysSidebar(el){
+  el.innerHTML = `
+    <div class="sb-head"><span class="sb-title">Projects</span>
+      <div class="sb-actions"><button class="sb-act" title="Import">+</button></div>
+    </div>
+    <div class="sb-search"><input placeholder="Search projects…"></div>
+    <div class="sb-body">
+      <div class="sb-section">
+        <div class="sb-section-label">Mine</div>
+        <div class="sb-item active"><span class="icon">▲</span><span style="flex:1">roadcode-demo</span><span class="meta">prod</span></div>
+        <div class="sb-item"><span class="icon">▲</span><span style="flex:1">blackroad-os-prism</span><span class="meta">prod</span></div>
+        <div class="sb-item"><span class="icon">▲</span><span style="flex:1">computer-95</span><span class="meta">prod</span></div>
+        <div class="sb-item"><span class="icon">▲</span><span style="flex:1">roadband-render</span><span class="meta">dev</span></div>
+        <div class="sb-item"><span class="icon">▲</span><span style="flex:1">pixel-foundry</span><span class="meta">prod</span></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Domains</div>
+        <div class="sb-item"><span class="icon">⌘</span><span style="flex:1">blackroad.io</span><span class="meta">✓</span></div>
+        <div class="sb-item"><span class="icon">⌘</span><span style="flex:1">blackroad.me</span><span class="meta">✓</span></div>
+        <div class="sb-item"><span class="icon">⌘</span><span style="flex:1">computer.blackroad.io</span><span class="meta">✓</span></div>
+      </div>
+    </div>`;
+}
+
+function renderDeploys(stage){
+  const filtered = DEPLOYS.filter(d => d.env === STATE.deployEnv);
+  stage.innerHTML = `
+    <div class="dpl-wrap">
+      <div class="dpl-h">
+        <div>
+          <div class="nm">roadcode-demo</div>
+          <div class="url">↗ roadcode-demo.blackroad.io</div>
+        </div>
+        <div class="right">
+          <div class="dpl-env">
+            ${['production','preview','development'].map(e =>
+              `<button class="${e===STATE.deployEnv?'active':''}" data-env="${e}">${e}</button>`
+            ).join('')}
+          </div>
+          <button class="wsp-btn">⚙ Settings</button>
+          <button class="deploy-btn">▲ Deploy</button>
+        </div>
+      </div>
+      <div class="dpl-body">
+        <div>
+          <div class="dpl-table">
+            ${filtered.map((d,idx) => `<div class="dpl-row" data-deploy="${d.id}">
+              <span class="dpl-pill ${d.status}"><span class="d"></span>${d.status}</span>
+              <div>
+                <div style="color:var(--white);font-size:13px">${escHtml(d.msg)}</div>
+                <div class="dpl-meta">${d.branch} · ${d.commit}</div>
+              </div>
+              <div class="dpl-meta">${d.env}</div>
+              <div class="dpl-meta">${d.dur}</div>
+              <div class="dpl-meta">${d.time}</div>
+            </div>`).join('')}
+          </div>
+        </div>
+        <div class="dpl-side">
+          <div class="dpl-card">
+            <h4>Domains <button class="icon-btn" style="width:22px;height:22px;font-size:11px">+</button></h4>
+            <div class="row"><span class="k">roadcode-demo.blackroad.io</span><span class="v" style="color:#22c55e">primary</span></div>
+            <div class="row"><span class="k">roadcode-demo.dev</span><span class="v" style="color:#22c55e">✓ cert</span></div>
+            <div class="row"><span class="k">spaces.blackroad.io</span><span class="v" style="color:#22c55e">✓ cert</span></div>
+          </div>
+          <div class="dpl-card">
+            <h4>Build settings</h4>
+            <div class="row"><span class="k">framework</span><span class="v">RoadCode 0.4</span></div>
+            <div class="row"><span class="k">build cmd</span><span class="v">roadcode build</span></div>
+            <div class="row"><span class="k">output</span><span class="v">.roadcode/dist</span></div>
+            <div class="row"><span class="k">runtime</span><span class="v">edge</span></div>
+            <div class="row"><span class="k">node</span><span class="v">22.4</span></div>
+          </div>
+          <div class="dpl-card">
+            <h4>Env vars · ${STATE.deployEnv}</h4>
+            <div class="row"><span class="k">DATABASE_URL</span><span class="v">postgres://••</span></div>
+            <div class="row"><span class="k">ROADIE_MODEL</span><span class="v">qwen2.5:14b</span></div>
+            <div class="row"><span class="k">CHAIN_ANCHOR</span><span class="v">true</span></div>
+          </div>
+          <div class="dpl-card">
+            <h4>Build cache</h4>
+            <div class="row"><span class="k">size</span><span class="v">412 MB</span></div>
+            <div class="row"><span class="k">hits / 7d</span><span class="v">94%</span></div>
+            <div style="margin-top:10px"><button class="wsp-btn">Clear cache</button> <button class="wsp-btn">Rollback</button></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  stage.querySelectorAll('[data-env]').forEach(b => b.onclick = () => { STATE.deployEnv = b.dataset.env; render(); });
+  stage.querySelectorAll('[data-deploy]').forEach(b => b.onclick = () => { STATE.activeDeploy = parseInt(b.dataset.deploy,10); render(); });
+}
+
+// ============================================================
+// ISSUES
+// ============================================================
+function renderIssuesSidebar(el){
+  el.innerHTML = `
+    <div class="sb-head"><span class="sb-title">Issues</span>
+      <div class="sb-actions"><button class="sb-act" title="New issue (C)">+</button></div>
+    </div>
+    <div class="sb-search"><input placeholder="Filter issues…"></div>
+    <div class="sb-body">
+      <div class="sb-section">
+        <div class="sb-section-label">Views</div>
+        <div class="sb-item active"><span class="icon">◳</span><span style="flex:1">Inbox</span><span class="meta">3</span></div>
+        <div class="sb-item"><span class="icon">◉</span><span style="flex:1">My issues</span><span class="meta">5</span></div>
+        <div class="sb-item"><span class="icon">⚡</span><span style="flex:1">Active</span><span class="meta">${ISSUES.filter(i=>i.col==='prog'||i.col==='rev').length}</span></div>
+        <div class="sb-item"><span class="icon">◯</span><span style="flex:1">Backlog</span><span class="meta">${ISSUES.filter(i=>i.col==='backlog').length}</span></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Cycles</div>
+        <div class="sb-item active"><span class="icon">◐</span><span style="flex:1">Cycle 14</span><span class="meta">4d</span></div>
+        <div class="sb-item"><span class="icon">○</span><span style="flex:1">Cycle 15</span><span class="meta">↗</span></div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Projects</div>
+        <div class="sb-item"><span class="icon">▢</span>RoadCode 0.5</div>
+        <div class="sb-item"><span class="icon">▢</span>27-product canon</div>
+        <div class="sb-item"><span class="icon">▢</span>OfficeRoad MVP</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Roadmap</div>
+        <div class="sb-item"><span class="icon">⊕</span>Q2 — Roadie GA</div>
+        <div class="sb-item"><span class="icon">⊕</span>Q3 — Spaces v2</div>
+      </div>
+    </div>`;
+}
+
+function renderIssues(stage){
+  const cycleProgress = Math.round(ISSUES.filter(i=>i.col==='done').length / ISSUES.length * 100);
+  let body = '';
+  if (STATE.issuesView === 'board') {
+    body = `<div class="iss-board">
+      ${ISSUE_COLS.map(col => {
+        const its = ISSUES.filter(i => i.col === col.id);
+        return `<div class="iss-col">
+          <div class="iss-col-h"><span class="dot ${col.dot}"></span><span class="nm">${col.name}</span><span class="ct">${its.length}</span></div>
+          <div class="iss-col-body">
+            ${its.map(i => `<div class="iss-card">
+              <div class="top">
+                <span class="pri ${i.pri}">${i.pri==='urgent'?'⚡':i.pri==='high'?'▲':i.pri==='med'?'●':'○'}</span>
+                <span class="id">${i.id}</span>
+              </div>
+              <div class="t">${escHtml(i.title)}</div>
+              <div class="bottom">
+                <span class="est">${i.est}pt</span>
+                ${i.labels.map(l => `<span class="lbl" style="background:${l.c}">${l.n}</span>`).join('')}
+                <span class="av" style="width:20px;height:20px;border-radius:50%;background:var(--elevated);display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:var(--text)">${i.assignee}</span>
+              </div>
+            </div>`).join('')}
+            <button style="padding:8px;background:transparent;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-size:12px;width:100%">+ Add issue</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } else {
+    body = `<div style="padding:14px"><div class="dpl-table">
+      ${ISSUES.map(i => `<div class="dpl-row" style="grid-template-columns:80px 60px 1fr 80px 60px 80px">
+        <span class="mono" style="color:var(--cyan)">${i.id}</span>
+        <span class="pri ${i.pri}" style="font-size:13px;color:${i.pri==='urgent'?'var(--flare)':i.pri==='high'?'var(--ember)':i.pri==='med'?'var(--orchid)':'var(--sub)'}">${i.pri==='urgent'?'⚡':i.pri==='high'?'▲':i.pri==='med'?'●':'○'} ${i.pri}</span>
+        <span style="color:var(--text)">${escHtml(i.title)}</span>
+        <span class="dpl-meta">${i.col}</span>
+        <span class="mono">${i.est}pt</span>
+        <span class="av" style="width:24px;height:24px;border-radius:50%;background:var(--elevated);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--text)">${i.assignee}</span>
+      </div>`).join('')}
+    </div></div>`;
+  }
+  stage.innerHTML = `
+    <div class="iss-wrap">
+      <div class="iss-h">
+        <div class="nm">Cycle 14</div>
+        <div class="iss-cycle">
+          <div class="lbl"><span>Day 4 of 7</span><span>${cycleProgress}% done</span></div>
+          <div class="bar"><div class="fill" style="width:${cycleProgress}%"></div></div>
+        </div>
+        <div class="right">
+          <div class="iss-toggle">
+            <button class="${STATE.issuesView==='board'?'active':''}" data-view="board">Board</button>
+            <button class="${STATE.issuesView==='list'?'active':''}" data-view="list">List</button>
+          </div>
+          <button class="wsp-btn">⌕ Filter</button>
+          <button class="wsp-btn primary">+ New (C)</button>
+        </div>
+      </div>
+      ${body}
+    </div>`;
+  stage.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { STATE.issuesView = b.dataset.view; render(); });
+}
+
+// ============================================================
+// LIVE
+// ============================================================
+function renderLiveSidebar(el){
+  el.innerHTML = `
+    <div class="sb-head"><span class="sb-title">Live</span>
+      <div class="sb-actions"><button class="sb-act" title="Invite">⊕</button></div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-section">
+        <div class="sb-section-label">Active session</div>
+        <div style="padding:10px 14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--g135);box-shadow:0 0 6px var(--orchid)"></span>
+            <span style="font-weight:600;color:var(--white);font-size:13px">roadcode-demo · live</span>
+          </div>
+          <div class="mono" style="font-size:11px;color:var(--muted)">started 14m ago · 3 here</div>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">In session</div>
+        ${LIVE.map(p => `<div class="sb-item">
+          <span class="icon" style="color:#22c55e">●</span>
+          <span style="flex:1">${p.nm}</span>
+          <span class="meta">${p.av}</span>
+        </div>`).join('')}
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">Recent sessions</div>
+        <div class="sb-item"><span class="icon">·</span><span style="flex:1">Sat — refactor router</span><span class="meta">42m</span></div>
+        <div class="sb-item"><span class="icon">·</span><span style="flex:1">Fri — bug bash</span><span class="meta">1h</span></div>
+        <div class="sb-item"><span class="icon">·</span><span style="flex:1">Thu — design review</span><span class="meta">28m</span></div>
+      </div>
+    </div>`;
+}
+
+function renderLive(stage){
+  stage.innerHTML = `
+    <div class="live-wrap">
+      <div class="live-card">
+        <div class="live-h">
+          <span class="dot"></span>
+          <span class="nm">Live session · roadcode-demo</span>
+          <span class="ts">started 14m ago</span>
+        </div>
+        <div style="font-size:13px;color:var(--sub);margin-bottom:14px">3 collaborators editing in real time. Cursors and selections sync across the workbench.</div>
+        <div class="live-participants">
+          ${LIVE.map(p => `<div class="live-p">
+            <div class="ring"><div class="inner">${p.av}</div></div>
+            <div class="body">
+              <div class="nm">${p.nm}</div>
+              <div class="file">↪ ${p.file}</div>
+            </div>
+            <button class="follow">Follow</button>
+            <button class="follow">Voice</button>
+          </div>`).join('')}
+        </div>
+        <div class="live-actions">
+          <button>📞 Start voice</button>
+          <button>🖥 Share screen</button>
+          <button>⌨ Shared terminal</button>
+          <button>⊞ Pop out</button>
+          <button style="margin-left:auto;color:var(--flare)">End session</button>
+        </div>
+      </div>
+
+      <div class="live-card">
+        <div class="live-h"><span class="nm" style="color:var(--white);font-weight:600">Shared terminal</span><span class="ts" style="color:var(--muted);font-family:var(--jb);font-size:11px">read-write · all participants</span></div>
+        <div class="bp-body" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;height:140px;overflow:auto"><div class="term">
+<span class="prompt">octavia@live</span>:<span class="out">~/roadcode-demo</span>$ npm test
+<span class="ok">  ✓ chat() yields chunks</span>
+<span class="ok">  ✓ chat() aborts when signal fires</span>
+<span class="out">  Tests: 14 passed, 14 total</span>
+<span class="prompt">alexa@live</span>:<span class="out">~/roadcode-demo</span>$ <span style="background:var(--text);color:#000">▌</span>
+</div></div>
+      </div>
+
+      <div class="live-card">
+        <div class="live-h"><span class="nm" style="color:var(--white);font-weight:600">Session activity</span></div>
+        <ul class="outline-list">
+          <li><span class="ic" style="color:var(--cyan)">●</span>14m — alexa joined</li>
+          <li><span class="ic" style="color:var(--cyan)">●</span>13m — octavia joined</li>
+          <li><span class="ic" style="color:var(--cyan)">●</span>12m — cecilia joined</li>
+          <li><span class="ic" style="color:var(--orchid)">✦</span>9m — Roadie suggested abort signal</li>
+          <li><span class="ic" style="color:#22c55e">✓</span>4m — tests passing on shared workspace</li>
+        </ul>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderSettingsSidebar(el){
+  const sections = [
+    {id:'account', n:'Account', ic:'◉'},
+    {id:'appearance', n:'Appearance', ic:'◐'},
+    {id:'editor', n:'Editor', ic:'⟨/⟩'},
+    {id:'keys', n:'Keybindings', ic:'⌨'},
+    {id:'extensions', n:'Extensions', ic:'⊞'},
+    {id:'workspaces', n:'Workspaces', ic:'◫'},
+    {id:'billing', n:'Road Pass', ic:'⊙'},
+    {id:'team', n:'Team', ic:'⊕'},
+  ];
+  el.innerHTML = `
+    <div class="sb-head"><span class="sb-title">Settings</span></div>
+    <div class="sb-body">
+      <div class="sb-section">
+        ${sections.map(s => `<div class="sb-item ${s.id===STATE.setSection?'active':''}" data-set="${s.id}">
+          <span class="icon">${s.ic}</span>${s.n}
+        </div>`).join('')}
+      </div>
+      <div class="sb-section">
+        <div class="sb-section-label">About</div>
+        <div style="padding:6px 14px;font-family:var(--jb);font-size:11px;color:var(--muted);line-height:1.7">
+          RoadCode 0.4.2<br>Build 8a2c91d<br><span style="color:var(--cyan)">sovereign · local</span>
+        </div>
+      </div>
+    </div>`;
+  el.querySelectorAll('[data-set]').forEach(b => b.onclick = () => { STATE.setSection = b.dataset.set; render(); });
+}
+
+function renderSettings(stage){
+  let body = '';
+  const s = STATE.setSection;
+  if (s === 'account') body = settingsAccount();
+  else if (s === 'appearance') body = settingsAppearance();
+  else if (s === 'editor') body = settingsEditor();
+  else if (s === 'keys') body = settingsKeys();
+  else if (s === 'extensions') body = settingsExtensions();
+  else if (s === 'workspaces') body = settingsWorkspaces();
+  else if (s === 'billing') body = settingsBilling();
+  else if (s === 'team') body = settingsTeam();
+  stage.innerHTML = `<div class="set-wrap"><div class="set-body">${body}</div></div>`;
+}
+
+function settingsAccount(){
+  return `
+    <div class="set-section">
+      <h3>Account</h3>
+      <div class="desc">Magic-link only · no passwords (BlackRoad rule)</div>
+      <div class="set-row"><div><div class="label">Email</div><div class="sub">amundsonalexa@gmail.com · verified</div></div><button class="wsp-btn">Change</button></div>
+      <div class="set-row"><div><div class="label">Display name</div></div><input class="set-input" value="alexa"></div>
+      <div class="set-row"><div><div class="label">Handle</div><div class="sub">blackroad.me/alexa</div></div><input class="set-input" value="@alexa"></div>
+      <div class="set-row"><div><div class="label">GitHub</div><div class="sub">connected as blackroadinc</div></div><button class="wsp-btn">Disconnect</button></div>
+    </div>
+    <div class="set-section">
+      <h3>Sessions</h3>
+      <div class="set-row"><div><div class="label">cecilia · this device</div><div class="sub">macOS · Safari · 192.168.1.4</div></div><span class="dpl-pill ready"><span class="d"></span>active</span></div>
+      <div class="set-row"><div><div class="label">octavia</div><div class="sub">macOS · 2h ago</div></div><button class="wsp-btn">Revoke</button></div>
+    </div>`;
+}
+
+function settingsAppearance(){
+  return `
+    <div class="set-section">
+      <h3>Appearance</h3>
+      <div class="desc">Locked to BlackRoad black per brand canon.</div>
+      <div class="set-row"><div><div class="label">Theme</div><div class="sub">BlackRoad · ember/cyan accents</div></div>
+        <div style="display:flex;gap:8px"><div style="width:36px;height:36px;border-radius:6px;background:#000;border:2px solid var(--white)"></div><div style="width:36px;height:36px;border-radius:6px;background:#fff;opacity:.3"></div></div>
+      </div>
+      <div class="set-row"><div><div class="label">Accent</div></div>
+        <div style="display:flex;gap:6px">
+          ${['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF'].map((c,i) =>
+            `<div style="width:24px;height:24px;border-radius:50%;background:${c};${i===4?'box-shadow:0 0 0 2px #fff':''}"></div>`
+          ).join('')}
+        </div>
+      </div>
+      <div class="set-row"><div><div class="label">Font</div></div>
+        <select class="set-input"><option>Space Grotesk</option><option>Inter</option><option>System</option></select>
+      </div>
+      <div class="set-row"><div><div class="label">Editor font</div></div>
+        <select class="set-input"><option>JetBrains Mono</option><option>SF Mono</option><option>Fira Code</option></select>
+      </div>
+      <div class="set-row"><div><div class="label">Density</div></div>
+        <div class="iss-toggle"><button class="active">Comfortable</button><button>Compact</button></div>
+      </div>
+    </div>`;
+}
+
+function settingsEditor(){
+  return `
+    <div class="set-section">
+      <h3>Editor</h3>
+      <div class="set-row"><div><div class="label">Tab size</div></div><input class="set-input" value="2" style="min-width:80px"></div>
+      <div class="set-row"><div><div class="label">Word wrap</div></div><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+      <div class="set-row"><div><div class="label">Show minimap</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="set-row"><div><div class="label">Show breadcrumbs</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="set-row"><div><div class="label">Format on save</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="set-row"><div><div class="label">Auto-save</div></div><select class="set-input"><option>Off</option><option selected>On focus change</option><option>After delay</option></select></div>
+    </div>
+    <div class="set-section">
+      <h3>Roadie</h3>
+      <div class="set-row"><div><div class="label">Default model</div><div class="sub">Sovereign · Ollama-only (no cloud fallback per canon)</div></div>
+        <select class="set-input"><option>qwen2.5:7b</option><option selected>qwen2.5:14b</option><option>qwen2.5:32b</option></select>
+      </div>
+      <div class="set-row"><div><div class="label">Inline ghost-text</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+      <div class="set-row"><div><div class="label">Auto-attach open file</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    </div>`;
+}
+
+function settingsKeys(){
+  const keys = [
+    ['⌘K','Open command palette'],
+    ['⌘P','Quick file open'],
+    ['⌘B','Toggle sidebar'],
+    ['⌘J','Toggle bottom panel'],
+    ['⌘\\','Split editor'],
+    ['⌘L','Edit selection with Roadie'],
+    ['⌘↵','Send Roadie message'],
+    ['⌘⇧K','Switch Space'],
+    ['C','New issue (Issues space)'],
+    ['⌘F','Find in file'],
+    ['⌘⇧F','Find in repo'],
+    ['F5','Run / debug'],
+  ];
+  return `
+    <div class="set-section">
+      <h3>Keybindings</h3>
+      <div class="desc">Quick reference. Click any binding to remap.</div>
+      <div class="dpl-card" style="padding:0">
+        ${keys.map(([k,n]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px">
+          <span>${n}</span><span class="kbd">${k}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function settingsExtensions(){
+  const exts = [
+    {n:'Roadie · sovereign LLM', d:'Local Ollama runner with Qwen models', on:true, by:'BlackRoad'},
+    {n:'Pixel Foundry', d:'Procedural sprite atlas browser', on:true, by:'BlackRoad'},
+    {n:'Chain anchor', d:'Sign every commit + deploy with RoadChain', on:true, by:'BlackRoad'},
+    {n:'BlackBoard atlas', d:'10K-slot creator asset universe', on:false, by:'BlackRoad'},
+    {n:'OneWay ingest', d:'webhook | http_pull | rss → chain', on:false, by:'BlackRoad'},
+    {n:'PitStop tutor', d:'Roadie-tutored homework sessions', on:false, by:'BlackRoad'},
+  ];
+  return `
+    <div class="set-section">
+      <h3>Extensions</h3>
+      <div class="desc">First-party only — sovereign rule, no third-party API extensions.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+        ${exts.map(x => `<div class="dpl-card">
+          <h4>${x.n}<label class="toggle" style="margin-left:auto"><input type="checkbox" ${x.on?'checked':''}><span class="toggle-slider"></span></label></h4>
+          <div style="font-size:12px;color:var(--sub);margin-bottom:8px">${x.d}</div>
+          <div class="mono" style="font-size:10px;color:var(--muted)">${x.by}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function settingsWorkspaces(){
+  return `
+    <div class="set-section">
+      <h3>Workspace defaults</h3>
+      <div class="set-row"><div><div class="label">Default image</div></div><select class="set-input"><option>blackroad/devbox:node22</option><option>blackroad/devbox:python312</option></select></div>
+      <div class="set-row"><div><div class="label">Auto-sleep after</div></div><select class="set-input"><option>15 min</option><option selected>30 min</option><option>1 hour</option></select></div>
+      <div class="set-row"><div><div class="label">Keep last N snapshots</div></div><input class="set-input" value="5" style="min-width:80px"></div>
+      <div class="set-row"><div><div class="label">Anchor every snapshot to RoadChain</div></div><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+    </div>`;
+}
+
+function settingsBilling(){
+  return `
+    <div class="set-section">
+      <h3>Road Pass</h3>
+      <div class="desc">5 hours free, $5/month after — capacity-limited waitlist. Node contributors earn extra hours.</div>
+      <div class="set-card" style="margin-top:16px">
+        <div style="display:flex;align-items:flex-start;gap:20px">
+          <div style="flex:1">
+            <div style="font-family:var(--jb);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Current tier</div>
+            <div style="font-size:28px;font-weight:700;color:var(--white);margin-bottom:4px">Free</div>
+            <div style="font-size:12px;color:var(--sub)">Upgrade for unlimited Roadie minutes and parallel deploys.</div>
+          </div>
+          <button class="deploy-btn">Upgrade · $5/mo</button>
+        </div>
+        <div style="margin-top:20px">
+          <div class="rp-row"><span>Hours used this cycle</span><span class="v">3.2 / 5</span></div>
+          <div style="height:4px;background:var(--elevated);border-radius:2px;overflow:hidden;margin:6px 0 14px"><div style="height:100%;width:64%;background:var(--g);border-radius:2px"></div></div>
+          <div class="rp-row"><span>Cycle resets</span><span class="v">in 18 days</span></div>
+          <div class="rp-row"><span>Node contributor bonus</span><span class="v" style="color:#22c55e">+2 hours / mo</span></div>
+          <div class="rp-row"><span>Waitlist position</span><span class="v">— (active)</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="set-section">
+      <h3>Usage</h3>
+      <div class="set-row"><div><div class="label">Roadie tokens</div><div class="sub">qwen2.5 · all sovereign · capped, not billed</div></div><span class="mono" style="color:var(--text)">412k / 2M</span></div>
+      <div class="set-row"><div><div class="label">Workspace minutes</div></div><span class="mono" style="color:var(--text)">192 / 1500</span></div>
+      <div class="set-row"><div><div class="label">Bandwidth</div></div><span class="mono" style="color:var(--text)">3.4 GB / 50 GB</span></div>
+      <div class="set-row"><div><div class="label">Storage</div></div><span class="mono" style="color:var(--text)">12.4 GB / 50 GB</span></div>
+    </div>`;
+}
+
+function settingsTeam(){
+  return `
+    <div class="set-section">
+      <h3>Team — blackroadinc</h3>
+      <div class="set-row"><div><div class="label">Members</div></div><button class="wsp-btn primary">+ Invite</button></div>
+      <div class="dpl-card" style="margin-top:12px;padding:0">
+        ${[
+          {n:'alexa',    r:'Owner',  e:'amundsonalexa@gmail.com'},
+          {n:'octavia',  r:'Admin',  e:'octavia@blackroad.io'},
+          {n:'cecilia',  r:'Member', e:'cecilia@blackroad.io'},
+          {n:'amelia',   r:'Member', e:'amelia@blackroad.io'},
+        ].map(m => `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)">
+          <span class="av gr">${m.n.slice(0,2).toUpperCase()}</span>
+          <div style="flex:1"><div style="color:var(--white);font-weight:500">${m.n}</div><div class="mono" style="font-size:10px;color:var(--muted)">${m.e}</div></div>
+          <span class="dpl-pill ${m.r==='Owner'?'ready':''}">${m.r}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+// ============================================================
+// COMMAND PALETTE
+// ============================================================
+function cmdItems(q){
+  const items = [];
+  // commands
+  SPACES.forEach(s => items.push({k:'cmd', t:'Switch to ' + s.tip, sub:'Space', ic:s.ic, run:() => { switchSpace(s.id); }}));
+  items.push({k:'cmd', t:'Toggle bottom panel', sub:'View', ic:'⊟', kbd:'⌘J', run:() => { STATE.bottomOpen = !STATE.bottomOpen; render(); }});
+  items.push({k:'cmd', t:'Toggle inspector', sub:'View', ic:'⊞', kbd:'⌘B', run:() => { STATE.inspectorOpen = !STATE.inspectorOpen; render(); }});
+  items.push({k:'cmd', t:'Run dev server', sub:'Workspace', ic:'▶', run:() => pushToast('Workspace', 'roadcode dev started on :3000')});
+  items.push({k:'cmd', t:'Deploy to production', sub:'Deploy', ic:'▲', run:() => pushToast('Deploy', 'Building feat/roadie-streaming → production')});
+  items.push({k:'cmd', t:'Anchor to RoadChain', sub:'Chain', ic:'⛓', run:() => pushToast('RoadChain', 'Receipt rcdy_8a2c91d anchored')});
+  items.push({k:'cmd', t:'Open Roadie thread…', sub:'Roadie', ic:'✦', run:() => switchSpace('roadie')});
+  items.push({k:'cmd', t:'Create new issue', sub:'Issues', ic:'⊕', kbd:'C', run:() => { switchSpace('issues'); pushToast('Issues','New issue draft opened'); }});
+  items.push({k:'cmd', t:'Format document', sub:'Editor', ic:'⌘', run:() => pushToast('Editor','Formatted in 3ms')});
+  items.push({k:'cmd', t:'Find in repo', sub:'Search', ic:'⌕', kbd:'⌘⇧F', run:() => pushToast('Search','Indexing 8 files…')});
+  // files
+  Object.keys(FILES).forEach(p => items.push({k:'file', t:p, sub:'File', ic:'⟨/⟩', run:() => { if (!STATE.openTabs.includes(p)) STATE.openTabs.push(p); STATE.activeTab = p; switchSpace('editor'); }}));
+  // PRs
+  PRS.forEach(pr => items.push({k:'pr', t:`#${pr.num} ${pr.title}`, sub:'Pull request', ic:'⊙', run:() => { STATE.activePR = pr.id; STATE.repoSubtab='pulls'; switchSpace('repo'); }}));
+  // Issues
+  ISSUES.forEach(i => items.push({k:'iss', t:`${i.id} ${i.title}`, sub:'Issue', ic:'◉', run:() => { switchSpace('issues'); }}));
+  // Deploys
+  DEPLOYS.forEach(d => items.push({k:'dep', t:`${d.commit} ${d.msg}`, sub:'Deploy · ' + d.env, ic:'▲', run:() => { STATE.activeDeploy = d.id; STATE.deployEnv = d.env; switchSpace('deploys'); }}));
+
+  if (!q) return items.slice(0, 12);
+  const ql = q.toLowerCase();
+  return items.filter(it => it.t.toLowerCase().includes(ql) || it.sub.toLowerCase().includes(ql)).slice(0, 24);
+}
+
+function renderCmdResults(){
+  const items = cmdItems(STATE.cmdQuery);
+  if (STATE.cmdSel >= items.length) STATE.cmdSel = 0;
+  const groups = {};
+  items.forEach((it,i) => { (groups[it.sub] = groups[it.sub] || []).push({...it, _i:i}); });
+  const html = Object.keys(groups).map(g =>
+    `<div class="cmd-group-label">${g}</div>` +
+    groups[g].map(it =>
+      `<div class="cmd-item ${it._i===STATE.cmdSel?'sel':''}" data-i="${it._i}">
+        <span class="cmd-item-icon">${it.ic}</span>
+        <span class="cmd-item-text">${escHtml(it.t)}</span>
+        ${it.kbd?`<span class="cmd-item-kbd">${it.kbd}</span>`:''}
+      </div>`
+    ).join('')
+  ).join('');
+  $('cmdResults').innerHTML = html || `<div class="empty"><div class="t">No matches</div></div>`;
+  $('cmdResults').querySelectorAll('[data-i]').forEach(el => {
+    el.onclick = () => { items[+el.dataset.i].run(); closeCmd(); };
+  });
+}
+
+function openCmd(){
+  STATE.cmdOpen = true; STATE.cmdQuery=''; STATE.cmdSel=0;
+  $('cmdOverlay').classList.add('open');
+  $('cmdInput').value = ''; renderCmdResults();
+  setTimeout(() => $('cmdInput').focus(), 30);
+}
+function closeCmd(){ STATE.cmdOpen=false; $('cmdOverlay').classList.remove('open'); }
+
+// ============================================================
+// TOASTS
+// ============================================================
+function pushToast(title, text){
+  const id = 't' + Date.now() + Math.random().toString(36).slice(2,5);
+  const el = document.createElement('div');
+  el.className = 'toast'; el.id = id;
+  el.innerHTML = `<span class="bar"></span><div style="flex:1"><div class="toast-title">${escHtml(title)}</div><div class="toast-text">${escHtml(text)}</div></div><button class="toast-close" onclick="document.getElementById('${id}').remove()">×</button>`;
+  $('toastStack').appendChild(el);
+  setTimeout(() => { const t = document.getElementById(id); if (t) t.remove(); }, 4500);
+}
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+function setupKeyboard(){
+  document.addEventListener('keydown', e => {
+    const meta = e.metaKey || e.ctrlKey;
+    // command palette
+    if (meta && e.key === 'k') { e.preventDefault(); STATE.cmdOpen ? closeCmd() : openCmd(); return; }
+    if (meta && e.key === 'p' && !e.shiftKey) { e.preventDefault(); openCmd(); $('cmdInput').value = ''; STATE.cmdQuery=''; renderCmdResults(); return; }
+    if (e.key === 'Escape' && STATE.cmdOpen) { closeCmd(); return; }
+    if (STATE.cmdOpen) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); STATE.cmdSel++; renderCmdResults(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); STATE.cmdSel = Math.max(0, STATE.cmdSel-1); renderCmdResults(); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        const items = cmdItems(STATE.cmdQuery);
+        if (items[STATE.cmdSel]) { items[STATE.cmdSel].run(); closeCmd(); }
+      }
+      return;
+    }
+    // global toggles
+    if (meta && e.key === 'b') { e.preventDefault(); STATE.inspectorOpen = !STATE.inspectorOpen; render(); return; }
+    if (meta && e.key === 'j') { e.preventDefault(); STATE.bottomOpen = !STATE.bottomOpen; renderBottomPanel(); return; }
+    if (meta && e.key === 'f' && STATE.space === 'editor') { e.preventDefault(); const fb = $('findBar'); if (fb) { fb.classList.add('open'); fb.querySelector('input').focus(); } return; }
+    // C in issues space → new issue
+    if (e.key === 'c' && STATE.space === 'issues' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+      pushToast('New issue', 'Issue draft opened');
+    }
+  });
+  $('cmdInput').addEventListener('input', e => { STATE.cmdQuery = e.target.value; STATE.cmdSel=0; renderCmdResults(); });
+  $('cmdkStub').onclick = openCmd;
+  $('cmdOverlay').addEventListener('click', e => { if (e.target.id === 'cmdOverlay') closeCmd(); });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  // top bar avatars
+  $('topAvatars').innerHTML = `<span class="av gr">AL</span><span class="av">OC</span><span class="av">CE</span>`;
+  $('inspToggle').onclick = () => { STATE.inspectorOpen = !STATE.inspectorOpen; render(); };
+  $('deployBtn').onclick = () => { STATE.space='deploys'; render(); pushToast('Deploy','Switching to Deploys'); };
+  setupKeyboard();
+  render();
+  // simulate live deploy progressing
+  setTimeout(() => {
+    DEPLOYS[0].status = 'ready';
+    DEPLOYS[0].dur = '53s';
+    DEPLOYS[0].time = 'just now';
+    pushToast('Deploy ready', 'feat/roadie-streaming → production · 53s');
+    if (STATE.space === 'deploys') render();
+    const bp = $('buildPill'); if (bp) { bp.classList.remove('building'); $('buildText').textContent='Build passing'; }
+  }, 9000);
+  // welcome toast
+  setTimeout(() => pushToast('Welcome to RoadCode', 'Press ⌘K for the command palette · 9 Spaces in the rail.'), 600);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
