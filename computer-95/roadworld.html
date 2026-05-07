@@ -242,6 +242,12 @@ input,textarea,select{font-family:var(--sg)}
 .spacetab.active .spacetab-num{color:var(--sub)}
 
 .statusbar{display:flex;align-items:center;gap:10px;padding:5px 16px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;font-size:10px}
+.ticker{display:none;align-items:center;gap:8px;padding:6px 16px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.ticker::-webkit-scrollbar{display:none}
+.ticker-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;font-size:11px;color:var(--text);font-family:var(--jb);white-space:nowrap}
+.ticker-festival{border-color:#8844FF}
+.ticker-live{border-color:#00D4FF}
+.ticker-icon{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
 .crumbs{display:flex;align-items:center;gap:6px;color:var(--sub);font-family:var(--jb)}
 .crumbs a{color:var(--sub)}
 .crumbs a:hover{color:var(--white)}
@@ -420,6 +426,7 @@ input,textarea,select{font-family:var(--sg)}
     <span id="receiptsCount">0 receipts</span>
   </div>
 </div>
+<div class="ticker" id="ticker"></div>
 
 <div class="workarea" id="workarea">
   <div class="stage" id="stage"></div>
@@ -1856,8 +1863,11 @@ function fieldsClick(x, y) {
   else if (tool === 'seed' && t.state === 'tilled') { t.state = 'planted'; t.crop = 'parsnip'; t.growth = 0; t.planted_day = state.clock.day; acted = true; }
   else if (tool === 'water' && (t.state === 'tilled' || t.state === 'planted')) { t.watered_day = state.clock.day; acted = true; }
   else if (tool === 'scythe' && t.state === 'ready') {
-    state.user.coin_balance += 60;
-    state.receipts.unshift({ kind:'fields.harvest', text:'Harvested ' + t.crop + ' · +60c', t:'just now' });
+    const fest = festivalForToday();
+    const bonus = fest && fest.effect === 'crop-bonus';
+    const earn = bonus ? 90 : 60;
+    state.user.coin_balance += earn;
+    state.receipts.unshift({ kind:'fields.harvest', text:'Harvested ' + t.crop + (bonus ? ' (festival ×1.5) · +' : ' · +') + earn + 'c', t:'just now' });
     delete state.fields.tiles[k];
     acted = true;
     renderRail();
@@ -2888,9 +2898,10 @@ function stageRunDSL(src) {
 function stagePublishPlace() {
   const sel = state.stage.places.find(p => p.slug === state.stage.selected);
   if (!sel) return;
-  state.stage.console_log.push('▸ ' + sel.name + ' published · script ' + state.stage.script.length + ' B');
-  state.receipts.unshift({ kind:'place.publish', text:'Published ' + sel.name + ' · host ' + sel.host, t:'just now' });
-  toast('Published ' + sel.name);
+  state.user.coin_balance += 25;
+  state.stage.console_log.unshift('▸ ' + sel.name + ' published · script ' + state.stage.script.length + ' B · +25c');
+  state.receipts.unshift({ kind:'place.publish', text:'Published ' + sel.name + ' · host ' + sel.host + ' · +25c', t:'just now' });
+  toast('Published ' + sel.name + ' · +25c');
   renderStage(); renderRail();
 }
 function stageTestPlace() {
@@ -3218,7 +3229,7 @@ function almanacGoLive() {
   state.receipts.unshift({ kind:'wire.go-live', text:'Live on ' + channel + ': ' + text.slice(0,40) + (text.length>40?'…':''), t:'just now' });
   state.almanac.broadcast_text = '';
   toast('Live on ' + channel);
-  renderStage(); renderRail();
+  renderStage(); renderRail(); renderTicker();
 }
 
 function almanacJumpDate(targetDay) {
@@ -3245,7 +3256,7 @@ function almanacAddFestival(day, name) {
   state.almanac.custom_festivals.push({ day, name, narrator: state.cast.preset || 'calliope' });
   state.receipts.unshift({ kind:'almanac.festival', text:'Added festival ' + name + ' on day ' + day, t:'just now' });
   toast('Festival added');
-  renderStage(); renderRail();
+  renderStage(); renderRail(); renderTicker();
 }
 
 SPACE_RENDERERS.almanac = (stage) => {
@@ -3415,6 +3426,51 @@ SPACE_RENDERERS.almanac = (stage) => {
 function togglePause() { state.clock.paused = !state.clock.paused; toast(state.clock.paused ? 'Paused' : 'Resumed'); renderStage(); }
 function setSpeed(n)  { state.clock.speed = n; state.clock.paused = (n === 0); toast(n === 0 ? 'Paused' : ('Speed ' + n + '×')); renderStage(); }
 
+// ─── FESTIVAL EVENT BUS ────────────────────────────────────────────
+const FESTIVAL_DAYS = {
+  7:  { slug:'spring-crop-fair', name:'Spring Crop Fair',   narrator:'gaia',     effect:'crop-bonus' },
+  13: { slug:'plaza-dance',      name:'Dance in the Plaza', narrator:'calliope', effect:'plates-confetti' },
+  21: { slug:'lake-show',        name:'Lake Show',          narrator:'celeste',  effect:'atlas-fireworks' },
+  28: { slug:'year-turn',        name:'Year Turn',          narrator:'olympia',  effect:'all-celebrate' },
+};
+function festivalForToday() {
+  const builtin = FESTIVAL_DAYS[state.clock.day];
+  const custom = state.almanac && state.almanac.custom_festivals
+    ? state.almanac.custom_festivals.find(f => f.day === state.clock.day)
+    : null;
+  return custom || builtin || null;
+}
+function festivalEnter(f) {
+  const a = AGENT_BY_SLUG[f.narrator] || AGENT_BY_SLUG['olympia'];
+  state.receipts.unshift({ kind:'almanac.festival-day', text:f.name + ' begins · narrated by ' + a.name, t:'just now' });
+  toast('🎏 ' + f.name + ' day');
+  renderRail(); renderTicker();
+}
+
+function renderTicker() {
+  const ticker = $('#ticker');
+  if (!ticker) return;
+  ticker.innerHTML = '';
+  const fest = festivalForToday();
+  const liveBC = state.almanac && state.almanac.live_broadcasts && state.almanac.live_broadcasts[0];
+  if (!fest && !liveBC) { ticker.style.display = 'none'; return; }
+  ticker.style.display = 'flex';
+  if (fest) {
+    const a = AGENT_BY_SLUG[fest.narrator] || AGENT_BY_SLUG['olympia'];
+    ticker.appendChild(h('div', { class:'ticker-pill ticker-festival' },
+      h('div', { class:'ticker-icon', style:{background:'var(--g135)'} }),
+      h('span', null, 'TODAY · ' + fest.name + ' · ' + a.name + (fest.effect === 'crop-bonus' ? ' · crops sell +50%' : '')),
+    ));
+  }
+  if (liveBC) {
+    const a = AGENT_BY_SLUG[liveBC.narrator] || AGENT_BY_SLUG['olympia'];
+    ticker.appendChild(h('div', { class:'ticker-pill ticker-live' },
+      h('div', { class:'ticker-icon', style:{background:'#00D4FF'} }),
+      h('span', null, 'LIVE on ' + liveBC.channel + ' · ' + a.name + ': ' + liveBC.text.slice(0,42) + (liveBC.text.length > 42 ? '…' : '')),
+    ));
+  }
+}
+
 function tick() {
   if (state.clock.paused) return;
   const speed = state.clock.speed || 1;
@@ -3433,6 +3489,10 @@ function tick() {
     fieldsDayTick();
     // City budget posts every 4 days (a "month" in this clock)
     if (state.grid && state.clock.day % 4 === 1) gridMonthTick();
+    // Festival entrance
+    const fest = festivalForToday();
+    if (fest) festivalEnter(fest);
+    renderTicker();
   }
 }
 
@@ -3503,6 +3563,7 @@ function boot() {
   renderTabs();
   renderRail();
   renderConvoyStrip();
+  renderTicker();
   renderStage();
   setInterval(tick, 1000);
   startPlatesNpcStroll();
