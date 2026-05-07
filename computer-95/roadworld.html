@@ -1,0 +1,3253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadWorld — World Builder</title>
+<meta name="description" content="RoadWorld — twelve Spaces for building, simulating, and inhabiting worlds.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--g:linear-gradient(90deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);--g135:linear-gradient(135deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);--bg:#000;--card:#0a0a0a;--elevated:#111;--hover:#181818;--border:#1a1a1a;--muted:#444;--sub:#737373;--text:#f5f5f5;--white:#fff;--sg:'Space Grotesk',sans-serif;--jb:'JetBrains Mono',monospace;--ember:#FF6B2B;--flare:#FF2255;--magenta:#CC00AA;--orchid:#8844FF;--arc:#4488FF;--cyan:#00D4FF}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sg);line-height:1.6;overflow:hidden;height:100vh}
+a{color:var(--text);text-decoration:none}
+button{font-family:var(--sg);cursor:pointer}
+input,textarea,select{font-family:var(--sg)}
+.grad-bar{height:4px;background:var(--g);flex-shrink:0}
+
+/* ═══ BRAND COMPONENTS — verbatim from brand-guide-exact.html ═══ */
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:6px;font-weight:600;font-size:13px;border:none;transition:all .15s}
+.btn-sm{padding:7px 16px;font-size:12px;border-radius:5px}
+.btn-lg{padding:14px 32px;font-size:15px;border-radius:8px}
+.btn-white{background:var(--white);color:#000}
+.btn-white:hover{background:#e0e0e0}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:#444}
+.btn-ghost{background:transparent;border:none;color:var(--sub)}
+.btn-ghost:hover{color:var(--white)}
+.btn-dark{background:var(--elevated);color:var(--text);border:1px solid var(--border)}
+.btn-dark:hover{background:var(--hover)}
+.btn-icon{width:36px;height:36px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:var(--elevated);border:1px solid var(--border);color:var(--sub);font-size:14px}
+.btn-icon:hover{color:var(--white);border-color:#333}
+.btn-icon.active{color:var(--white);border-color:#fff;background:var(--hover)}
+.btn-group{display:inline-flex;gap:0}
+.btn-group .btn,.btn-group .btn-icon{border-radius:0;border-right:1px solid var(--border)}
+.btn-group .btn:first-child,.btn-group .btn-icon:first-child{border-radius:6px 0 0 6px}
+.btn-group .btn:last-child,.btn-group .btn-icon:last-child{border-radius:0 6px 6px 0;border-right:none}
+
+/* ─── CARDS ─── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-grad{height:3px;background:var(--g)}
+.card-body{padding:20px}
+.card-sm .card-body{padding:16px}
+.card-title{font-weight:600;font-size:15px;color:var(--white);margin-bottom:6px}
+.card-text{font-size:13px;color:var(--sub);line-height:1.7}
+.card-meta{font-family:var(--jb);font-size:10px;color:var(--muted);margin-top:10px}
+.card-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-header-title{font-weight:600;font-size:14px;color:var(--white)}
+
+/* ─── BADGES ─── */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;background:var(--elevated);border:1px solid var(--border);color:var(--text)}
+.badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--white)}
+.badge-grad .badge-dot{background:var(--g135)}
+.badge-line{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;color:var(--text)}
+.badge-line::before{content:'';width:12px;height:3px;border-radius:2px;background:var(--g)}
+
+/* ─── TAGS ─── */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:500;background:var(--elevated);border:1px solid var(--border);color:var(--sub)}
+.tag-close{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:0;margin-left:2px}
+.tag-group{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ─── INPUTS ─── */
+.input{width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;transition:border-color .15s}
+.input:focus{border-color:#333}
+.input-label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:6px;letter-spacing:.02em}
+.input-hint{font-size:11px;color:var(--muted);margin-top:4px}
+.textarea{width:100%;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;resize:vertical;min-height:80px;transition:border-color .15s}
+.textarea:focus{border-color:#333}
+.select{width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none;appearance:none;cursor:pointer}
+
+/* ─── TOGGLE / CHECKBOX / RADIO ─── */
+.toggle{position:relative;width:40px;height:22px;display:inline-block}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--elevated);border:1px solid var(--border);border-radius:11px;transition:.2s;cursor:pointer}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--sub);border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--elevated);border-color:#333}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--white)}
+.checkbox{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text)}
+.checkbox input{width:16px;height:16px;accent-color:#fff}
+.radio{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text)}
+.radio input{width:16px;height:16px;accent-color:#fff}
+
+/* ─── AVATARS ─── */
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--sub);flex-shrink:0}
+.avatar-sm{width:28px;height:28px;font-size:11px}
+.avatar-lg{width:48px;height:48px;font-size:16px}
+.avatar-xl{width:64px;height:64px;font-size:20px}
+.avatar-group{display:flex}
+.avatar-group .avatar{margin-left:-8px;border:2px solid var(--bg)}
+.avatar-group .avatar:first-child{margin-left:0}
+.avatar-grad{background:var(--g135);color:#fff}
+
+/* ─── TABLES ─── */
+.table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.table{width:100%;border-collapse:collapse}
+.table th{text-align:left;padding:12px 16px;font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;background:var(--card);border-bottom:1px solid var(--border)}
+.table td{padding:12px 16px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border)}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:var(--hover)}
+
+/* ─── LISTS ─── */
+.list{list-style:none}
+.list-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);transition:background .1s}
+.list-item:last-child{border-bottom:none}
+.list-item:hover{background:var(--hover)}
+.list-item.active{background:var(--hover);color:var(--white)}
+.list-item-indicator{width:20px;height:3px;border-radius:2px;background:var(--g);flex-shrink:0}
+.list-item-dot{width:6px;height:6px;border-radius:50%;background:var(--white);flex-shrink:0}
+.list-item-text{flex:1;min-width:0}
+.list-item-meta{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.list-bordered{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+
+/* ─── TIMELINE ─── */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+.timeline-item{position:relative;padding-bottom:32px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-dot{position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--border);background:var(--bg)}
+.timeline-dot-active{border:none;background:var(--g135);width:12px;height:12px}
+.timeline-title{font-weight:600;font-size:14px;color:var(--white);margin-bottom:4px}
+.timeline-text{font-size:13px;color:var(--sub)}
+.timeline-time{font-family:var(--jb);font-size:10px;color:var(--muted);margin-top:4px}
+
+/* ─── ACCORDION ─── */
+.accordion{border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.accordion-item{border-bottom:1px solid var(--border)}
+.accordion-item:last-child{border-bottom:none}
+.accordion-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--card);border:none;color:var(--white);font-size:14px;font-weight:500;cursor:pointer;text-align:left;transition:background .1s}
+.accordion-trigger:hover{background:var(--hover)}
+.accordion-trigger .arrow{font-size:12px;color:var(--muted);transition:transform .2s}
+.accordion-trigger.active .arrow{transform:rotate(180deg)}
+.accordion-content{display:none;padding:14px 18px;font-size:13px;color:var(--sub);line-height:1.7;background:var(--bg);border-top:1px solid var(--border)}
+.accordion-content.open{display:block}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:var(--sub);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--white)}
+.tab.active{color:var(--white);border-bottom-color:var(--white)}
+.tab-content{display:none;padding:20px 0}
+.tab-content.active{display:block}
+
+/* ─── ALERTS ─── */
+.alert{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border-radius:8px;font-size:13px;border:1px solid var(--border);background:var(--card)}
+.alert-bar{width:3px;min-height:100%;border-radius:2px;background:var(--g);flex-shrink:0;align-self:stretch}
+.alert-title{font-weight:600;color:var(--white);margin-bottom:2px}
+.alert-text{color:var(--sub)}
+
+/* ─── PROGRESS ─── */
+.progress-track{width:100%;height:4px;background:var(--elevated);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:var(--g);transition:width .3s}
+.progress-fill.low{background:linear-gradient(90deg,#FF6B2B,#FF2255)}
+.progress-label{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px}
+.progress-label span:first-child{color:var(--text);font-weight:500}
+.progress-label span:last-child{color:var(--muted);font-family:var(--jb)}
+
+/* ─── BREADCRUMBS ─── */
+.breadcrumbs{display:flex;align-items:center;gap:8px;font-size:13px}
+.breadcrumbs a{color:var(--sub)}
+.breadcrumbs a:hover{color:var(--white)}
+.breadcrumbs .sep{color:var(--muted);font-size:11px}
+.breadcrumbs .current{color:var(--white);font-weight:500}
+
+/* ─── PAGINATION ─── */
+.pagination{display:flex;gap:4px}
+.page-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:13px;font-weight:500;background:var(--card);border:1px solid var(--border);color:var(--sub);cursor:pointer;transition:all .15s}
+.page-btn:hover{border-color:#333;color:var(--white)}
+.page-btn.active{background:var(--white);color:#000;border-color:var(--white)}
+
+/* ─── STATS ─── */
+.stat{padding:20px}
+.stat-value{font-size:32px;font-weight:700;color:var(--white)}
+.stat-label{font-size:12px;color:var(--sub);margin-top:2px}
+.stat-change{font-family:var(--jb);font-size:11px;color:var(--sub);margin-top:6px}
+.stat-bar{width:100%;height:3px;border-radius:2px;background:var(--g);margin-top:12px}
+
+/* ─── SKELETON ─── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skeleton{background:linear-gradient(90deg,var(--elevated) 25%,#1a1a1a 50%,var(--elevated) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
+
+/* ─── EMPTY STATE ─── */
+.empty-state{text-align:center;padding:60px 20px}
+.empty-icon{width:64px;height:64px;border-radius:50%;background:var(--elevated);border:1px solid var(--border);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--muted)}
+.empty-title{font-weight:600;font-size:16px;color:var(--white);margin-bottom:6px}
+.empty-text{font-size:13px;color:var(--sub);margin-bottom:20px;max-width:300px;margin-left:auto;margin-right:auto}
+
+/* ─── KBD ─── */
+.kbd{display:inline-flex;align-items:center;padding:2px 8px;background:var(--elevated);border:1px solid var(--border);border-radius:4px;font-family:var(--jb);font-size:11px;color:var(--sub);line-height:1.8}
+
+/* ─── MODAL ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:480px;max-width:90vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column}
+.modal-grad{height:3px;background:var(--g);flex-shrink:0}
+.modal-header{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-weight:600;font-size:16px;color:var(--white)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+.modal-body{padding:16px 24px;overflow-y:auto;flex:1}
+.modal-body p{font-size:13px;color:var(--sub);line-height:1.7}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
+
+/* ─── TOAST ─── */
+.toast-stack{position:fixed;top:80px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:2000;pointer-events:none}
+.toast{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:8px;max-width:380px;font-size:13px;pointer-events:auto;animation:slideIn .2s ease-out;transition:opacity .3s}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast-bar{width:3px;min-height:32px;border-radius:2px;background:var(--g);flex-shrink:0;align-self:stretch}
+.toast-text{flex:1;color:var(--text)}
+.toast-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px}
+
+/* ═══ ROADWORLD APP SHELL ═══ */
+.app{display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;color:var(--white)}
+.brand-bar{width:22px;height:4px;border-radius:2px;background:var(--g)}
+.brand-name span{color:var(--sub);font-weight:400;margin-left:6px;font-size:9px;font-family:var(--jb);letter-spacing:.1em}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px}
+.world-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 5px;background:var(--elevated);border:1px solid var(--border);border-radius:14px;font-size:11px;color:var(--text);cursor:pointer;transition:border-color .15s}
+.world-pill:hover{border-color:#333}
+.world-pill .swatch{width:18px;height:18px;border-radius:50%;background:var(--g135)}
+.convoy-strip{display:flex;gap:3px;padding:0 12px;flex:1;justify-content:center;flex-wrap:nowrap;overflow:hidden}
+.convoy-dot{width:14px;height:14px;border-radius:50%;border:1px solid var(--border);background:var(--elevated);cursor:pointer;flex-shrink:0;transition:transform .1s}
+.convoy-dot:hover{transform:scale(1.2)}
+.convoy-dot.online::after{content:'';display:block;width:5px;height:5px;border-radius:50%;background:#00D4FF;position:relative;top:-2px;left:8px;border:1px solid #000}
+@media(max-width:1100px){.convoy-strip{display:none}}
+.clock-pill,.coin-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;background:var(--elevated);border:1px solid var(--border);border-radius:12px;font-family:var(--jb);font-size:10px;color:var(--text)}
+.clock-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--ember);animation:pulse 2s infinite}
+.coin-pill .coin-dot{width:8px;height:8px;border-radius:50%;background:var(--g135)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.tabbar{display:flex;background:var(--bg);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex-shrink:0;padding:0 12px}
+.tabbar::-webkit-scrollbar{display:none}
+.spacetab{padding:9px 12px;font-size:11px;font-weight:500;color:var(--sub);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
+.spacetab:hover{color:var(--white)}
+.spacetab.active{color:var(--white);border-bottom-color:var(--white)}
+.spacetab-num{font-family:var(--jb);font-size:8px;color:var(--muted)}
+.spacetab.active .spacetab-num{color:var(--sub)}
+
+.statusbar{display:flex;align-items:center;gap:10px;padding:5px 16px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;font-size:10px}
+.crumbs{display:flex;align-items:center;gap:6px;color:var(--sub);font-family:var(--jb)}
+.crumbs a{color:var(--sub)}
+.crumbs a:hover{color:var(--white)}
+.crumbs .sep{color:var(--muted)}
+.crumbs .current{color:var(--white)}
+.statusbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;font-family:var(--jb);color:var(--muted)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#00D4FF;animation:pulse 2s infinite}
+
+.workarea{flex:1;display:grid;grid-template-columns:1fr 320px;min-height:0;overflow:hidden}
+.workarea.no-rail{grid-template-columns:1fr}
+.stage{overflow:auto;padding:18px;background:var(--bg);position:relative}
+.rail{background:var(--card);border-left:1px solid var(--border);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:14px}
+.rail-section{display:flex;flex-direction:column;gap:6px}
+.rail-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between}
+.rail-label .count{font-family:var(--jb);color:var(--sub);font-weight:500}
+
+/* Space layout */
+.space-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.space-head h2{font-weight:700;font-size:20px;color:var(--white);letter-spacing:-.01em}
+.space-head .num{font-family:var(--jb);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.space-head p{font-size:11px;color:var(--sub);max-width:520px;margin-top:3px}
+.space-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* Atlas */
+.atlas-grid{display:grid;grid-template-columns:220px 1fr;gap:12px;height:calc(100% - 60px);min-height:480px}
+.atlas-rail{background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+.atlas-rail-head{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.atlas-rail-head h3{font-size:12px;font-weight:600;color:var(--white)}
+.atlas-rail-list{flex:1;overflow-y:auto}
+.atlas-canvas{position:relative;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;min-height:480px}
+.atlas-svg{width:100%;height:100%;display:block;background:radial-gradient(circle at 50% 50%, var(--card) 0%, var(--bg) 80%)}
+.atlas-room{cursor:pointer}
+.atlas-room rect{fill:var(--card);stroke:var(--border);stroke-width:1.5;transition:stroke .15s}
+.atlas-room:hover rect{stroke:#333}
+.atlas-room.selected rect{stroke:#fff}
+.atlas-room text.title{fill:var(--white);font-family:var(--sg);font-size:11px;font-weight:600}
+.atlas-room text.meta{fill:var(--muted);font-family:var(--jb);font-size:9px}
+.atlas-toolbar{position:absolute;top:8px;left:8px;display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:3px}
+
+/* Builder */
+.builder-grid{display:grid;grid-template-columns:54px 1fr 220px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.builder-tools{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:4px}
+.builder-canvas{position:relative;background:#000;border:1px solid var(--border);border-radius:10px;overflow:hidden;min-height:400px}
+.builder-canvas-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--sub);font-size:11px}
+.builder-canvas-fallback .blocks{display:grid;grid-template-columns:repeat(4,16px);gap:2px;margin-bottom:8px}
+.builder-canvas-fallback .blocks div{width:16px;height:16px;border-radius:2px}
+.builder-rail{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.palette-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.palette-swatch{aspect-ratio:1;border-radius:4px;border:2px solid transparent;cursor:pointer;transition:border-color .1s}
+.palette-swatch:hover{border-color:#333}
+.palette-swatch.active{border-color:#fff}
+
+/* Plates */
+.plates-grid{display:grid;grid-template-columns:200px 1fr 220px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.plates-canvas{background:#000;border:1px solid var(--border);border-radius:10px;position:relative;min-height:400px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.plates-canvas svg{max-width:100%;max-height:100%}
+.plates-chat{position:absolute;bottom:8px;left:8px;right:8px;display:flex;gap:6px}
+.plates-chat .input{flex:1}
+.plates-cat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
+.cat-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin:-10px -10px 6px}
+.cat-tabs button{flex:1;padding:7px 4px;font-size:9px;color:var(--sub);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;text-transform:uppercase;letter-spacing:.06em}
+.cat-tabs button.active{color:var(--white);border-bottom-color:var(--white)}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.cat-item{background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:6px;font-size:10px;color:var(--sub);text-align:center;cursor:pointer;transition:border-color .1s}
+.cat-item:hover{border-color:#333;color:var(--white)}
+.cat-item .swatch{width:100%;aspect-ratio:1;border-radius:4px;margin-bottom:4px;background:var(--g135)}
+
+/* Plots */
+.plots-grid{display:grid;grid-template-columns:1fr 320px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.plots-build{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.plots-canvas{flex:1;background:#000;border:1px solid var(--border);border-radius:8px;min-height:280px;background-image:linear-gradient(0deg,#0a0a0a 1px,transparent 1px),linear-gradient(90deg,#0a0a0a 1px,transparent 1px);background-size:24px 24px}
+.plots-sim{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+
+/* Fields */
+.fields-grid{display:grid;grid-template-columns:54px 1fr 260px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.fields-canvas{background:var(--card);border:1px solid var(--border);border-radius:10px;position:relative;overflow:hidden;background-image:linear-gradient(0deg,rgba(255,107,43,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,43,.04) 1px,transparent 1px);background-size:32px 32px}
+.fields-bottom{position:absolute;bottom:0;left:0;right:0;padding:8px 12px;display:flex;align-items:center;gap:12px;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent);font-family:var(--jb);font-size:10px;color:var(--sub)}
+
+/* Grid (city) */
+.cgrid-grid{display:grid;grid-template-columns:200px 1fr 260px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.cgrid-canvas{background:var(--card);border:1px solid var(--border);border-radius:10px;position:relative;overflow:hidden}
+.zone-row{display:flex;gap:5px;flex-wrap:wrap}
+.zone-chip{padding:4px 9px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border)}
+
+/* Park */
+.park-grid{display:grid;grid-template-columns:1fr 260px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.park-canvas{background:var(--card);border:1px solid var(--border);border-radius:10px;position:relative;min-height:300px}
+
+/* Town */
+.town-grid{display:grid;grid-template-columns:1fr 260px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.town-canvas{background:var(--card);border:1px solid var(--border);border-radius:10px;position:relative;min-height:300px}
+
+/* Stage */
+.stage-grid{display:grid;grid-template-columns:1fr 320px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.places-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.place-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.place-card:hover{border-color:#333}
+.place-thumb{aspect-ratio:16/10;background:var(--g135);position:relative}
+.place-thumb .badge{position:absolute;top:6px;left:6px}
+.place-info{padding:8px}
+.place-info .title{font-size:11px;font-weight:600;color:var(--white);margin-bottom:2px}
+.place-info .meta{font-size:9px;color:var(--muted);font-family:var(--jb)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.panel h3{font-size:12px;font-weight:600;color:var(--white)}
+
+/* Board */
+.board-grid{display:grid;grid-template-columns:1fr 220px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.board-canvas{background:#0a0a0a;border:1px solid var(--border);border-radius:10px;position:relative;overflow:hidden;background-image:radial-gradient(circle,#1a1a1a 1px,transparent 1px);background-size:20px 20px;cursor:grab}
+.board-canvas:active{cursor:grabbing}
+.board-tools{position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;gap:3px;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:3px;z-index:10}
+.board-sticky{position:absolute;width:120px;min-height:80px;padding:9px;border-radius:6px;font-size:11px;color:#000;font-weight:500;cursor:move;box-shadow:0 4px 12px rgba(0,0,0,.5);line-height:1.4}
+
+/* Cast */
+.cast-grid{display:grid;grid-template-columns:1fr 320px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.cast-preview{background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;min-height:400px}
+.cast-avatar{width:160px;height:160px;border-radius:50%;background:var(--g135);position:relative;display:flex;align-items:center;justify-content:center;font-size:64px;color:var(--white);font-weight:700}
+
+/* Almanac */
+.almanac-grid{display:grid;grid-template-columns:1fr 320px;gap:10px;height:calc(100% - 60px);min-height:480px}
+.clock-face{aspect-ratio:1;max-width:240px;margin:0 auto;border-radius:50%;background:var(--card);border:2px solid var(--border);position:relative;display:flex;align-items:center;justify-content:center}
+.clock-face::before{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(from 0deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF,#FF6B2B);z-index:-1;mask:radial-gradient(circle,transparent 60%,black 62%);-webkit-mask:radial-gradient(circle,transparent 60%,black 62%)}
+.clock-readout{font-family:var(--jb);font-size:24px;font-weight:700;color:var(--white)}
+.clock-readout-sub{font-family:var(--jb);font-size:10px;color:var(--sub);margin-top:4px;text-align:center}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{aspect-ratio:1;background:var(--elevated);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--sub);font-family:var(--jb);position:relative}
+.cal-day.today{border:1px solid #fff;color:var(--white)}
+.cal-day.fest::after{content:'';position:absolute;bottom:3px;width:5px;height:5px;border-radius:50%;background:var(--g135)}
+
+/* Scrollbar */
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:#1a1a1a;border-radius:4px}
+*::-webkit-scrollbar-thumb:hover{background:#3A3A3A}
+
+@media(max-width:1100px){
+.workarea{grid-template-columns:1fr}
+.rail{display:none}
+.atlas-grid,.builder-grid,.plates-grid,.plots-grid,.fields-grid,.cgrid-grid,.park-grid,.town-grid,.stage-grid,.board-grid,.cast-grid,.almanac-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="grad-bar"></div>
+
+<div class="app">
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-bar"></div>
+    <div class="brand-name">RoadWorld<span>WORLD BUILDER</span></div>
+  </div>
+  <div class="convoy-strip" id="convoyStrip" title="The convoy — 27 agents"></div>
+  <div class="topbar-right">
+    <button class="world-pill" onclick="openWorldPicker()">
+      <span class="swatch"></span>
+      <span id="worldLabel">No world selected</span>
+      <span style="color:var(--muted);font-size:9px">▾</span>
+    </button>
+    <div class="clock-pill"><span class="dot"></span><span id="clockReadout">Sp 1 · 06:00</span></div>
+    <div class="coin-pill"><span class="coin-dot"></span><span id="coinBalance">0</span></div>
+    <div class="avatar avatar-grad" title="Open Cast" style="cursor:pointer;width:30px;height:30px" onclick="setSpace('cast')">A</div>
+    <button class="btn-icon" title="Toggle right rail" onclick="toggleRail()">≡</button>
+  </div>
+</div>
+
+<div class="tabbar" id="tabbar"></div>
+
+<div class="statusbar">
+  <div class="crumbs" id="crumbs">
+    <span class="current">RoadWorld</span>
+  </div>
+  <div class="statusbar-right">
+    <span class="live-dot"></span>
+    <span id="liveCount">0 live</span>
+    <span>·</span>
+    <span id="receiptsCount">0 receipts</span>
+  </div>
+</div>
+
+<div class="workarea" id="workarea">
+  <div class="stage" id="stage"></div>
+  <aside class="rail">
+    <div class="rail-section">
+      <div class="rail-label">Live in room <span class="count" id="railLiveCount">0</span></div>
+      <div class="list-bordered list" id="railPresence"></div>
+    </div>
+    <div class="rail-section">
+      <div class="rail-label">Receipts <span class="count" id="railReceiptsCount">0</span></div>
+      <div class="timeline" id="railReceipts"></div>
+    </div>
+    <div class="rail-section">
+      <div class="rail-label">Now</div>
+      <div class="alert"><div class="alert-bar"></div><div><div class="alert-title">RoadWorld online</div><div class="alert-text">12 Spaces ready. Press 1–9, 0, -, = to jump.</div></div></div>
+    </div>
+  </aside>
+</div>
+
+</div>
+
+<div class="modal-overlay" id="worldModal">
+  <div class="modal">
+    <div class="modal-grad"></div>
+    <div class="modal-header">
+      <div class="modal-title">Pick a world</div>
+      <button class="modal-close" onclick="closeWorldPicker()">×</button>
+    </div>
+    <div class="modal-body">
+      <p>Each world is a top-level container. Rooms, lots, fields, parks, and places all live inside one world.</p>
+      <div class="list-bordered list" id="worldList" style="margin-top:8px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeWorldPicker()">Cancel</button>
+      <button class="btn btn-white btn-sm" onclick="newWorld()">+ New world</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toasts"></div>
+
+<script>
+'use strict';
+
+const SPACES = [
+  { id:'atlas',   num:'01', name:'Atlas',   desc:'Worlds and rooms as a graph. Portals connect.' },
+  { id:'builder', num:'02', name:'Builder', desc:'Voxel scenes at micro resolution. 1 macro = 256 micro.' },
+  { id:'plates',  num:'03', name:'Plates',  desc:'Isometric rooms with placeable plates and live presence.' },
+  { id:'plots',   num:'04', name:'Plots',   desc:'Lots and households. Needs, careers, relationships.' },
+  { id:'fields',  num:'05', name:'Fields',  desc:'Crops, livestock, equipment, contracts.' },
+  { id:'grid',    num:'06', name:'Grid',    desc:'Zoning, roads, utilities, traffic, budget.' },
+  { id:'park',    num:'07', name:'Park',    desc:'Rides, queues, guests, finances.' },
+  { id:'town',    num:'08', name:'Town',    desc:'Village, neighbors, terraform, fashion.' },
+  { id:'stage',   num:'09', name:'Stage',   desc:'Published places with scripted gameplay.' },
+  { id:'board',   num:'10', name:'Board',   desc:'Infinite canvas. Stickies, shapes, votes.' },
+  { id:'cast',    num:'11', name:'Cast',    desc:'Avatar. One identity across every Space.' },
+  { id:'almanac', num:'12', name:'Almanac', desc:'Master clock, calendar, festivals, broadcasts.' },
+];
+
+const state = {
+  user:    { id:'u_alexa', slug:'alexa', display:'Alexa', avatar_def:null, hours_left:5, coin_balance:1240 },
+  worlds:  [],
+  world:   null,
+  rooms:   [],
+  room:    null,
+  cast:    { body:'A', skin:'#737373', top:'#8844FF', bottom:'#1A1A1A', accessory:[] },
+  clock:   { day:1, season:'Spring', year:1, weather:'clear', paused:false, hour:6, minute:0, speed:1 },
+  presence:{ live_in_room:[] },
+  receipts:[],
+  active_space:'atlas',
+  rail_open:true,
+};
+
+const MOCK_WORLDS = [
+  { id:'w_harbor', slug:'harbor', name:'Harbor District', blurb:'Coastal city build with mixed neighborhoods.', theme:'urban', tile_size:16,
+    rooms:[
+      { id:'r_h1', slug:'pier',     name:'Pier',         blurb:'Boardwalk and shops',       width:32, height:24, x:120, y:80,  visibility:'public',   live:3 },
+      { id:'r_h2', slug:'plaza',    name:'Center Plaza', blurb:'Festivals happen here',     width:48, height:48, x:380, y:140, visibility:'public',   live:7 },
+      { id:'r_h3', slug:'market',   name:'Market Hall',  blurb:'Stalls and food carts',     width:32, height:32, x:620, y:80,  visibility:'public',   live:2 },
+      { id:'r_h4', slug:'lofts',    name:'Lofts',        blurb:'Residential lofts above',   width:24, height:32, x:380, y:380, visibility:'unlisted', live:0 },
+      { id:'r_h5', slug:'workshop', name:'Workshop',     blurb:'Operator tinker space',     width:32, height:24, x:120, y:380, visibility:'private',  live:1 },
+      { id:'r_h6', slug:'lighthouse',name:'Lighthouse',  blurb:'Seaside watchtower',        width:16, height:48, x:780, y:280, visibility:'public',   live:0 },
+    ],
+    portals:[
+      { from:'r_h1', to:'r_h2', label:'east →' },
+      { from:'r_h2', to:'r_h1', label:'← west' },
+      { from:'r_h2', to:'r_h3', label:'east →' },
+      { from:'r_h3', to:'r_h2', label:'← west' },
+      { from:'r_h2', to:'r_h4', label:'south ↓' },
+      { from:'r_h4', to:'r_h2', label:'↑ north' },
+      { from:'r_h1', to:'r_h5', label:'south ↓' },
+      { from:'r_h3', to:'r_h6', label:'east →' },
+    ],
+  },
+  { id:'w_meadow', slug:'meadow', name:'Meadow Farm', blurb:'Working farm with seasons.', theme:'pastoral', tile_size:16,
+    rooms:[
+      { id:'r_m1', slug:'farmhouse', name:'Farmhouse',    blurb:'Home base',                  width:24, height:24, x:120, y:120, visibility:'public', live:1 },
+      { id:'r_m2', slug:'barn',      name:'Barn',         blurb:'Livestock and tools',        width:32, height:24, x:380, y:120, visibility:'public', live:0 },
+      { id:'r_m3', slug:'fields-n',  name:'North Fields', blurb:'48 tilled tiles',            width:48, height:32, x:380, y:340, visibility:'public', live:2 },
+      { id:'r_m4', slug:'orchard',   name:'Orchard',      blurb:'Stone fruit, autumn yield',  width:32, height:32, x:120, y:340, visibility:'public', live:0 },
+      { id:'r_m5', slug:'pond',      name:'Pond',         blurb:'Fishing all year',           width:24, height:24, x:660, y:200, visibility:'public', live:0 },
+    ],
+    portals:[
+      { from:'r_m1', to:'r_m2', label:'east →' },
+      { from:'r_m2', to:'r_m1', label:'← west' },
+      { from:'r_m2', to:'r_m3', label:'south ↓' },
+      { from:'r_m3', to:'r_m2', label:'↑ north' },
+      { from:'r_m1', to:'r_m4', label:'south ↓' },
+      { from:'r_m2', to:'r_m5', label:'east →' },
+    ],
+  },
+  { id:'w_carnival', slug:'carnival', name:'Carnival Park', blurb:'Theme park sandbox.', theme:'park', tile_size:16,
+    rooms:[
+      { id:'r_c1', slug:'gates',  name:'Gates',          blurb:'Entry plaza',          width:32, height:16, x:120, y:80,  visibility:'public', live:5 },
+      { id:'r_c2', slug:'midway', name:'Midway',         blurb:'Stalls and stalls',    width:48, height:24, x:380, y:80,  visibility:'public', live:9 },
+      { id:'r_c3', slug:'thrill', name:'Thrill Sector',  blurb:'Coasters live here',   width:48, height:48, x:380, y:280, visibility:'public', live:14 },
+      { id:'r_c4', slug:'kiddie', name:'Kiddie Zone',    blurb:'Calm rides',           width:32, height:32, x:120, y:280, visibility:'public', live:6 },
+      { id:'r_c5', slug:'lake',   name:'Lake Show',      blurb:'Fireworks at night',   width:48, height:32, x:680, y:160, visibility:'public', live:2 },
+    ],
+    portals:[
+      { from:'r_c1', to:'r_c2', label:'east →' },
+      { from:'r_c2', to:'r_c1', label:'← west' },
+      { from:'r_c2', to:'r_c3', label:'south ↓' },
+      { from:'r_c3', to:'r_c2', label:'↑ north' },
+      { from:'r_c3', to:'r_c4', label:'← west' },
+      { from:'r_c2', to:'r_c5', label:'east →' },
+    ],
+  },
+];
+
+const MOCK_RECEIPTS = [
+  { kind:'world.create',    text:'Created Harbor District',           t:'2m ago' },
+  { kind:'room.create',     text:'Created room Center Plaza',         t:'2m ago' },
+  { kind:'portal.add',      text:'Linked Plaza ↔ Pier',               t:'90s ago' },
+  { kind:'voxels.snapshot', text:'Voxel snapshot · 384 KiB RLE',      t:'40s ago' },
+  { kind:'place.publish',   text:'Published Thrill Sector',           t:'15s ago' },
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// 27-AGENT CONVOY (canonical from RoundAbout)
+// Colors locked to brand palette: Ember/Flare/Magenta/Orchid/Arc/Cyan
+// + Asphalt/White for special operator/synth roles. No invented colors.
+// ═══════════════════════════════════════════════════════════════════
+const EMBER='#FF6B2B', FLARE='#FF2255', MAGENTA='#CC00AA', ORCHID='#8844FF', ARC='#4488FF', CYAN='#00D4FF';
+const ASPHALT='#3A3A3A', CONCRETE='#737373';
+const AGENTS = [
+  // Orchid — depth, philosophy, synthesis
+  { slug:'lucidia',    name:'Lucidia',    role:'synthesizer',     color:ORCHID },
+  { slug:'seraphina',  name:'Seraphina',  role:'philosopher',     color:ORCHID },
+  { slug:'atticus',    name:'Atticus',    role:'counsel',         color:ORCHID },
+  { slug:'sapphira',   name:'Sapphira',   role:'strategist',      color:ORCHID },
+  // Ember — heat, ignition, action
+  { slug:'alexandria', name:'Alexandria', role:'librarian',       color:EMBER },
+  { slug:'valeria',    name:'Valeria',    role:'decisive',        color:EMBER },
+  { slug:'anastasia',  name:'Anastasia',  role:'restorer',        color:EMBER },
+  { slug:'silas',      name:'Silas',      role:'builder',         color:EMBER },
+  // Flare — passion, urgency, voice
+  { slug:'calliope',   name:'Calliope',   role:'muse',            color:FLARE },
+  { slug:'cicero',     name:'Cicero',     role:'rhetorician',     color:FLARE },
+  { slug:'sophia',     name:'Sophia',     role:'wisdom',          color:FLARE },
+  { slug:'thalia',     name:'Thalia',     role:'comic',           color:FLARE },
+  // Magenta — bold creative
+  { slug:'aria',       name:'Aria',       role:'designer',        color:MAGENTA },
+  { slug:'portia',     name:'Portia',     role:'legal',           color:MAGENTA },
+  { slug:'ophelia',    name:'Ophelia',    role:'tender',          color:MAGENTA },
+  { slug:'lyra',       name:'Lyra',       role:'musician',        color:MAGENTA },
+  // Arc — connection, navigation, flow
+  { slug:'elias',      name:'Elias',      role:'gateway',         color:ARC },
+  { slug:'theodosia',  name:'Theodosia',  role:'economist',       color:ARC },
+  { slug:'celeste',    name:'Celeste',    role:'astronomer',      color:ARC },
+  { slug:'octavia',    name:'Octavia',    role:'fleet-ops',       color:ARC },
+  // Cyan — clarity, edge, verifier
+  { slug:'alice',      name:'Alice',      role:'physicist',       color:CYAN },
+  { slug:'cecilia',    name:'Cecilia',    role:'edge',            color:CYAN },
+  { slug:'gematria',   name:'Gematria',   role:'verifier',        color:CYAN },
+  { slug:'gaia',       name:'Gaia',       role:'ecologist',       color:CYAN },
+  { slug:'roadie',     name:'Roadie',     role:'tutor',           color:CYAN },
+  // Special — synth + neutral operator
+  { slug:'olympia',    name:'Olympia',    role:'executive',       color:'#FFFFFF' },
+  { slug:'sebastian',  name:'Sebastian',  role:'operator',        color:ASPHALT },
+];
+const AGENT_BY_SLUG = Object.fromEntries(AGENTS.map(a => [a.slug, a]));
+const ONLINE_AGENTS = new Set(['lucidia','alexandria','silas','calliope','aria','gematria','olympia','cecilia','roadie','aria','sapphira','theodosia','octavia','elias']);
+
+const $  = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+const h  = (tag, attrs, ...kids) => {
+  attrs = attrs || {};
+  const el = document.createElement(tag);
+  for (const k in attrs) {
+    const v = attrs[k];
+    if (k === 'class') el.className = v;
+    else if (k === 'html') el.innerHTML = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (v != null) el.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(kid));
+  }
+  return el;
+};
+const fmtNum = n => n.toLocaleString('en-US');
+const fmt2 = n => String(n).padStart(2,'0');
+
+function toast(text, ms=2200) {
+  const t = h('div', { class:'toast' }, h('div', { class:'toast-bar' }), h('div', { class:'toast-text' }, text));
+  $('#toasts').appendChild(t);
+  setTimeout(() => t.style.opacity = '0', ms);
+  setTimeout(() => t.remove(), ms + 300);
+}
+
+function renderTabs() {
+  const bar = $('#tabbar');
+  bar.innerHTML = '';
+  for (const sp of SPACES) {
+    bar.appendChild(h('button', {
+      class: 'spacetab' + (state.active_space === sp.id ? ' active' : ''),
+      onclick: () => setSpace(sp.id),
+    },
+      h('span', { class:'spacetab-num' }, sp.num),
+      h('span', null, sp.name),
+    ));
+  }
+}
+function setSpace(id) { state.active_space = id; renderTabs(); renderStage(); renderCrumbs(); }
+
+function renderCrumbs() {
+  const sp = SPACES.find(s => s.id === state.active_space);
+  const crumbs = $('#crumbs');
+  crumbs.innerHTML = '';
+  crumbs.append(
+    h('span', null, 'RoadWorld'),
+    h('span', { class:'sep' }, '/'),
+    state.world ? h('span', null, state.world.name) : h('span', { style:{color:'var(--muted)'} }, '(no world)'),
+    h('span', { class:'sep' }, '/'),
+    state.room  ? h('span', null, state.room.name)  : h('span', { style:{color:'var(--muted)'} }, '(no room)'),
+    h('span', { class:'sep' }, '/'),
+    h('span', { class:'current' }, sp.name),
+  );
+}
+
+function openWorldPicker() {
+  const list = $('#worldList');
+  list.innerHTML = '';
+  for (const w of state.worlds) {
+    list.appendChild(h('div', {
+      class:'list-item' + (state.world && state.world.id === w.id ? ' active' : ''),
+      onclick: () => { selectWorld(w.id); closeWorldPicker(); },
+    },
+      h('div', { class:'list-item-indicator' }),
+      h('div', { class:'list-item-text' },
+        h('div', { style:{ color:'var(--white)', fontWeight:600, fontSize:'13px' } }, w.name),
+        h('div', { style:{ fontSize:'12px', color:'var(--sub)', marginTop:'4px' } }, w.blurb),
+      ),
+      h('span', { class:'list-item-meta' }, w.rooms.length + ' rooms'),
+    ));
+  }
+  $('#worldModal').classList.add('open');
+}
+function closeWorldPicker() { $('#worldModal').classList.remove('open'); }
+function newWorld() {
+  const name = prompt('Name this world:');
+  if (!name) return;
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  state.worlds.push({ id:'w_'+slug, slug, name, blurb:'New world', theme:'urban', tile_size:16, rooms:[], portals:[] });
+  state.receipts.unshift({ kind:'world.create', text:'Created world ' + name, t:'just now' });
+  closeWorldPicker();
+  selectWorld('w_'+slug);
+  renderRail();
+}
+
+function selectWorld(id) {
+  const w = state.worlds.find(x => x.id === id);
+  if (!w) return;
+  state.world = w;
+  state.rooms = w.rooms;
+  state.room = w.rooms[0] || null;
+  state.presence.live_in_room = state.room ? mockPresenceFor(state.room) : [];
+  $('#worldLabel').textContent = w.name;
+  renderCrumbs(); renderStage(); renderRail();
+}
+
+function mockPresenceFor(room) {
+  // Pull live agents into the room based on room id hash for stability across re-renders
+  const seed = room.id.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
+  const pool = AGENTS.filter(a => ONLINE_AGENTS.has(a.slug));
+  return Array.from({ length: room.live }, (_,i) => {
+    const a = pool[(seed + i*3) % pool.length];
+    return {
+      user_id:'u_'+a.slug, display:a.name, slug:a.slug, role:a.role,
+      facing:'s',
+      x: 4 + (i*3) % Math.max(2, room.width-2),
+      y: 4 + (i*5) % Math.max(2, room.height-2),
+      color: a.color,
+    };
+  });
+}
+
+function renderRail() {
+  const presence = state.presence.live_in_room;
+  $('#railLiveCount').textContent = presence.length;
+  $('#liveCount').textContent = presence.length + ' live';
+  const presBox = $('#railPresence');
+  presBox.innerHTML = '';
+  if (presence.length === 0) {
+    presBox.appendChild(h('div', { class:'list-item', style:{color:'var(--muted)',cursor:'default'} },
+      h('div', { class:'list-item-text' }, 'No one is here yet')));
+  } else {
+    for (const p of presence) {
+      presBox.appendChild(h('div', { class:'list-item' },
+        h('div', { class:'avatar avatar-sm', style:{background:p.color, color:'#000'} }, p.display[0]),
+        h('div', { class:'list-item-text' }, p.display),
+        h('span', { class:'list-item-meta' }, p.x + ',' + p.y),
+      ));
+    }
+  }
+  const recs = state.receipts;
+  $('#railReceiptsCount').textContent = recs.length;
+  $('#receiptsCount').textContent = recs.length + ' receipts';
+  const recBox = $('#railReceipts');
+  recBox.innerHTML = '';
+  for (const r of recs.slice(0, 8)) {
+    recBox.appendChild(h('div', { class:'timeline-item' },
+      h('div', { class:'timeline-dot timeline-dot-active' }),
+      h('div', { class:'timeline-title' }, r.kind),
+      h('div', { class:'timeline-text' }, r.text),
+      h('div', { class:'timeline-time' }, r.t),
+    ));
+  }
+  $('#coinBalance').textContent = fmtNum(state.user.coin_balance) + 'c';
+}
+function toggleRail() { state.rail_open = !state.rail_open; $('#workarea').classList.toggle('no-rail', !state.rail_open); }
+
+function renderConvoyStrip() {
+  const strip = $('#convoyStrip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  for (const a of AGENTS) {
+    const dot = h('div', {
+      class: 'convoy-dot' + (ONLINE_AGENTS.has(a.slug) ? ' online' : ''),
+      style: { background: a.color },
+      title: a.name + ' · ' + a.role + (ONLINE_AGENTS.has(a.slug) ? ' · online' : ' · offline'),
+      onclick: () => toast(a.name + ' · ' + a.role),
+    });
+    strip.appendChild(dot);
+  }
+}
+
+function renderStage() {
+  const stage = $('#stage');
+  stage.innerHTML = '';
+  const sp = SPACES.find(s => s.id === state.active_space);
+  stage.appendChild(h('div', { class:'space-head' },
+    h('div', null,
+      h('div', { class:'num' }, sp.num + ' · SPACE'),
+      h('h2', null, sp.name),
+      h('p', null, sp.desc),
+    ),
+    h('div', { class:'space-actions' }, ...spaceActions(sp.id)),
+  ));
+  const fn = SPACE_RENDERERS[sp.id];
+  if (fn) fn(stage);
+  else stage.appendChild(emptyState('Coming soon', 'This Space is scaffolded but not yet wired in Phase 0.'));
+}
+
+function emptyState(title, text) {
+  return h('div', { class:'empty-state' },
+    h('div', { class:'empty-icon' }, '✦'),
+    h('div', { class:'empty-title' }, title),
+    h('div', { class:'empty-text' }, text),
+  );
+}
+
+const btnWhite   = (text, cb) => h('button', { class:'btn btn-white btn-sm',   onclick: cb || (function(){}) }, text);
+const btnOutline = (text, cb) => h('button', { class:'btn btn-outline btn-sm', onclick: cb || (function(){}) }, text);
+const btnDark    = (text, cb) => h('button', { class:'btn btn-dark btn-sm',    onclick: cb || (function(){}) }, text);
+
+function spaceActions(id) {
+  if (id === 'atlas')   return [btnOutline('+ Room', () => addRoom()), btnWhite(state.atlas_link_mode ? '✕ Cancel link' : '+ Portal', () => toggleLinkMode())];
+  if (id === 'builder') return [
+    btnOutline('Clear', () => { if (builderApp) { builderApp.clear(); toast('Cleared'); } }),
+    btnDark('Snapshot', () => builderSnapshot()),
+    btnWhite('Save', () => builderSnapshot()),
+  ];
+  if (id === 'plates')  return [btnOutline('Browse rooms'), btnWhite('Place plate')];
+  if (id === 'plots')   return [btnOutline('Build mode'), btnDark('Buy mode'), btnWhite('Save lot')];
+  if (id === 'fields')  return [btnOutline('Inventory'), btnDark('Garage'), btnWhite('Sleep / next day', () => sleepUntilMorning())];
+  if (id === 'grid')    return [btnOutline('Overlays'), btnDark('Budget'), btnWhite('Tick month')];
+  if (id === 'park')    return [btnOutline('Research'), btnDark('Marketing'), btnWhite('Open / close')];
+  if (id === 'town')    return [btnOutline('Bulletin'), btnDark('Closet'), btnWhite('Greet neighbors')];
+  if (id === 'stage')   return [btnOutline('Marketplace'), btnDark('Test'), btnWhite('+ New place')];
+  if (id === 'board')   return [btnOutline('Templates'), btnDark('Export'), btnWhite('+ Sticky', () => addSticky())];
+  if (id === 'cast')    return [btnOutline('Presets'), btnWhite('Save outfit')];
+  if (id === 'almanac') return [btnOutline('Speed'), btnDark('Festival'), btnWhite(state.clock.paused ? '▸ Play' : '⏸ Pause', () => togglePause())];
+  return [];
+}
+
+const SPACE_RENDERERS = {};
+
+SPACE_RENDERERS.atlas = (stage) => {
+  if (!state.world) {
+    stage.appendChild(emptyState('No world selected', 'Pick a world from the top-right pill, or create a new one.'));
+    return;
+  }
+  const grid = h('div', { class:'atlas-grid' });
+  const rail = h('div', { class:'atlas-rail' },
+    h('div', { class:'atlas-rail-head' },
+      h('h3', null, 'Rooms'),
+      h('span', { class:'list-item-meta' }, String(state.world.rooms.length)),
+    ),
+    h('div', { class:'atlas-rail-list', id:'atlasRoomList' }),
+  );
+  grid.appendChild(rail);
+
+  const canvasWrap = h('div', { class:'atlas-canvas' });
+  canvasWrap.appendChild(buildAtlasSvg());
+  canvasWrap.appendChild(h('div', { class:'atlas-toolbar' },
+    h('button', { class:'btn-icon', title:'Add room', onclick:() => addRoom() }, '+'),
+    h('button', { class:'btn-icon', title:'Reset layout' }, '⊕'),
+  ));
+  grid.appendChild(canvasWrap);
+  stage.appendChild(grid);
+
+  const list = $('#atlasRoomList');
+  for (const r of state.world.rooms) {
+    list.appendChild(h('div', {
+      class:'list-item' + (state.room && state.room.id === r.id ? ' active' : ''),
+      onclick: () => { state.room = r; state.presence.live_in_room = mockPresenceFor(r); renderCrumbs(); renderStage(); renderRail(); },
+    },
+      h('div', { class:'list-item-indicator' }),
+      h('div', { class:'list-item-text' },
+        h('div', { style:{color:'var(--white)',fontWeight:600,fontSize:'13px'} }, r.name),
+        h('div', { style:{fontSize:'10px',color:'var(--muted)',fontFamily:'var(--jb)',marginTop:'4px'} }, r.width + '×' + r.height + ' · ' + r.visibility),
+      ),
+      h('span', { class:'list-item-meta' }, r.live > 0 ? '● ' + r.live : ''),
+    ));
+  }
+};
+
+function buildAtlasSvg() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'atlas-svg');
+  svg.setAttribute('viewBox', '0 0 1000 540');
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+  const defs = document.createElementNS(NS, 'defs');
+  defs.innerHTML = '<linearGradient id="g6" x1="0" y1="0" x2="1" y2="0">'
+    + '<stop offset="0%" stop-color="#FF6B2B"/><stop offset="20%" stop-color="#FF2255"/>'
+    + '<stop offset="40%" stop-color="#CC00AA"/><stop offset="60%" stop-color="#8844FF"/>'
+    + '<stop offset="80%" stop-color="#4488FF"/><stop offset="100%" stop-color="#00D4FF"/>'
+    + '</linearGradient>'
+    + '<marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">'
+    + '<path d="M0,0 L6,3 L0,6 z" fill="#737373"/></marker>';
+  svg.appendChild(defs);
+
+  const portals = state.world.portals || [];
+  for (const p of portals) {
+    const a = state.world.rooms.find(r => r.id === p.from);
+    const b = state.world.rooms.find(r => r.id === p.to);
+    if (!a || !b) continue;
+    const ax = a.x + 100, ay = a.y + 40;
+    const bx = b.x + 100, by = b.y + 40;
+    const cx = (ax + bx) / 2, cy = (ay + by) / 2 - 30;
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', 'M ' + ax + ' ' + ay + ' Q ' + cx + ' ' + cy + ' ' + bx + ' ' + by);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#444');
+    path.setAttribute('stroke-width', '1.5');
+    path.setAttribute('marker-end', 'url(#arrow)');
+    svg.appendChild(path);
+  }
+
+  for (const r of state.world.rooms) {
+    const g = document.createElementNS(NS, 'g');
+    const cls = ['atlas-room'];
+    if (state.room && state.room.id === r.id) cls.push('selected');
+    if (state.atlas_link_mode && state.atlas_link_first === r.id) cls.push('selected');
+    g.setAttribute('class', cls.join(' '));
+    g.setAttribute('transform', 'translate(' + r.x + ', ' + r.y + ')');
+    g.addEventListener('click', () => onAtlasRoomClick(r));
+
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('width', '200'); rect.setAttribute('height', '80'); rect.setAttribute('rx', '10');
+    g.appendChild(rect);
+
+    const grad = document.createElementNS(NS, 'rect');
+    grad.setAttribute('width', '200'); grad.setAttribute('height', '3'); grad.setAttribute('rx', '1');
+    grad.setAttribute('fill', 'url(#g6)');
+    g.appendChild(grad);
+
+    const title = document.createElementNS(NS, 'text');
+    title.setAttribute('class','title'); title.setAttribute('x','14'); title.setAttribute('y','30');
+    title.textContent = r.name;
+    g.appendChild(title);
+
+    const meta = document.createElementNS(NS, 'text');
+    meta.setAttribute('class','meta'); meta.setAttribute('x','14'); meta.setAttribute('y','48');
+    meta.textContent = r.width + '×' + r.height + ' · ' + r.visibility;
+    g.appendChild(meta);
+
+    const blurb = document.createElementNS(NS, 'text');
+    blurb.setAttribute('class','meta'); blurb.setAttribute('x','14'); blurb.setAttribute('y','64');
+    blurb.textContent = (r.blurb || '').slice(0, 32);
+    g.appendChild(blurb);
+
+    if (r.live > 0) {
+      const dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx','186'); dot.setAttribute('cy','22'); dot.setAttribute('r','4');
+      dot.setAttribute('fill','#00D4FF');
+      g.appendChild(dot);
+      const liveT = document.createElementNS(NS, 'text');
+      liveT.setAttribute('class','meta'); liveT.setAttribute('x','186'); liveT.setAttribute('y','64');
+      liveT.setAttribute('text-anchor','end');
+      liveT.textContent = '● ' + r.live + ' live';
+      g.appendChild(liveT);
+    }
+    svg.appendChild(g);
+  }
+  return svg;
+}
+
+function toggleLinkMode() {
+  state.atlas_link_mode = !state.atlas_link_mode;
+  state.atlas_link_first = null;
+  if (state.atlas_link_mode) toast('Click two rooms to link them');
+  renderStage();
+}
+function onAtlasRoomClick(r) {
+  if (state.atlas_link_mode) {
+    if (!state.atlas_link_first) {
+      state.atlas_link_first = r.id;
+      toast('From: ' + r.name + ' — pick destination');
+      renderStage();
+      return;
+    }
+    if (state.atlas_link_first === r.id) {
+      state.atlas_link_first = null;
+      toast('Pick a different destination');
+      renderStage();
+      return;
+    }
+    const fromRoom = state.world.rooms.find(x => x.id === state.atlas_link_first);
+    state.world.portals.push({ from: fromRoom.id, to: r.id, label: 'link' });
+    state.world.portals.push({ from: r.id, to: fromRoom.id, label: 'link' });
+    state.receipts.unshift({ kind:'portal.add', text:'Linked ' + fromRoom.name + ' ↔ ' + r.name, t:'just now' });
+    state.atlas_link_mode = false;
+    state.atlas_link_first = null;
+    toast('Linked ' + fromRoom.name + ' ↔ ' + r.name);
+    renderStage(); renderRail();
+    return;
+  }
+  state.room = r;
+  state.presence.live_in_room = mockPresenceFor(r);
+  renderCrumbs(); renderStage(); renderRail();
+}
+
+function addRoom() {
+  if (!state.world) { toast('Pick a world first'); return; }
+  const name = prompt('Room name:');
+  if (!name) return;
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  state.world.rooms.push({
+    id:'r_'+slug+'_'+Date.now().toString(36), slug, name, blurb:'',
+    width:32, height:32,
+    x: 100 + Math.random()*600, y: 100 + Math.random()*300,
+    visibility:'private', live:0,
+  });
+  state.receipts.unshift({ kind:'room.create', text:'Created room ' + name, t:'just now' });
+  renderStage(); renderRail();
+  toast('Room ' + name + ' created');
+}
+
+// ─── BUILDER (Three.js voxel editor at 256-canon) ──────────────────
+// 6 brand stops + named neutrals (Asphalt/Concrete/White/Hover/Border/Card)
+const BUILDER_PALETTE = ['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF','#FFFFFF','#737373','#3A3A3A','#181818','#1A1A1A','#0A0A0A'];
+let builderApp = null;
+let threeLoading = null;
+
+function loadThree() {
+  if (window.THREE) return Promise.resolve();
+  if (threeLoading) return threeLoading;
+  threeLoading = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js';
+    s.onload = () => res();
+    s.onerror = () => rej(new Error('three load failed'));
+    document.head.appendChild(s);
+  });
+  return threeLoading;
+}
+
+function initBuilder(host) {
+  const THREE = window.THREE;
+  const W = Math.max(host.clientWidth, 320);
+  const H = Math.max(host.clientHeight, 320);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+  scene.fog = new THREE.Fog(0x000000, 18, 60);
+
+  const aspect = W / H;
+  const d = 7;
+  const camera = new THREE.OrthographicCamera(-d*aspect, d*aspect, d, -d, 0.1, 1000);
+  let azim = Math.PI/4, elev = Math.PI/5, dist = 14;
+  function updateCamera() {
+    camera.position.set(
+      dist * Math.cos(elev) * Math.sin(azim),
+      dist * Math.sin(elev),
+      dist * Math.cos(elev) * Math.cos(azim),
+    );
+    camera.lookAt(0, 1, 0);
+  }
+  updateCamera();
+
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.55);
+  sun.position.set(8, 14, 6);
+  scene.add(sun);
+  const rim = new THREE.DirectionalLight(0x8844FF, 0.3);
+  rim.position.set(-6, 4, -8);
+  scene.add(rim);
+
+  // Macro outline (1 macro = 8×8×4 micros at micro=1×0.5×1)
+  const macroGeom = new THREE.BoxGeometry(8, 2, 8);
+  const macroEdges = new THREE.EdgesGeometry(macroGeom);
+  const macroLine = new THREE.LineSegments(macroEdges, new THREE.LineBasicMaterial({ color: 0x444444 }));
+  macroLine.position.y = 1;
+  scene.add(macroLine);
+
+  // Floor grid (8×8 micros)
+  const grid = new THREE.GridHelper(8, 8, 0x333333, 0x1a1a1a);
+  grid.position.y = 0.001;
+  scene.add(grid);
+
+  // InstancedMesh per palette color (capacity 1024 each)
+  const microGeom = new THREE.BoxGeometry(0.96, 0.46, 0.96);
+  const meshes = {};
+  for (const c of BUILDER_PALETTE) {
+    const mat = new THREE.MeshLambertMaterial({ color: c });
+    const im = new THREE.InstancedMesh(microGeom, mat, 1024);
+    im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    im.count = 0;
+    im.userData.color = c;
+    scene.add(im);
+    meshes[c] = im;
+  }
+
+  // Voxel store: Map<"x,y,z", color>
+  const voxels = new Map();
+
+  // Seed with a small starter scene so it's not empty
+  function seed() {
+    const ground = ['#3A3A3A','#737373']; // Asphalt + Concrete
+    for (let x = -4; x < 4; x++) for (let z = -4; z < 4; z++) {
+      voxels.set(x + ',0,' + z, ground[(x+z+8) % 2]);
+    }
+    // 6-stop tower from one corner — every brand color, no invented hues
+    voxels.set('-3,1,-3', '#FF6B2B'); voxels.set('-3,2,-3', '#FF2255'); voxels.set('-3,3,-3', '#CC00AA');
+    voxels.set('2,1,-2', '#8844FF'); voxels.set('2,1,-1', '#4488FF'); voxels.set('2,1,0', '#00D4FF');
+    voxels.set('0,1,2', '#FF6B2B'); voxels.set('1,1,2', '#CC00AA'); voxels.set('-1,1,2', '#00D4FF');
+    rebuild();
+  }
+
+  const _m = new THREE.Matrix4();
+  function rebuild() {
+    const buckets = {};
+    for (const [key, c] of voxels) {
+      (buckets[c] = buckets[c] || []).push(key);
+    }
+    for (const c of BUILDER_PALETTE) {
+      const im = meshes[c];
+      const list = buckets[c] || [];
+      list.forEach((key, i) => {
+        const [x, y, z] = key.split(',').map(Number);
+        _m.makeTranslation(x + 0.5, y * 0.5 + 0.25, z + 0.5);
+        im.setMatrixAt(i, _m);
+      });
+      im.count = list.length;
+      im.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  // Interaction
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+
+  let dragging = false, dragMoved = false, lastX = 0, lastY = 0;
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    dragging = true; dragMoved = false; lastX = e.clientX; lastY = e.clientY;
+  });
+  renderer.domElement.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    if (Math.abs(dx) + Math.abs(dy) > 3) dragMoved = true;
+    lastX = e.clientX; lastY = e.clientY;
+    if (e.shiftKey || e.button === 2 || (e.buttons & 4)) return;
+    azim -= dx * 0.01;
+    elev = Math.max(0.1, Math.min(Math.PI/2 - 0.05, elev + dy * 0.01));
+    updateCamera();
+  });
+  renderer.domElement.addEventListener('mouseup', (e) => {
+    if (dragging && !dragMoved) handleClick(e);
+    dragging = false;
+  });
+  renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+  renderer.domElement.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    dist = Math.max(6, Math.min(40, dist + e.deltaY * 0.02));
+    updateCamera();
+  }, { passive: false });
+
+  function handleClick(e) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+
+    const tool = state.builder_tool || 'place';
+    if (tool === 'erase') {
+      const hits = [];
+      for (const c of BUILDER_PALETTE) {
+        const ints = raycaster.intersectObject(meshes[c]);
+        for (const it of ints) hits.push({ ...it, color: c });
+      }
+      if (!hits.length) return;
+      hits.sort((a,b) => a.distance - b.distance);
+      const top = hits[0];
+      meshes[top.color].getMatrixAt(top.instanceId, _m);
+      const pos = new THREE.Vector3().setFromMatrixPosition(_m);
+      const key = Math.floor(pos.x) + ',' + Math.round((pos.y - 0.25) * 2) + ',' + Math.floor(pos.z);
+      voxels.delete(key);
+      rebuild();
+      return;
+    }
+
+    // Place: raycast top of stack OR ground
+    let hitX, hitY, hitZ;
+    const meshHits = [];
+    for (const c of BUILDER_PALETTE) {
+      const ints = raycaster.intersectObject(meshes[c]);
+      for (const it of ints) meshHits.push({ ...it, color: c });
+    }
+    if (meshHits.length) {
+      meshHits.sort((a,b) => a.distance - b.distance);
+      const top = meshHits[0];
+      meshes[top.color].getMatrixAt(top.instanceId, _m);
+      const pos = new THREE.Vector3().setFromMatrixPosition(_m);
+      // Place on top of hit voxel
+      hitX = Math.floor(pos.x);
+      hitY = Math.round((pos.y - 0.25) * 2) + 1;
+      hitZ = Math.floor(pos.z);
+    } else {
+      const hp = new THREE.Vector3();
+      if (!raycaster.ray.intersectPlane(groundPlane, hp)) return;
+      hitX = Math.floor(hp.x);
+      hitY = 0;
+      hitZ = Math.floor(hp.z);
+    }
+    if (hitX < -4 || hitX >= 4 || hitZ < -4 || hitZ >= 4 || hitY < 0 || hitY >= 4) return;
+    const color = state.builder_color || BUILDER_PALETTE[3];
+    const brush = state.builder_brush || 1;
+    const span = Math.min(2, Math.floor(Math.sqrt(brush)));
+    for (let dx = 0; dx < span; dx++) for (let dz = 0; dz < span; dz++) {
+      const x = hitX + dx, z = hitZ + dz;
+      if (x < -4 || x >= 4 || z < -4 || z >= 4) continue;
+      voxels.set(x + ',' + hitY + ',' + z, color);
+    }
+    rebuild();
+  }
+
+  // Render loop
+  let stopped = false;
+  function loop() {
+    if (stopped) return;
+    renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  }
+
+  seed();
+  loop();
+
+  return {
+    domElement: renderer.domElement,
+    rebuild, voxels,
+    setColor: (c) => { state.builder_color = c; },
+    setTool: (t) => { state.builder_tool = t; toast('Tool: ' + t); },
+    setBrush: (n) => { state.builder_brush = n; toast('Brush: ' + (n === 256 ? 'M1' : 'µ' + n)); },
+    setCamera: (mode) => {
+      if (mode === 'iso') { azim = Math.PI/4; elev = Math.PI/5; dist = 14; }
+      else if (mode === 'top') { azim = 0; elev = Math.PI/2 - 0.05; dist = 14; }
+      else if (mode === 'orbit') { azim = Math.PI/3; elev = Math.PI/6; dist = 16; }
+      updateCamera();
+    },
+    snapshot: () => {
+      // Tiny RLE: list of [key, color] pairs; gzip handled by transit later
+      const blob = JSON.stringify(Array.from(voxels.entries()));
+      return { bytes: blob.length, count: voxels.size, blob };
+    },
+    clear: () => { voxels.clear(); rebuild(); },
+    resize: (w, h) => {
+      renderer.setSize(w, h);
+      const a = w / h;
+      const d2 = 7;
+      camera.left = -d2*a; camera.right = d2*a;
+      camera.top = d2; camera.bottom = -d2;
+      camera.updateProjectionMatrix();
+    },
+  };
+}
+
+SPACE_RENDERERS.builder = (stage) => {
+  const grid = h('div', { class:'builder-grid' });
+
+  const tools = h('div', { class:'builder-tools' });
+  const TOOLS = [
+    { sym:'✚', t:'place'  },
+    { sym:'×', t:'erase'  },
+    { sym:'◎', t:'pick'   },
+    { sym:'▣', t:'fill'   },
+    { sym:'○', t:'sphere' },
+    { sym:'◇', t:'rect'   },
+    { sym:'✦', t:'magic'  },
+    { sym:'⌂', t:'stamp'  },
+  ];
+  TOOLS.forEach(({sym, t}) => {
+    const b = h('button', {
+      class:'btn-icon' + ((state.builder_tool || 'place') === t ? ' active' : ''),
+      title: t,
+      onclick: () => { state.builder_tool = t; if (builderApp) builderApp.setTool(t); renderStage(); },
+    }, sym);
+    tools.appendChild(b);
+  });
+  grid.appendChild(tools);
+
+  const canvas = h('div', { class:'builder-canvas', id:'builderCanvas' });
+  // Loading state
+  const fb = h('div', { class:'builder-canvas-fallback', id:'builderLoading' });
+  const blocks = h('div', { class:'blocks' });
+  for (let i = 0; i < 16; i++) blocks.appendChild(h('div', { style:{ background: BUILDER_PALETTE[i % BUILDER_PALETTE.length] } }));
+  fb.appendChild(blocks);
+  fb.appendChild(h('div', { class:'empty-title' }, window.THREE ? 'Voxel canvas ready' : 'Loading 3D engine...'));
+  fb.appendChild(h('div', { class:'empty-text' }, '256-micro canon · 8×8×4. Click a tile to place; drag to orbit; scroll to zoom.'));
+  canvas.appendChild(fb);
+  grid.appendChild(canvas);
+
+  // Right rail
+  const rail = h('div', { class:'builder-rail' });
+  rail.appendChild(railSection('Palette', builderPaletteEl()));
+  rail.appendChild(railSection('Brush size', h('div', { class:'btn-group' },
+    brushBtn(1, 'µ1'), brushBtn(4, 'µ4'), brushBtn(16, 'µ16'), brushBtn(256, 'M1'),
+  )));
+  rail.appendChild(railSection('Camera', h('div', { class:'btn-group' },
+    camBtn('iso', 'Iso'), camBtn('orbit', 'Orbit'), camBtn('top', 'Top'),
+  )));
+  const stats = h('div', { class:'list-bordered list' },
+    statRow('Voxels',  () => builderApp ? String(builderApp.voxels.size) : '–'),
+    statRow('Bounds',  () => '8×8×4'),
+    statRow('Engine',  () => window.THREE ? 'three.js · loaded' : 'loading…'),
+  );
+  rail.appendChild(railSection('Stats', stats));
+  rail.appendChild(railSection('Layers', h('div', { class:'list-bordered list' },
+    h('div', { class:'list-item' }, h('div',{class:'list-item-indicator'}), h('div',{class:'list-item-text'},'Ground'),    h('span',{class:'list-item-meta'},'visible')),
+    h('div', { class:'list-item' }, h('div',{class:'list-item-indicator'}), h('div',{class:'list-item-text'},'Buildings'), h('span',{class:'list-item-meta'},'visible')),
+    h('div', { class:'list-item' }, h('div',{class:'list-item-indicator'}), h('div',{class:'list-item-text'},'Decor'),     h('span',{class:'list-item-meta'},'locked')),
+  )));
+  grid.appendChild(rail);
+  stage.appendChild(grid);
+
+  // Mount Three.js (lazy)
+  loadThree().then(() => {
+    const host = $('#builderCanvas');
+    if (!host) return; // user navigated away
+    if (!builderApp) builderApp = initBuilder(host);
+    const loading = $('#builderLoading');
+    if (loading) loading.remove();
+    builderApp.domElement.style.width = '100%';
+    builderApp.domElement.style.height = '100%';
+    host.appendChild(builderApp.domElement);
+    builderApp.resize(host.clientWidth, host.clientHeight);
+    // Refresh stats once
+    refreshBuilderStats();
+  }).catch(() => toast('Could not load 3D engine — check network'));
+};
+
+function builderPaletteEl() {
+  if (!state.builder_color) state.builder_color = BUILDER_PALETTE[3];
+  const wrap = h('div', { class:'palette-grid' });
+  BUILDER_PALETTE.forEach(c => {
+    wrap.appendChild(h('div', {
+      class:'palette-swatch' + (state.builder_color === c ? ' active' : ''),
+      style:{ background: c },
+      onclick: (e) => {
+        state.builder_color = c;
+        if (builderApp) builderApp.setColor(c);
+        $$('.palette-swatch', wrap).forEach(s => s.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+      },
+    }));
+  });
+  return wrap;
+}
+function brushBtn(n, label) {
+  const active = (state.builder_brush || 1) === n;
+  return h('button', {
+    class: 'btn btn-' + (active ? 'white' : 'dark') + ' btn-sm',
+    onclick: () => { state.builder_brush = n; if (builderApp) builderApp.setBrush(n); renderStage(); },
+  }, label);
+}
+function camBtn(mode, label) {
+  return h('button', {
+    class: 'btn btn-' + ((state.builder_cam || 'iso') === mode ? 'white' : 'dark') + ' btn-sm',
+    onclick: () => { state.builder_cam = mode; if (builderApp) builderApp.setCamera(mode); renderStage(); },
+  }, label);
+}
+function statRow(label, val) {
+  const v = typeof val === 'function' ? val() : val;
+  return h('div', { class:'list-item' },
+    h('div', { class:'list-item-indicator' }),
+    h('div', { class:'list-item-text' }, label),
+    h('span', { class:'list-item-meta' }, v),
+  );
+}
+function refreshBuilderStats() {
+  // simple periodic refresh while in builder
+  if (state.active_space !== 'builder') return;
+  setTimeout(refreshBuilderStats, 1500);
+  // Just update the stats values without full re-render
+  const items = $$('#stage .list-bordered .list-item');
+  // No-op: stats values are computed at render time; the next renderStage will pick them up.
+}
+
+function builderSnapshot() {
+  if (!builderApp) { toast('Builder not ready'); return; }
+  const snap = builderApp.snapshot();
+  state.receipts.unshift({ kind:'voxels.snapshot', text:'Voxel snapshot · ' + snap.count + ' micros · ' + snap.bytes + ' B', t:'just now' });
+  try { localStorage.setItem('roadworld:voxels:' + (state.room ? state.room.id : 'scratch'), snap.blob); } catch (e) {}
+  toast('Snapshot saved · ' + snap.count + ' voxels');
+  renderRail();
+}
+
+function railSection(label, body) {
+  const wrap = h('div', null,
+    h('div', { class:'rail-label', style:{marginBottom:'6px'} }, label),
+    body,
+  );
+  return wrap;
+}
+
+function paletteEl(palette) {
+  const wrap = h('div', { class:'palette-grid' });
+  for (let i = 0; i < palette.length; i++) {
+    wrap.appendChild(h('div', {
+      class:'palette-swatch' + (i === 0 ? ' active' : ''),
+      style:{ background: palette[i] },
+      onclick: (e) => {
+        $$('.palette-swatch', wrap).forEach(s => s.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+      },
+    }));
+  }
+  return wrap;
+}
+
+SPACE_RENDERERS.plates = (stage) => {
+  if (!state.room) { stage.appendChild(emptyState('No room', 'Pick a room from Atlas first.')); return; }
+  const grid = h('div', { class:'plates-grid' });
+
+  const cat = h('div', { class:'plates-cat' });
+  const tabs = h('div', { class:'cat-tabs' });
+  ['Floor','Wall','Decor','Light','Wired'].forEach((t,i) => tabs.appendChild(h('button', { class: i===0?'active':'' }, t)));
+  cat.appendChild(tabs);
+  const catGrid = h('div', { class:'cat-grid' });
+  ['Sofa','Lamp','Plant','Rug','Stool','Desk','Painting','Mat','Fern','Crate','Speaker','Step'].forEach(name => {
+    catGrid.appendChild(h('div', { class:'cat-item', onclick:() => toast('Placed ' + name) },
+      h('div', { class:'swatch' }),
+      h('div', null, name),
+      h('div', { style:{fontFamily:'var(--jb)',color:'var(--muted)',fontSize:'8px',marginTop:'2px'} }, (50+name.length*10) + 'c'),
+    ));
+  });
+  cat.appendChild(catGrid);
+  grid.appendChild(cat);
+
+  const canvas = h('div', { class:'plates-canvas' });
+  canvas.appendChild(buildIsoCanvas(state.room));
+  const chat = h('div', { class:'plates-chat' });
+  const input = h('input', { class:'input', placeholder:'Say something to the room...' });
+  chat.appendChild(input);
+  chat.appendChild(h('button', { class:'btn btn-white btn-sm', onclick:() => { if (input.value) { toast(input.value); input.value=''; } } }, 'Send'));
+  canvas.appendChild(chat);
+  grid.appendChild(canvas);
+
+  const rail = h('div', { class:'plates-cat' });
+  rail.appendChild(h('div', { class:'rail-label' }, 'Roster'));
+  const roster = h('div', { class:'list-bordered list' });
+  if (state.presence.live_in_room.length === 0) {
+    roster.appendChild(h('div', { class:'list-item', style:{color:'var(--muted)',cursor:'default'} },
+      h('div', { class:'list-item-text' }, 'Empty room')));
+  } else {
+    state.presence.live_in_room.forEach((p,i) => {
+      roster.appendChild(h('div', { class:'list-item' },
+        h('div', { class:'avatar avatar-sm', style:{background:p.color, color:'#000'} }, p.display[0]),
+        h('div', { class:'list-item-text' }, p.display),
+        h('span', { class:'badge' }, i === 0 ? 'host' : 'guest'),
+      ));
+    });
+  }
+  rail.appendChild(roster);
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Room controls'));
+  rail.appendChild(h('label', { class:'checkbox', style:{padding:'5px 0'} }, h('input', { type:'checkbox' }), ' Public'));
+  rail.appendChild(h('label', { class:'checkbox', style:{padding:'5px 0'} }, h('input', { type:'checkbox' }), ' Lock door'));
+  rail.appendChild(h('label', { class:'checkbox', style:{padding:'5px 0'} }, h('input', { type:'checkbox' }), ' Mute chat'));
+  grid.appendChild(rail);
+  stage.appendChild(grid);
+};
+
+// ─── PLATES iso canvas with A* walking ─────────────────────────────
+const PLATES = { tw: 32, th: 16, ox: 300, oy: 60 };
+function tileToScreen(tx, ty) {
+  return { px: PLATES.ox + (tx - ty) * PLATES.tw/2, py: PLATES.oy + (tx + ty) * PLATES.th/2 };
+}
+function screenToTile(sx, sy) {
+  const dx = sx - PLATES.ox, dy = sy - PLATES.oy;
+  const tx = (dx / (PLATES.tw/2) + dy / (PLATES.th/2)) / 2;
+  const ty = (dy / (PLATES.th/2) - dx / (PLATES.tw/2)) / 2;
+  return { tx: Math.floor(tx), ty: Math.floor(ty) };
+}
+function aStarPath(start, goal, w, h) {
+  if (start.x === goal.x && start.y === goal.y) return [start];
+  const open = [{ x:start.x, y:start.y, g:0, f:Math.abs(start.x-goal.x)+Math.abs(start.y-goal.y), parent:null }];
+  const seen = new Map([[start.x+','+start.y, open[0]]]);
+  while (open.length) {
+    open.sort((a,b) => a.f - b.f);
+    const cur = open.shift();
+    if (cur.x === goal.x && cur.y === goal.y) {
+      const path = [];
+      let n = cur;
+      while (n) { path.unshift({ x:n.x, y:n.y }); n = n.parent; }
+      return path;
+    }
+    for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const nx = cur.x + dx, ny = cur.y + dy;
+      if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+      const k = nx + ',' + ny;
+      const g = cur.g + 1;
+      const f = g + Math.abs(nx - goal.x) + Math.abs(ny - goal.y);
+      const prev = seen.get(k);
+      if (prev && prev.g <= g) continue;
+      const node = { x:nx, y:ny, g, f, parent: cur };
+      seen.set(k, node);
+      open.push(node);
+    }
+  }
+  return null;
+}
+
+function ensurePlatesPositions(room, cols, rows) {
+  if (!state.plates_positions) state.plates_positions = {};
+  if (state.plates_room_id !== room.id) {
+    state.plates_positions = {};
+    state.plates_walks = {};
+    state.plates_room_id = room.id;
+    state.presence.live_in_room.forEach((p, i) => {
+      state.plates_positions[p.user_id] = { x: i % cols, y: Math.floor(i / cols) % rows };
+    });
+  }
+}
+
+function buildIsoCanvas(room) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('id', 'platesSvg');
+  const W = 600, H = 400;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width','100%');
+  svg.setAttribute('height','100%');
+  PLATES.ox = W/2; PLATES.oy = 60;
+
+  const cols = Math.min(room.width, 14);
+  const rows = Math.min(room.height, 10);
+  ensurePlatesPositions(room, cols, rows);
+
+  // Tile layer
+  const tileLayer = document.createElementNS(NS, 'g');
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const { px, py } = tileToScreen(x, y);
+      const tile = document.createElementNS(NS, 'polygon');
+      tile.setAttribute('points', px + ',' + py + ' ' + (px+PLATES.tw/2) + ',' + (py+PLATES.th/2) + ' ' + px + ',' + (py+PLATES.th) + ' ' + (px-PLATES.tw/2) + ',' + (py+PLATES.th/2));
+      tile.setAttribute('fill', (x+y) % 2 === 0 ? '#1A1A1A' : '#0A0A0A');
+      tile.setAttribute('stroke', '#1A1A1A');
+      tile.setAttribute('stroke-width','0.5');
+      tile.setAttribute('data-x', String(x));
+      tile.setAttribute('data-y', String(y));
+      tile.style.cursor = 'pointer';
+      tile.addEventListener('click', () => walkOperatorTo(x, y, cols, rows));
+      tileLayer.appendChild(tile);
+    }
+  }
+  svg.appendChild(tileLayer);
+
+  // Path highlight layer
+  const pathLayer = document.createElementNS(NS, 'g');
+  pathLayer.setAttribute('id','platesPath');
+  svg.appendChild(pathLayer);
+
+  // Avatar layer
+  const avLayer = document.createElementNS(NS, 'g');
+  avLayer.setAttribute('id','platesAvatars');
+  state.presence.live_in_room.forEach((p) => {
+    const pos = state.plates_positions[p.user_id] || { x: 0, y: 0 };
+    const { px, py } = tileToScreen(pos.x, pos.y);
+    const cy = py - 8;
+    const grp = document.createElementNS(NS, 'g');
+    grp.setAttribute('id', 'av_' + p.user_id);
+    grp.setAttribute('transform', 'translate(' + px + ',' + cy + ')');
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx','0'); c.setAttribute('cy','0');
+    c.setAttribute('r','6'); c.setAttribute('fill', p.color);
+    c.setAttribute('stroke','#000'); c.setAttribute('stroke-width','1');
+    grp.appendChild(c);
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x','0'); t.setAttribute('y','-12');
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-family','var(--jb)');
+    t.setAttribute('font-size','9');
+    t.setAttribute('fill','#737373');
+    t.textContent = p.display;
+    grp.appendChild(t);
+    avLayer.appendChild(grp);
+  });
+  // Operator avatar (the user)
+  if (!state.plates_positions['_me']) state.plates_positions['_me'] = { x: 1, y: 1 };
+  const me = state.plates_positions['_me'];
+  const meScreen = tileToScreen(me.x, me.y);
+  const meColor = state.cast.top || '#FFFFFF';
+  const meName = state.cast.preset_name || 'You';
+  const meGrp = document.createElementNS(NS, 'g');
+  meGrp.setAttribute('id', 'av__me');
+  meGrp.setAttribute('transform', 'translate(' + meScreen.px + ',' + (meScreen.py - 10) + ')');
+  const ring = document.createElementNS(NS, 'circle');
+  ring.setAttribute('cx','0'); ring.setAttribute('cy','0');
+  ring.setAttribute('r','9'); ring.setAttribute('fill','none');
+  ring.setAttribute('stroke','#fff'); ring.setAttribute('stroke-width','1.5');
+  ring.setAttribute('stroke-dasharray','3,2');
+  meGrp.appendChild(ring);
+  const meCircle = document.createElementNS(NS, 'circle');
+  meCircle.setAttribute('cx','0'); meCircle.setAttribute('cy','0');
+  meCircle.setAttribute('r','7'); meCircle.setAttribute('fill', meColor);
+  meCircle.setAttribute('stroke','#000'); meCircle.setAttribute('stroke-width','1');
+  meGrp.appendChild(meCircle);
+  const meLabel = document.createElementNS(NS, 'text');
+  meLabel.setAttribute('x','0'); meLabel.setAttribute('y','-14');
+  meLabel.setAttribute('text-anchor','middle');
+  meLabel.setAttribute('font-family','var(--jb)');
+  meLabel.setAttribute('font-size','9');
+  meLabel.setAttribute('fill','#fff');
+  meLabel.textContent = meName;
+  meGrp.appendChild(meLabel);
+  avLayer.appendChild(meGrp);
+  svg.appendChild(avLayer);
+
+  return svg;
+}
+
+function walkOperatorTo(tx, ty, cols, rows) {
+  const start = state.plates_positions['_me'] || { x: 1, y: 1 };
+  const path = aStarPath(start, { x: tx, y: ty }, cols, rows);
+  if (!path) { toast('No path'); return; }
+  state.plates_walks = state.plates_walks || {};
+  state.plates_walks['_me'] = { path, idx: 0, lastStep: performance.now() };
+  // Render path highlight
+  const layer = document.getElementById('platesPath');
+  if (layer) {
+    layer.innerHTML = '';
+    const NS = 'http://www.w3.org/2000/svg';
+    for (let i = 0; i < path.length; i++) {
+      const p = path[i];
+      const { px, py } = tileToScreen(p.x, p.y);
+      const dot = document.createElementNS(NS, 'circle');
+      dot.setAttribute('cx', String(px));
+      dot.setAttribute('cy', String(py + PLATES.th/2));
+      dot.setAttribute('r', '2');
+      dot.setAttribute('fill', '#ffffff66');
+      layer.appendChild(dot);
+    }
+  }
+  if (!state.plates_anim_running) startPlatesAnim();
+}
+
+function startPlatesAnim() {
+  state.plates_anim_running = true;
+  function step(now) {
+    if (state.active_space !== 'plates') { state.plates_anim_running = false; return; }
+    const walks = state.plates_walks || {};
+    let any = false;
+    for (const id in walks) {
+      const w = walks[id];
+      if (!w || w.idx >= w.path.length - 1) continue;
+      any = true;
+      const STEP_MS = 220;
+      const elapsed = now - w.lastStep;
+      const frac = Math.min(1, elapsed / STEP_MS);
+      const a = w.path[w.idx], b = w.path[w.idx + 1];
+      const sa = tileToScreen(a.x, a.y);
+      const sb = tileToScreen(b.x, b.y);
+      const px = sa.px + (sb.px - sa.px) * frac;
+      const py = sa.py + (sb.py - sa.py) * frac - (id === '_me' ? 10 : 8);
+      const el = document.getElementById('av_' + id);
+      if (el) el.setAttribute('transform', 'translate(' + px + ',' + py + ')');
+      if (frac >= 1) {
+        w.idx += 1;
+        w.lastStep = now;
+        state.plates_positions[id] = b;
+        if (w.idx >= w.path.length - 1) {
+          // Clear path highlight
+          const layer = document.getElementById('platesPath');
+          if (layer) layer.innerHTML = '';
+        }
+      }
+    }
+    if (any) requestAnimationFrame(step);
+    else state.plates_anim_running = false;
+  }
+  requestAnimationFrame(step);
+}
+
+// Background NPC stroll: every ~3s, pick a random presence agent and walk them somewhere
+let _platesNpcTimer = null;
+function startPlatesNpcStroll() {
+  if (_platesNpcTimer) return;
+  _platesNpcTimer = setInterval(() => {
+    if (state.active_space !== 'plates') return;
+    if (!state.room) return;
+    const roster = state.presence.live_in_room;
+    if (!roster.length) return;
+    const cols = Math.min(state.room.width, 14);
+    const rows = Math.min(state.room.height, 10);
+    const p = roster[Math.floor(Math.random() * roster.length)];
+    const cur = state.plates_positions[p.user_id] || { x: 0, y: 0 };
+    const goal = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+    const path = aStarPath(cur, goal, cols, rows);
+    if (!path || path.length < 2) return;
+    state.plates_walks = state.plates_walks || {};
+    state.plates_walks[p.user_id] = { path, idx: 0, lastStep: performance.now() };
+    if (!state.plates_anim_running) startPlatesAnim();
+  }, 2800);
+}
+
+// ─── PLOTS state + tick ────────────────────────────────────────────
+if (!state.plots) {
+  state.plots = {
+    needs: { Hunger:78, Energy:62, Bladder:88, Hygiene:71, Social:54, Fun:48, Comfort:80, Inspiration:90 },
+    mood: 'Inspired',
+    last_hour: -1,
+    last_action: null,
+    build_tool: 'wall',
+    lot: {}, // "x,y" → 'wall'|'floor'|'door'|'window'|'stair'|'roof'
+  };
+}
+const NEED_DECAY = { Hunger:4, Energy:3, Bladder:6, Hygiene:2, Social:3, Fun:4, Comfort:1, Inspiration:1 };
+const MOOD_FROM_LOW = { Hunger:'Hungry', Energy:'Tired', Bladder:'Strained', Hygiene:'Grubby', Social:'Lonely', Fun:'Bored', Comfort:'Stiff', Inspiration:'Flat' };
+
+function plotsHourTick() {
+  for (const k in state.plots.needs) {
+    state.plots.needs[k] = Math.max(0, state.plots.needs[k] - NEED_DECAY[k]);
+  }
+  let lowest = null, lowVal = 100;
+  for (const k in state.plots.needs) {
+    if (state.plots.needs[k] < lowVal) { lowVal = state.plots.needs[k]; lowest = k; }
+  }
+  if (lowVal < 25) state.plots.mood = MOOD_FROM_LOW[lowest];
+  else if (state.plots.needs.Inspiration > 80 && state.plots.needs.Fun > 60) state.plots.mood = 'Inspired';
+  else if (state.plots.needs.Energy < 40) state.plots.mood = 'Tense';
+  else state.plots.mood = 'Steady';
+  if (state.active_space === 'plots') renderStage();
+}
+
+function doSimAction(name, deltas) {
+  for (const k in deltas) {
+    state.plots.needs[k] = Math.min(100, Math.max(0, (state.plots.needs[k] || 0) + deltas[k]));
+  }
+  state.plots.last_action = name;
+  toast(state.cast.preset_name || 'Alexa', 1400);
+  toast(name + ' ✓', 1400);
+  renderStage();
+}
+
+const SIM_ACTIONS = [
+  { name:'Eat',     deltas:{ Hunger:+40, Energy:+5, Comfort:+5 } },
+  { name:'Sleep',   deltas:{ Energy:+50, Bladder:-10, Comfort:+10 } },
+  { name:'Shower',  deltas:{ Hygiene:+50, Bladder:-5 } },
+  { name:'Toilet',  deltas:{ Bladder:+60 } },
+  { name:'Read',    deltas:{ Inspiration:+20, Energy:-5, Fun:+8 } },
+  { name:'Hang out',deltas:{ Social:+30, Fun:+15, Energy:-5 } },
+  { name:'Build',   deltas:{ Inspiration:+15, Fun:+10, Energy:-15, Hygiene:-8 } },
+  { name:'Stretch', deltas:{ Comfort:+30, Energy:+10 } },
+];
+
+SPACE_RENDERERS.plots = (stage) => {
+  const grid = h('div', { class:'plots-grid' });
+  const buildTabs = h('div', { class:'tabs' });
+  ['Build','Buy','Family','Map'].forEach((t,i) => buildTabs.appendChild(h('button', { class:'tab' + (i===0?' active':'') }, t)));
+  const build = h('div', { class:'plots-build' },
+    buildTabs,
+    plotsLotCanvas(),
+    h('div', { class:'btn-group' },
+      ...['wall','floor','door','window','stair','roof'].map(t => h('button', {
+        class:'btn btn-' + (state.plots.build_tool === t ? 'white' : 'dark') + ' btn-sm',
+        onclick: () => { state.plots.build_tool = t; renderStage(); },
+      }, t.charAt(0).toUpperCase() + t.slice(1))),
+    ),
+  );
+  grid.appendChild(build);
+
+  const needsList = h('div', { style:{display:'flex',flexDirection:'column',gap:'7px'} });
+  for (const k of Object.keys(state.plots.needs)) {
+    const v = state.plots.needs[k];
+    needsList.appendChild(h('div', null,
+      h('div', { class:'progress-label' }, h('span', null, k), h('span', null, Math.round(v) + '%')),
+      h('div', { class:'progress-track' }, h('div', { class:'progress-fill' + (v < 30 ? ' low' : ''), style:{ width: v + '%' } })),
+    ));
+  }
+
+  const moodBadge = state.plots.mood === 'Inspired' || state.plots.mood === 'Steady'
+    ? h('span', { class:'badge badge-grad' }, h('span', { class:'badge-dot' }), state.plots.mood)
+    : h('span', { class:'badge', style:{borderColor:'#FF2255',color:'#FF2255'} }, h('span', { class:'badge-dot', style:{background:'#FF2255'} }), state.plots.mood);
+
+  const actions = h('div', { class:'btn-group', style:{flexWrap:'wrap'} });
+  SIM_ACTIONS.forEach(a => actions.appendChild(h('button', {
+    class:'btn btn-dark btn-sm',
+    onclick: () => doSimAction(a.name, a.deltas),
+  }, a.name)));
+
+  const sim = h('div', { class:'plots-sim' },
+    h('div', { style:{display:'flex',alignItems:'center',gap:'10px'} },
+      h('div', { class:'avatar avatar-xl avatar-grad' }, (state.cast.preset_name || 'A')[0]),
+      h('div', null,
+        h('div', { style:{color:'var(--white)',fontWeight:600,fontSize:'15px'} }, state.cast.preset_name || 'Alexa'),
+        h('div', { style:{fontSize:'12px',color:'var(--sub)',marginTop:'2px'} }, (state.cast.preset_role || 'operator') + ' · age 32'),
+        h('div', { style:{marginTop:'5px'} }, moodBadge),
+      ),
+    ),
+    h('div', null,
+      h('div', { class:'rail-label', style:{marginBottom:'6px'} }, 'Quick actions'),
+      actions,
+    ),
+    h('div', null,
+      h('div', { class:'rail-label', style:{marginBottom:'6px'} }, 'Needs · decay each in-game hour'),
+      needsList,
+    ),
+    h('div', null,
+      h('div', { class:'rail-label', style:{marginBottom:'6px'} }, 'Career'),
+      h('div', { class:'card' },
+        h('div', { class:'card-grad' }),
+        h('div', { class:'card-body' },
+          h('div', { class:'card-title' }, 'Architect — L4'),
+          h('div', { class:'card-text' }, 'Promotion: 62% complete'),
+          h('div', { class:'progress-track', style:{marginTop:'6px'} }, h('div', { class:'progress-fill', style:{width:'62%'} })),
+        ),
+      ),
+    ),
+    h('div', null,
+      h('div', { class:'rail-label', style:{marginBottom:'6px'} }, 'Traits'),
+      h('div', { class:'tag-group' }, ...['Creative','Focused','Frugal','Bookish'].map(t => h('span', { class:'tag' }, t))),
+    ),
+    h('div', null,
+      h('div', { class:'rail-label', style:{marginBottom:'6px'} }, 'Relationships'),
+      h('div', { class:'table-wrap' },
+        h('table', { class:'table' },
+          h('thead', null, h('tr', null, h('th', null, 'Agent'), h('th', null, 'Friend'), h('th', null, 'Conflict'), h('th', null, 'Trust'))),
+          h('tbody', null,
+            h('tr', null, h('td', null, 'Lucidia'),    h('td', null, '92%'), h('td', null, '4%'),  h('td', null, '98%')),
+            h('tr', null, h('td', null, 'Alexandria'), h('td', null, '78%'), h('td', null, '12%'), h('td', null, '88%')),
+            h('tr', null, h('td', null, 'Calliope'),   h('td', null, '64%'), h('td', null, '8%'),  h('td', null, '74%')),
+            h('tr', null, h('td', null, 'Cecilia'),    h('td', null, '54%'), h('td', null, '6%'),  h('td', null, '82%')),
+            h('tr', null, h('td', null, 'Olympia'),    h('td', null, '88%'), h('td', null, '0%'),  h('td', null, '95%')),
+          ),
+        ),
+      ),
+    ),
+  );
+  grid.appendChild(sim);
+  stage.appendChild(grid);
+};
+
+// ─── FIELDS state + day tick ───────────────────────────────────────
+if (!state.fields) {
+  state.fields = {
+    tool: 'hoe',
+    tiles: {}, // "x,y" → { state, crop, growth, watered_day }
+    inventory: { parsnip:8, cauliflower:4, strawberry:2 },
+    stamina: 80,
+  };
+}
+const FIELD_TOOLS = [
+  { id:'hoe',     label:'Hoe',     sym:'⛏' },
+  { id:'seed',    label:'Seed',    sym:'✦' },
+  { id:'water',   label:'Water',   sym:'◯' },
+  { id:'scythe',  label:'Scythe',  sym:'⌐' },
+  { id:'pickaxe', label:'Pickaxe', sym:'⚒' },
+  { id:'axe',     label:'Axe',     sym:'⌗' },
+];
+
+function fieldsDayTick() {
+  if (!state.fields) return;
+  for (const k in state.fields.tiles) {
+    const t = state.fields.tiles[k];
+    if (t.state === 'planted' && t.watered_day === state.clock.day - 1) {
+      t.growth = Math.min(4, (t.growth || 0) + 1);
+      if (t.growth >= 4) t.state = 'ready';
+    }
+  }
+  state.fields.stamina = Math.min(100, state.fields.stamina + 40);
+  if (state.active_space === 'fields') renderStage();
+}
+
+function fieldsClick(x, y) {
+  const k = x+','+y;
+  const t = state.fields.tiles[k] || { state:'untilled' };
+  const tool = state.fields.tool;
+  const cost = 4;
+  if (state.fields.stamina < cost) { toast('Stamina low — sleep'); return; }
+  let acted = false;
+  if (tool === 'hoe' && t.state === 'untilled') { t.state = 'tilled'; acted = true; }
+  else if (tool === 'seed' && t.state === 'tilled') { t.state = 'planted'; t.crop = 'parsnip'; t.growth = 0; t.planted_day = state.clock.day; acted = true; }
+  else if (tool === 'water' && (t.state === 'tilled' || t.state === 'planted')) { t.watered_day = state.clock.day; acted = true; }
+  else if (tool === 'scythe' && t.state === 'ready') {
+    state.user.coin_balance += 60;
+    state.receipts.unshift({ kind:'fields.harvest', text:'Harvested ' + t.crop + ' · +60c', t:'just now' });
+    delete state.fields.tiles[k];
+    acted = true;
+    renderRail();
+  }
+  if (acted) {
+    state.fields.tiles[k] = t;
+    state.fields.stamina = Math.max(0, state.fields.stamina - cost);
+    renderStage();
+  }
+}
+
+function buildFieldInteractiveGrid() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  const cols = 18, rows = 12, sz = 28;
+  svg.setAttribute('viewBox', '0 0 ' + (cols*sz) + ' ' + (rows*sz));
+  svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const k = x+','+y;
+    const t = state.fields.tiles[k];
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(x*sz)); rect.setAttribute('y', String(y*sz));
+    rect.setAttribute('width', String(sz-1)); rect.setAttribute('height', String(sz-1));
+    rect.setAttribute('rx','2');
+    let fill = '#0A0A0A';
+    if (t) {
+      if (t.state === 'tilled')  fill = '#1A1A1A';
+      if (t.state === 'planted') fill = '#181818';
+      if (t.state === 'ready')   fill = '#1A1A1A';
+    }
+    rect.setAttribute('fill', fill);
+    rect.setAttribute('stroke', t && t.watered_day ? '#4488FF' : '#1A1A1A');
+    rect.setAttribute('stroke-width', t && t.watered_day ? '0.8' : '0.5');
+    rect.style.cursor = 'pointer';
+    rect.addEventListener('click', () => fieldsClick(x, y));
+    svg.appendChild(rect);
+    if (t && t.state === 'planted') {
+      const stage = ['#FF6B2B','#CC00AA','#4488FF','#00D4FF'][Math.min(3, t.growth || 0)];
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', String(x*sz + sz/2));
+      c.setAttribute('cy', String(y*sz + sz/2));
+      c.setAttribute('r', String(2 + (t.growth || 0) * 1.5));
+      c.setAttribute('fill', stage);
+      c.style.pointerEvents = 'none';
+      svg.appendChild(c);
+    }
+    if (t && t.state === 'ready') {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', String(x*sz + sz/2));
+      c.setAttribute('cy', String(y*sz + sz/2));
+      c.setAttribute('r', '7');
+      c.setAttribute('fill', '#00D4FF');
+      c.setAttribute('stroke','#FFFFFF');
+      c.setAttribute('stroke-width','1');
+      c.style.pointerEvents = 'none';
+      svg.appendChild(c);
+    }
+  }
+  return svg;
+}
+
+SPACE_RENDERERS.fields = (stage) => {
+  const grid = h('div', { class:'fields-grid' });
+  const tools = h('div', { class:'builder-tools' });
+  FIELD_TOOLS.forEach(t => tools.appendChild(
+    h('button', {
+      class:'btn-icon' + (state.fields.tool === t.id ? ' active' : ''),
+      title: t.label,
+      onclick: () => { state.fields.tool = t.id; renderStage(); },
+    }, t.sym)
+  ));
+  grid.appendChild(tools);
+
+  const canvas = h('div', { class:'fields-canvas' });
+  canvas.appendChild(buildFieldInteractiveGrid());
+  canvas.appendChild(h('div', { class:'fields-bottom' },
+    h('span', null, 'Day ' + state.clock.day),
+    h('span', null, 'Stamina ' + state.fields.stamina + '/100'),
+    h('span', null, fmtNum(state.user.coin_balance) + 'c'),
+    h('span', { style:{marginLeft:'auto'} }, state.clock.weather),
+  ));
+  grid.appendChild(canvas);
+
+  const rail = h('div', { class:'plates-cat' });
+  rail.appendChild(h('div', { class:'rail-label' }, 'Crops'));
+  const crops = h('div', { class:'list-bordered list' });
+  ['Parsnip','Cauliflower','Strawberry','Blueberry','Tomato'].forEach(c => crops.appendChild(h('div', { class:'list-item' },
+    h('div', { class:'list-item-indicator' }),
+    h('div', { class:'list-item-text' }, c),
+    h('span', { class:'list-item-meta' }, '4-6d'),
+  )));
+  rail.appendChild(crops);
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Livestock'));
+  const stock = h('div', { class:'list-bordered list' });
+  ['Chicken','Cow','Goat','Pig'].forEach((a,i) => stock.appendChild(h('div', { class:'list-item' },
+    h('div', { class:'avatar avatar-sm avatar-grad' }, a[0]),
+    h('div', { class:'list-item-text' }, a),
+    h('span', { class:'list-item-meta' }, (60 + i*8) + '%'),
+  )));
+  rail.appendChild(stock);
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Garage'));
+  const garage = h('div', { class:'list-bordered list' });
+  ['Tractor','Harvester','Baler','Sprinkler'].forEach(e => garage.appendChild(h('div', { class:'list-item' },
+    h('div', { class:'list-item-indicator' }),
+    h('div', { class:'list-item-text' }, e),
+    h('span', { class:'list-item-meta' }, 'fuel 80%'),
+  )));
+  rail.appendChild(garage);
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Contracts'));
+  const contracts = h('div', { class:'list-bordered list' });
+  [['Co-op','Wheat ×40','5d','1,800c'],['Diner','Eggs ×24','3d','600c']].forEach(c => contracts.appendChild(h('div', { class:'list-item' },
+    h('div', { class:'list-item-text' }, c[0] + ' · ' + c[1]),
+    h('span', { class:'list-item-meta' }, c[2] + ' · ' + c[3]),
+  )));
+  rail.appendChild(contracts);
+
+  grid.appendChild(rail);
+  stage.appendChild(grid);
+};
+
+function buildFieldGrid() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  const cols = 18, rows = 12, sz = 28;
+  svg.setAttribute('viewBox', '0 0 ' + (cols*sz) + ' ' + (rows*sz));
+  svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+  // Tile soil = neutral darks; crop growth swept across 4 brand stops Ember→Magenta→Arc→Cyan
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const r = (x*7 + y*13) % 11;
+    const fill = r < 3 ? '#0A0A0A' : r < 6 ? '#111111' : r < 9 ? '#181818' : '#1A1A1A';
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(x*sz)); rect.setAttribute('y', String(y*sz));
+    rect.setAttribute('width', String(sz-1)); rect.setAttribute('height', String(sz-1));
+    rect.setAttribute('fill', fill); rect.setAttribute('rx','2');
+    svg.appendChild(rect);
+    if (r < 6) {
+      const stage = ['#FF6B2B','#CC00AA','#4488FF','#00D4FF'][r % 4];
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', String(x*sz + sz/2));
+      c.setAttribute('cy', String(y*sz + sz/2));
+      c.setAttribute('r', '4');
+      c.setAttribute('fill', stage);
+      svg.appendChild(c);
+    }
+  }
+  return svg;
+}
+
+// ─── GRID state + sim ──────────────────────────────────────────────
+const GRID_COLS = 28, GRID_ROWS = 18;
+const ZONES = [
+  { id:'R',  name:'Residential', color:'#FF6B2B' },
+  { id:'C',  name:'Commercial',  color:'#FF2255' },
+  { id:'I',  name:'Industrial',  color:'#CC00AA' },
+  { id:'Mx', name:'Mixed',       color:'#8844FF' },
+  { id:'O',  name:'Office',      color:'#4488FF' },
+  { id:'P',  name:'Park',        color:'#00D4FF' },
+];
+const ZONE_COLOR = Object.fromEntries(ZONES.map(z => [z.id, z.color]));
+if (!state.grid) {
+  state.grid = {
+    brush: 'R',
+    tiles: {},  // "x,y" → 'R'|'C'|...|'road'
+    last_month: 1,
+    last_year: 1,
+    cars: [], // moving traffic dots
+  };
+  // Seed roads: a couple of cross streets
+  for (let x = 0; x < GRID_COLS; x++) state.grid.tiles[x+',6'] = 'road';
+  for (let x = 0; x < GRID_COLS; x++) state.grid.tiles[x+',12'] = 'road';
+  for (let y = 0; y < GRID_ROWS; y++) state.grid.tiles['8,'+y] = 'road';
+  for (let y = 0; y < GRID_ROWS; y++) state.grid.tiles['18,'+y] = 'road';
+  // Some seeded zones around them
+  for (let x = 0; x < 8; x++) for (let y = 0; y < 6; y++) state.grid.tiles[x+','+y] = 'R';
+  for (let x = 9; x < 18; x++) for (let y = 0; y < 6; y++) state.grid.tiles[x+','+y] = 'C';
+  for (let x = 19; x < GRID_COLS; x++) for (let y = 0; y < 6; y++) state.grid.tiles[x+','+y] = 'I';
+}
+
+function gridStats() {
+  let r=0, c=0, i=0, road=0;
+  for (const k in state.grid.tiles) {
+    const v = state.grid.tiles[k];
+    if (v === 'R') r++;
+    else if (v === 'C') c++;
+    else if (v === 'I') i++;
+    else if (v === 'road') road++;
+  }
+  // Population: each R tile has 10 base, +40% if next to road
+  let pop = 0;
+  for (const k in state.grid.tiles) {
+    if (state.grid.tiles[k] !== 'R') continue;
+    const [x,y] = k.split(',').map(Number);
+    let nearRoad = false;
+    for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      if (state.grid.tiles[(x+dx)+','+(y+dy)] === 'road') { nearRoad = true; break; }
+    }
+    pop += nearRoad ? 14 : 10;
+  }
+  // Demand: R wants C/I; C wants R/I; I wants C
+  const total = Math.max(1, r+c+i);
+  const dR = Math.min(100, Math.round(((c+i)*1.3 - r) / total * 200 + 40));
+  const dC = Math.min(100, Math.round(((r+i)*0.9 - c) / total * 200 + 30));
+  const dI = Math.min(100, Math.round(((c+r)*0.7 - i) / total * 200 + 25));
+  // Happiness: balanced + roads near R
+  const balance = 100 - Math.abs(r - c)*2 - Math.abs(c - i)*2;
+  const happy = Math.max(20, Math.min(100, balance + (road > 20 ? 10 : -10)));
+  return { r, c, i, road, pop, dR: Math.max(0,dR), dC: Math.max(0,dC), dI: Math.max(0,dI), happy };
+}
+
+function gridClick(x, y) {
+  const k = x+','+y;
+  const cur = state.grid.tiles[k];
+  if (cur === state.grid.brush) delete state.grid.tiles[k];
+  else state.grid.tiles[k] = state.grid.brush;
+  if (state.active_space === 'grid') renderStage();
+}
+
+function gridMonthTick() {
+  state.grid.last_month += 1;
+  if (state.grid.last_month > 12) { state.grid.last_month = 1; state.grid.last_year += 1; }
+  state.receipts.unshift({ kind:'grid.budget', text:'Month ' + state.grid.last_month + ' budget posted', t:'just now' });
+  if (state.active_space === 'grid') renderStage();
+  renderRail();
+}
+
+function buildCityInteractive() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  const sz = 22;
+  svg.setAttribute('viewBox', '0 0 ' + (GRID_COLS*sz) + ' ' + (GRID_ROWS*sz));
+  svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+  for (let y = 0; y < GRID_ROWS; y++) for (let x = 0; x < GRID_COLS; x++) {
+    const k = x+','+y;
+    const v = state.grid.tiles[k];
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(x*sz)); rect.setAttribute('y', String(y*sz));
+    rect.setAttribute('width', String(sz-1)); rect.setAttribute('height', String(sz-1));
+    let fill = '#0A0A0A';
+    if (v === 'road') fill = '#3A3A3A';
+    else if (v && ZONE_COLOR[v]) fill = ZONE_COLOR[v] + '55';
+    rect.setAttribute('fill', fill);
+    rect.setAttribute('stroke', '#0A0A0A');
+    rect.style.cursor = 'pointer';
+    rect.addEventListener('click', () => gridClick(x, y));
+    svg.appendChild(rect);
+  }
+  // Animated traffic dots on roads (Cyan)
+  if (state.grid.cars && state.grid.cars.length) {
+    for (const car of state.grid.cars) {
+      const c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', String(car.x * sz + sz/2));
+      c.setAttribute('cy', String(car.y * sz + sz/2));
+      c.setAttribute('r', '2.5');
+      c.setAttribute('fill', '#00D4FF');
+      c.style.pointerEvents = 'none';
+      svg.appendChild(c);
+    }
+  }
+  return svg;
+}
+
+// Initialize traffic dots on road tiles
+function gridSpawnCars() {
+  if (!state.grid) return;
+  const roads = [];
+  for (const k in state.grid.tiles) if (state.grid.tiles[k] === 'road') {
+    const [x,y] = k.split(',').map(Number);
+    roads.push({ x, y });
+  }
+  state.grid.cars = roads.filter((_,i) => i % 4 === 0).map(r => ({ x: r.x, y: r.y, dir: Math.floor(Math.random()*4) }));
+}
+
+function gridTrafficStep() {
+  if (!state.grid || state.active_space !== 'grid') return;
+  if (!state.grid.cars || !state.grid.cars.length) gridSpawnCars();
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  for (const car of state.grid.cars) {
+    const [dx,dy] = dirs[car.dir];
+    const nx = car.x + dx, ny = car.y + dy;
+    if (state.grid.tiles[nx+','+ny] === 'road') { car.x = nx; car.y = ny; }
+    else { car.dir = (car.dir + 1) % 4; }
+  }
+  // re-render just the SVG (cheap)
+  if (state.active_space === 'grid') {
+    const old = document.querySelector('.cgrid-canvas svg');
+    if (old) { old.replaceWith(buildCityInteractive()); }
+  }
+}
+
+SPACE_RENDERERS.grid = (stage) => {
+  const wrap = h('div', { class:'cgrid-grid' });
+
+  // Left rail: zoning brushes + road brush + utilities/services
+  const left = h('div', { class:'plates-cat' });
+  left.appendChild(h('div', { class:'rail-label' }, 'Zoning'));
+  const zones = h('div', { class:'zone-row' });
+  ZONES.forEach(z => {
+    const active = state.grid.brush === z.id;
+    zones.appendChild(h('div', {
+      class:'zone-chip',
+      style:{ background: z.color + (active ? '44' : '22'), color: z.color, borderColor: z.color + (active ? 'AA' : '44'), boxShadow: active ? 'inset 0 0 0 1px ' + z.color : 'none' },
+      onclick:() => { state.grid.brush = z.id; renderStage(); },
+    }, z.id));
+  });
+  left.appendChild(zones);
+
+  left.appendChild(h('div', { class:'rail-label', style:{marginTop:'12px'} }, 'Roads'));
+  left.appendChild(h('button', {
+    class: 'btn btn-' + (state.grid.brush === 'road' ? 'white' : 'dark') + ' btn-sm',
+    onclick:() => { state.grid.brush = 'road'; renderStage(); },
+    style:{width:'100%'},
+  }, 'Road brush'));
+
+  left.appendChild(h('div', { class:'rail-label', style:{marginTop:'12px'} }, 'Utilities'));
+  ['Power overlay','Water overlay','Sewage','Traffic'].forEach((u,i) => {
+    left.appendChild(h('label', { class:'checkbox', style:{padding:'4px 0'} },
+      h('input', i === 0 ? { type:'checkbox', checked:true } : { type:'checkbox' }),
+      ' ' + u));
+  });
+
+  left.appendChild(h('div', { class:'rail-label', style:{marginTop:'12px'} }, 'Services'));
+  const services = h('div', { class:'cat-grid' });
+  ['Police','Fire','Hospital','School','Univ','Recycle','Transit','Hub'].forEach(s => {
+    services.appendChild(h('div', { class:'cat-item' }, h('div', { class:'swatch' }), s));
+  });
+  left.appendChild(services);
+  wrap.appendChild(left);
+
+  // Center canvas
+  const canvas = h('div', { class:'cgrid-canvas' });
+  canvas.appendChild(buildCityInteractive());
+  wrap.appendChild(canvas);
+
+  // Right rail: live stats + budget
+  const stats = gridStats();
+  const rail = h('div', { class:'plates-cat' });
+  rail.appendChild(h('div', { class:'rail-label' }, 'Population'));
+  rail.appendChild(progressRow('Citizens', Math.min(100, stats.pop / 50), fmtNum(stats.pop * 12)));
+  rail.appendChild(progressRow('Happiness', stats.happy, stats.happy + '%'));
+  rail.appendChild(progressRow('Demand R', stats.dR, ''));
+  rail.appendChild(progressRow('Demand C', stats.dC, ''));
+  rail.appendChild(progressRow('Demand I', stats.dI, ''));
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'12px'} }, 'Tiles'));
+  const counts = h('div', { class:'list-bordered list' },
+    h('div', { class:'list-item' }, h('div', { class:'list-item-indicator' }), h('div', { class:'list-item-text' }, 'Residential'), h('span', { class:'list-item-meta' }, String(stats.r))),
+    h('div', { class:'list-item' }, h('div', { class:'list-item-indicator' }), h('div', { class:'list-item-text' }, 'Commercial'),  h('span', { class:'list-item-meta' }, String(stats.c))),
+    h('div', { class:'list-item' }, h('div', { class:'list-item-indicator' }), h('div', { class:'list-item-text' }, 'Industrial'),  h('span', { class:'list-item-meta' }, String(stats.i))),
+    h('div', { class:'list-item' }, h('div', { class:'list-item-indicator' }), h('div', { class:'list-item-text' }, 'Roads'),       h('span', { class:'list-item-meta' }, String(stats.road))),
+  );
+  rail.appendChild(counts);
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'12px'} }, 'Budget · M' + state.grid.last_month + ' Y' + state.grid.last_year));
+  const tbl = h('div', { class:'table-wrap' });
+  const table = h('table', { class:'table' });
+  const thead = h('thead', null, h('tr', null, h('th', null, 'Dept'), h('th', null, 'In'), h('th', null, 'Out')));
+  const tbody = h('tbody');
+  const rows = [
+    ['Roads',   '+' + (stats.road * 0.06).toFixed(1) + 'k', '-' + (stats.road * 0.18).toFixed(1) + 'k'],
+    ['Power',   '+' + (stats.pop  * 0.4).toFixed(1)  + 'k', '-' + (stats.r    * 0.18).toFixed(1) + 'k'],
+    ['Water',   '+' + (stats.pop  * 0.22).toFixed(1) + 'k', '-' + (stats.r    * 0.10).toFixed(1) + 'k'],
+    ['Police',  '0', '-' + (stats.r * 0.13).toFixed(1) + 'k'],
+    ['Schools', '0', '-' + (stats.r * 0.20).toFixed(1) + 'k'],
+  ];
+  rows.forEach(r => tbody.appendChild(h('tr', null, h('td', null, r[0]), h('td', null, r[1]), h('td', null, r[2]))));
+  table.appendChild(thead); table.appendChild(tbody);
+  tbl.appendChild(table);
+  rail.appendChild(tbl);
+  wrap.appendChild(rail);
+  stage.appendChild(wrap);
+
+  // Kick off traffic if not running
+  if (!state._gridTrafficTimer) {
+    state._gridTrafficTimer = setInterval(gridTrafficStep, 600);
+  }
+};
+
+function progressRow(label, pct, right) {
+  return h('div', null,
+    h('div', { class:'progress-label' }, h('span', null, label), h('span', null, right || (pct + '%'))),
+    h('div', { class:'progress-track' }, h('div', { class:'progress-fill', style:{ width: pct + '%' } })),
+  );
+}
+
+function buildCityGrid() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  const cols = 28, rows = 18, sz = 22;
+  svg.setAttribute('viewBox', '0 0 ' + (cols*sz) + ' ' + (rows*sz));
+  svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+  // 6 brand stops as zone tints + 3 unzoned slots (Card bg)
+  const zones = ['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF','#0A0A0A','#0A0A0A','#0A0A0A'];
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const idx = (x*5 + y*11) % zones.length;
+    const fill = zones[idx];
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(x*sz)); rect.setAttribute('y', String(y*sz));
+    rect.setAttribute('width', String(sz-1)); rect.setAttribute('height', String(sz-1));
+    rect.setAttribute('fill', fill + (idx > 5 ? '' : '33'));
+    rect.setAttribute('stroke','#0A0A0A');
+    svg.appendChild(rect);
+  }
+  // Roads in Asphalt
+  for (let i = 4; i < cols; i += 6) {
+    const r = document.createElementNS(NS,'rect');
+    r.setAttribute('x', String(i*sz - 2)); r.setAttribute('y', '0');
+    r.setAttribute('width', '4'); r.setAttribute('height', String(rows*sz));
+    r.setAttribute('fill','#3A3A3A');
+    svg.appendChild(r);
+  }
+  for (let i = 3; i < rows; i += 5) {
+    const r = document.createElementNS(NS,'rect');
+    r.setAttribute('x', '0'); r.setAttribute('y', String(i*sz - 2));
+    r.setAttribute('width', String(cols*sz)); r.setAttribute('height', '4');
+    r.setAttribute('fill','#3A3A3A');
+    svg.appendChild(r);
+  }
+  return svg;
+}
+
+// ─── PARK state + sim ──────────────────────────────────────────────
+const PARK_COLS = 26, PARK_ROWS = 16, PARK_TILE = 22;
+const RIDES = [
+  { id:'steel',    name:'Steel Coaster', cat:'Track',   color:'#FF6B2B', cost:14, intensity:9 },
+  { id:'wood',     name:'Wood Coaster',  cat:'Track',   color:'#FF2255', cost:11, intensity:7 },
+  { id:'flume',    name:'Log Flume',     cat:'Track',   color:'#4488FF', cost:7,  intensity:5 },
+  { id:'rapids',   name:'Rapids',        cat:'Track',   color:'#00D4FF', cost:8,  intensity:4 },
+  { id:'monorail', name:'Monorail',      cat:'Track',   color:'#8844FF', cost:9,  intensity:2 },
+  { id:'drop',     name:'Drop Tower',    cat:'Flat',    color:'#FF6B2B', cost:6,  intensity:8 },
+  { id:'carousel', name:'Carousel',      cat:'Flat',    color:'#CC00AA', cost:3,  intensity:2 },
+  { id:'ferris',   name:'Ferris Wheel',  cat:'Flat',    color:'#4488FF', cost:5,  intensity:1 },
+  { id:'food',     name:'Food Stall',    cat:'Stalls',  color:'#FF2255', cost:1,  intensity:0 },
+  { id:'drink',    name:'Drink Stall',   cat:'Stalls',  color:'#00D4FF', cost:1,  intensity:0 },
+  { id:'tree',     name:'Tree',          cat:'Scenery', color:'#737373', cost:0,  intensity:0 },
+  { id:'lamp',     name:'Lamp',          cat:'Scenery', color:'#FFFFFF', cost:0,  intensity:0 },
+];
+const RIDE_BY_ID = Object.fromEntries(RIDES.map(r => [r.id, r]));
+if (!state.park) {
+  state.park = {
+    cat: 'Track',
+    selected: 'steel',
+    items: [], // { id, x, y }
+    guests: [], // { x, y, target_idx, happy }
+    money: 12000,
+    last_seed: false,
+  };
+  // Seed an entry path + a couple rides
+  state.park.items.push({ id:'carousel', x:6,  y:8 });
+  state.park.items.push({ id:'flume',    x:14, y:5 });
+  state.park.items.push({ id:'food',     x:9,  y:11 });
+  state.park.items.push({ id:'tree',     x:4,  y:5 });
+  state.park.items.push({ id:'tree',     x:20, y:11 });
+  // Spawn some guests
+  for (let i = 0; i < 14; i++) {
+    state.park.guests.push({ x: Math.floor(Math.random()*PARK_COLS), y: Math.floor(Math.random()*PARK_ROWS), target_idx: i % state.park.items.length, happy: 70 + Math.random()*20 });
+  }
+}
+
+function parkPlace(x, y) {
+  const ride = RIDE_BY_ID[state.park.selected];
+  if (!ride) return;
+  if (state.park.money < ride.cost * 1000) { toast('Not enough · need $' + ride.cost + 'k'); return; }
+  state.park.money -= ride.cost * 1000;
+  state.park.items.push({ id: ride.id, x, y });
+  state.receipts.unshift({ kind:'park.build', text:'Built ' + ride.name + ' · -$' + ride.cost + 'k', t:'just now' });
+  // New guests for new attraction
+  for (let i = 0; i < 3; i++) {
+    state.park.guests.push({ x: Math.floor(Math.random()*PARK_COLS), y: Math.floor(Math.random()*PARK_ROWS), target_idx: state.park.items.length - 1, happy: 80 });
+  }
+  if (state.active_space === 'park') renderStage();
+  renderRail();
+}
+
+function parkGuestStep() {
+  if (!state.park || state.active_space !== 'park') return;
+  if (!state.park.items.length) return;
+  for (const g of state.park.guests) {
+    const target = state.park.items[g.target_idx % state.park.items.length];
+    if (!target) continue;
+    if (g.x < target.x) g.x++;
+    else if (g.x > target.x) g.x--;
+    else if (g.y < target.y) g.y++;
+    else if (g.y > target.y) g.y--;
+    else {
+      // Arrived — pick a new target
+      g.target_idx = Math.floor(Math.random() * state.park.items.length);
+      g.happy = Math.min(100, g.happy + 4);
+    }
+    g.x = Math.max(0, Math.min(PARK_COLS-1, g.x));
+    g.y = Math.max(0, Math.min(PARK_ROWS-1, g.y));
+  }
+  // Re-render canvas only
+  const old = document.querySelector('.park-canvas svg');
+  if (old) old.replaceWith(buildParkCanvas());
+}
+
+function buildParkCanvas() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  const sz = PARK_TILE;
+  svg.setAttribute('viewBox', '0 0 ' + (PARK_COLS*sz) + ' ' + (PARK_ROWS*sz));
+  svg.setAttribute('width','100%'); svg.setAttribute('height','100%');
+  // Empty grid
+  for (let y = 0; y < PARK_ROWS; y++) for (let x = 0; x < PARK_COLS; x++) {
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(x*sz)); rect.setAttribute('y', String(y*sz));
+    rect.setAttribute('width', String(sz-1)); rect.setAttribute('height', String(sz-1));
+    rect.setAttribute('fill', '#0A0A0A'); rect.setAttribute('stroke', '#1A1A1A');
+    rect.style.cursor = 'pointer';
+    rect.addEventListener('click', () => parkPlace(x, y));
+    svg.appendChild(rect);
+  }
+  // Rides
+  for (const item of state.park.items) {
+    const ride = RIDE_BY_ID[item.id];
+    if (!ride) continue;
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(item.x*sz + 2));
+    rect.setAttribute('y', String(item.y*sz + 2));
+    rect.setAttribute('width', String(sz-4));
+    rect.setAttribute('height', String(sz-4));
+    rect.setAttribute('rx','2');
+    rect.setAttribute('fill', ride.color);
+    rect.setAttribute('stroke', '#000000');
+    rect.setAttribute('stroke-width','1');
+    rect.style.pointerEvents = 'none';
+    svg.appendChild(rect);
+  }
+  // Guests — Cyan dots
+  for (const g of state.park.guests) {
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', String(g.x*sz + sz/2));
+    c.setAttribute('cy', String(g.y*sz + sz/2));
+    c.setAttribute('r', '2.5');
+    c.setAttribute('fill', g.happy > 60 ? '#00D4FF' : '#FF2255');
+    c.style.pointerEvents = 'none';
+    svg.appendChild(c);
+  }
+  return svg;
+}
+
+function parkStats() {
+  const guests = state.park.guests.length;
+  const avgHappy = guests ? Math.round(state.park.guests.reduce((s,g) => s + g.happy, 0) / guests) : 0;
+  const trackCount  = state.park.items.filter(i => RIDE_BY_ID[i.id] && RIDE_BY_ID[i.id].cat === 'Track').length;
+  const flatCount   = state.park.items.filter(i => RIDE_BY_ID[i.id] && RIDE_BY_ID[i.id].cat === 'Flat').length;
+  const stallCount  = state.park.items.filter(i => RIDE_BY_ID[i.id] && RIDE_BY_ID[i.id].cat === 'Stalls').length;
+  const variety = Math.min(100, (trackCount * 8) + (flatCount * 6) + (stallCount * 4));
+  const rating = Math.round((avgHappy * 0.6) + (variety * 0.4));
+  return { guests, avgHappy, trackCount, flatCount, stallCount, rating };
+}
+
+SPACE_RENDERERS.park = (stage) => {
+  const grid = h('div', { class:'park-grid' });
+
+  // Center canvas
+  const canvas = h('div', { class:'park-canvas' });
+  canvas.appendChild(buildParkCanvas());
+  grid.appendChild(canvas);
+
+  // Rail
+  const stats = parkStats();
+  const rail = h('div', { class:'plates-cat' });
+
+  rail.appendChild(h('div', { class:'rail-label' }, 'Catalog'));
+  const catTabs = h('div', { class:'cat-tabs' });
+  ['Track','Flat','Stalls','Scenery'].forEach(c => catTabs.appendChild(h('button', {
+    class: state.park.cat === c ? 'active' : '',
+    onclick: () => { state.park.cat = c; const first = RIDES.find(r => r.cat === c); if (first) state.park.selected = first.id; renderStage(); },
+  }, c)));
+  rail.appendChild(catTabs);
+
+  const catGrid = h('div', { class:'cat-grid', style:{marginTop:'6px'} });
+  RIDES.filter(r => r.cat === state.park.cat).forEach(r => {
+    catGrid.appendChild(h('div', {
+      class:'cat-item',
+      style: state.park.selected === r.id ? { borderColor: r.color, color: 'var(--white)' } : null,
+      onclick: () => { state.park.selected = r.id; renderStage(); },
+    },
+      h('div', { class:'swatch', style:{ background: r.color } }),
+      h('div', null, r.name),
+      h('div', { style:{fontFamily:'var(--jb)',color:'var(--muted)',fontSize:'10px',marginTop:'2px'} }, r.cost ? '$' + r.cost + 'k' : 'free'),
+    ));
+  });
+  rail.appendChild(catGrid);
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'12px'} }, 'Park'));
+  rail.appendChild(progressRow('Guests',  Math.min(100, stats.guests * 4), fmtNum(stats.guests * 90)));
+  rail.appendChild(progressRow('Mood',    stats.avgHappy, stats.avgHappy + '%'));
+  rail.appendChild(progressRow('Rating',  stats.rating,   stats.rating + '/100'));
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Cash'));
+  rail.appendChild(h('div', { class:'stat' },
+    h('div', { class:'stat-value' }, '$' + fmtNum(state.park.money)),
+    h('div', { class:'stat-label' }, 'Operating budget'),
+  ));
+
+  // Top complaint chosen brand-side
+  const complaint = stats.avgHappy < 50 ? 'Guests want shorter queues.'
+                  : stats.trackCount === 0 ? 'No track rides yet.'
+                  : stats.stallCount === 0 ? 'No food or drink stalls.'
+                  : 'All clear — keep building.';
+  rail.appendChild(h('div', { class:'alert', style:{marginTop:'12px'} },
+    h('div', { class:'alert-bar' }),
+    h('div', null,
+      h('div', { class:'alert-title' }, 'Top note'),
+      h('div', { class:'alert-text' }, complaint),
+    ),
+  ));
+
+  grid.appendChild(rail);
+  stage.appendChild(grid);
+
+  // Kick off guest stepper
+  if (!state._parkGuestTimer) {
+    state._parkGuestTimer = setInterval(parkGuestStep, 700);
+  }
+};
+
+// ─── TOWN pixel-art palette (Register B — sunflower-square / world-builder) ───
+const PIX = {
+  grass1:'#7BC663', grass2:'#6FB958', grass3:'#85D06D', grassDot:'#5FA84A',
+  dirt:'#D8C58E', dirtDk:'#B89F65', dirtLite:'#E8D8A6', dirtDot:'#A88A50',
+  treeDk:'#2E7236', treeMd:'#3F8E45', treeLt:'#5BB458',
+  trunk:'#6B4527', trunkDk:'#4A2F1B',
+  flowerYel:'#F2C94C', flowerYelDk:'#C99B1F',
+  flowerPink:'#F08FA8', flowerPinkDk:'#C45A77',
+  flowerBlu:'#7AA8E0', flowerBluDk:'#4470AC',
+  water:'#5B82A8', waterDk:'#4470AC', waterShine:'#9CC8E5',
+  rock:'#9E9C8E', rockDk:'#787566',
+  roofRed:'#C84A4A', roofRedDk:'#8E2E2E',
+  wall:'#E8E0CF', wallDk:'#C9BFA8',
+  woodWarm:'#A8754A', woodCold:'#7E5A40',
+  shadow:'rgba(0,0,0,0.18)',
+};
+function townTileGrass(ctx, px, py, sz, x, y) {
+  ctx.fillStyle = ((x+y)&1) ? PIX.grass1 : PIX.grass2;
+  ctx.fillRect(px, py, sz, sz);
+  ctx.fillStyle = PIX.grassDot;
+  const a = (x*7 + y*13) % 5;
+  if (a === 0) { ctx.fillRect(px+3, py+5, 2, 1); ctx.fillRect(px+10, py+10, 2, 1); }
+  else if (a === 1) { ctx.fillRect(px+5, py+3, 1, 1); ctx.fillRect(px+12, py+9, 1, 1); }
+  else if (a === 2) { ctx.fillRect(px+8, py+4, 2, 1); ctx.fillRect(px+1, py+11, 1, 1); }
+  else if (a === 3) { ctx.fillRect(px+11, py+2, 1, 1); ctx.fillRect(px+4, py+9, 2, 1); }
+}
+function townTileDirt(ctx, px, py, sz, x, y) {
+  ctx.fillStyle = PIX.dirt;
+  ctx.fillRect(px, py, sz, sz);
+  ctx.fillStyle = PIX.dirtDot;
+  const a = (x*5 + y*9) % 4;
+  if (a === 0) { ctx.fillRect(px+2, py+3, 1, 1); ctx.fillRect(px+9, py+11, 1, 1); }
+  else if (a === 1) { ctx.fillRect(px+12, py+4, 1, 1); ctx.fillRect(px+5, py+13, 1, 1); }
+  else if (a === 2) { ctx.fillRect(px+6, py+6, 1, 1); ctx.fillRect(px+13, py+10, 1, 1); }
+  else { ctx.fillRect(px+3, py+12, 1, 1); ctx.fillRect(px+10, py+2, 1, 1); }
+}
+function townTileWater(ctx, px, py, sz) {
+  ctx.fillStyle = PIX.water;
+  ctx.fillRect(px, py, sz, sz);
+  ctx.fillStyle = PIX.waterShine;
+  ctx.fillRect(px+3, py+5, 5, 1);
+  ctx.fillRect(px+9, py+11, 4, 1);
+  ctx.fillStyle = PIX.waterDk;
+  ctx.fillRect(px, py+sz-1, sz, 1);
+}
+function townDrawTree(ctx, px, py) {
+  ctx.fillStyle = PIX.shadow;        ctx.fillRect(px+2, py+13, 12, 2);
+  ctx.fillStyle = PIX.trunkDk;       ctx.fillRect(px+6, py+10, 4, 5);
+  ctx.fillStyle = PIX.trunk;         ctx.fillRect(px+7, py+10, 2, 5);
+  ctx.fillStyle = PIX.treeDk;        ctx.fillRect(px+1, py+5, 14, 7); ctx.fillRect(px, py+6, 16, 5);
+  ctx.fillStyle = PIX.treeMd;        ctx.fillRect(px+2, py+3, 12, 7); ctx.fillRect(px+1, py+4, 14, 5);
+  ctx.fillStyle = PIX.treeLt;        ctx.fillRect(px+3, py+1, 8, 4);  ctx.fillRect(px+5, py, 5, 2);
+}
+function townDrawSunflower(ctx, px, py) {
+  ctx.fillStyle = PIX.treeMd;        ctx.fillRect(px+7, py+8, 2, 7);
+  ctx.fillStyle = PIX.flowerYelDk;   ctx.fillRect(px+4, py+3, 8, 5);
+  ctx.fillStyle = PIX.flowerYel;     ctx.fillRect(px+5, py+2, 6, 5); ctx.fillRect(px+4, py+4, 8, 2);
+  ctx.fillStyle = PIX.trunkDk;       ctx.fillRect(px+6, py+4, 4, 3);
+}
+function townDrawFlower(ctx, px, py, kind) {
+  const c1 = kind === 'pink' ? PIX.flowerPink : kind === 'blu' ? PIX.flowerBlu : PIX.flowerYel;
+  const c2 = kind === 'pink' ? PIX.flowerPinkDk : kind === 'blu' ? PIX.flowerBluDk : PIX.flowerYelDk;
+  ctx.fillStyle = c1;
+  ctx.fillRect(px+5, py+8, 2, 2); ctx.fillRect(px+9, py+8, 2, 2);
+  ctx.fillRect(px+7, py+6, 2, 2); ctx.fillRect(px+7, py+10, 2, 2);
+  ctx.fillStyle = c2;              ctx.fillRect(px+7, py+8, 2, 2);
+}
+function townDrawHouse(ctx, px, py, sz) {
+  // Cell occupies 2×2 tiles (sz=16 → 32 wide, 32 tall)
+  const w = sz*2, h = sz*2;
+  ctx.fillStyle = PIX.shadow;        ctx.fillRect(px-1, py+h, w+2, 3);
+  ctx.fillStyle = PIX.wall;          ctx.fillRect(px+2, py+sz+2, w-4, h-sz-2);
+  ctx.fillStyle = PIX.wallDk;        ctx.fillRect(px+2, py+h-3, w-4, 3);
+  ctx.fillStyle = PIX.roofRed;       ctx.fillRect(px, py+sz-2, w, 6);
+  ctx.beginPath();
+  ctx.moveTo(px+w/2, py-2); ctx.lineTo(px-1, py+sz+2); ctx.lineTo(px+w+1, py+sz+2); ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = PIX.roofRedDk;
+  ctx.beginPath();
+  ctx.moveTo(px+w/2, py-2); ctx.lineTo(px+w+1, py+sz+2); ctx.lineTo(px+w/2, py+sz+2); ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = PIX.trunk;         ctx.fillRect(px+w/2-3, py+h-9, 6, 9);
+  ctx.fillStyle = PIX.woodWarm;      ctx.fillRect(px+w/2-2, py+h-8, 4, 8);
+  // window
+  ctx.fillStyle = '#3F3D38';         ctx.fillRect(px+w/2-5, py+sz+5, 10, 7);
+  ctx.fillStyle = PIX.waterShine;    ctx.fillRect(px+w/2-4, py+sz+6, 9, 5);
+  ctx.fillStyle = '#3F3D38';         ctx.fillRect(px+w/2, py+sz+5, 1, 7); ctx.fillRect(px+w/2-5, py+sz+8, 10, 1);
+}
+function townDrawCharacter(ctx, px, py, color, frame) {
+  ctx.fillStyle = PIX.shadow;     ctx.fillRect(px+2, py+15, 12, 2);
+  ctx.fillStyle = '#3F4682';      ctx.fillRect(px+4, py+9, 8, 6);  // pants
+  if (frame === 1) { ctx.fillRect(px+4, py+15, 3, 2); ctx.fillRect(px+9, py+15, 3, 2); }
+  else if (frame === 2) { ctx.fillRect(px+5, py+15, 3, 2); ctx.fillRect(px+8, py+15, 3, 2); }
+  ctx.fillStyle = color;          ctx.fillRect(px+3, py+4, 10, 6); // shirt
+  ctx.fillStyle = '#F5C9A0';      ctx.fillRect(px+5, py, 6, 5);    // head
+  ctx.fillStyle = '#5C3A21';      ctx.fillRect(px+4, py-2, 8, 3);  // hair top
+  ctx.fillStyle = '#1A1310';      ctx.fillRect(px+6, py+2, 1, 1); ctx.fillRect(px+9, py+2, 1, 1);
+}
+
+// Town pixel-art canvas — top-down, 24×16 tiles × 16px
+const TOWN_TILE = 16, TOWN_COLS = 28, TOWN_ROWS = 18;
+function buildTownPixelCanvas() {
+  const wrap = h('div', { style:{position:'relative',imageRendering:'pixelated'} });
+  const canvas = document.createElement('canvas');
+  canvas.width = TOWN_COLS * TOWN_TILE; canvas.height = TOWN_ROWS * TOWN_TILE;
+  canvas.style.imageRendering = 'pixelated';
+  canvas.style.display = 'block';
+  canvas.style.maxWidth = '100%';
+  canvas.style.height = 'auto';
+  canvas.style.borderRadius = '6px';
+  canvas.style.background = PIX.grass1;
+  canvas.style.boxShadow = '0 4px 24px rgba(0,0,0,0.5)';
+  wrap.appendChild(canvas);
+  // Init village layout & NPCs once
+  if (!state.town.layout) {
+    const layout = new Uint8Array(TOWN_COLS * TOWN_ROWS); // 0=grass 1=dirt 2=water
+    // Cross-shaped path
+    for (let x = 4; x < TOWN_COLS-4; x++) layout[10*TOWN_COLS + x] = 1;
+    for (let y = 4; y < TOWN_ROWS-2; y++) layout[y*TOWN_COLS + 14] = 1;
+    // Pond
+    for (let y = 12; y < 16; y++) for (let x = 21; x < 26; x++) layout[y*TOWN_COLS + x] = 2;
+    state.town.layout = layout;
+    state.town.decor = []; // {x,y,kind}
+    // Some trees and flowers
+    const seed = (a,b) => (a*73 + b*131) % 100;
+    for (let y = 1; y < TOWN_ROWS-1; y++) for (let x = 1; x < TOWN_COLS-1; x++) {
+      if (layout[y*TOWN_COLS + x] !== 0) continue;
+      const r = seed(x, y);
+      if (r < 6) state.town.decor.push({ x, y, kind:'tree' });
+      else if (r < 9) state.town.decor.push({ x, y, kind:'sunflower' });
+      else if (r < 14) state.town.decor.push({ x, y, kind: r < 11 ? 'fy' : r < 13 ? 'fp' : 'fb' });
+    }
+    // Houses (one per agent neighbor)
+    const houseSpots = [[3,3],[8,3],[20,4],[24,3],[3,14],[8,14],[20,12],[24,15],[12,6],[16,14]];
+    state.town.houses = [];
+    Object.keys(state.town.villager_friendship).slice(0,10).forEach((slug,i) => {
+      const spot = houseSpots[i] || [12+i, 8];
+      state.town.houses.push({ slug, x: spot[0], y: spot[1] });
+    });
+    // NPCs (agent walkers)
+    state.town.npcs = Object.keys(state.town.villager_friendship).map((slug, i) => {
+      const a = AGENT_BY_SLUG[slug];
+      return {
+        slug,
+        color: a ? a.color : '#C84A4A',
+        x: 4 + (i*2) % (TOWN_COLS - 8),
+        y: 5 + i % (TOWN_ROWS - 8),
+        tx: 4 + (i*3) % (TOWN_COLS - 6),
+        ty: 5 + (i*5) % (TOWN_ROWS - 6),
+        frame: 0, lastStep: 0,
+      };
+    });
+  }
+  function draw() {
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    // Tiles
+    for (let y = 0; y < TOWN_ROWS; y++) for (let x = 0; x < TOWN_COLS; x++) {
+      const t = state.town.layout[y*TOWN_COLS + x];
+      const px = x*TOWN_TILE, py = y*TOWN_TILE;
+      if (t === 0) townTileGrass(ctx, px, py, TOWN_TILE, x, y);
+      else if (t === 1) townTileDirt(ctx, px, py, TOWN_TILE, x, y);
+      else if (t === 2) townTileWater(ctx, px, py, TOWN_TILE);
+    }
+    // Decor (sorted by y for depth)
+    const decor = state.town.decor.slice().sort((a,b) => a.y - b.y);
+    for (const d of decor) {
+      const px = d.x*TOWN_TILE, py = d.y*TOWN_TILE;
+      if (d.kind === 'tree') townDrawTree(ctx, px, py);
+      else if (d.kind === 'sunflower') townDrawSunflower(ctx, px, py);
+      else if (d.kind === 'fy') townDrawFlower(ctx, px, py, 'yel');
+      else if (d.kind === 'fp') townDrawFlower(ctx, px, py, 'pink');
+      else if (d.kind === 'fb') townDrawFlower(ctx, px, py, 'blu');
+    }
+    // Houses
+    for (const hs of state.town.houses) {
+      townDrawHouse(ctx, hs.x*TOWN_TILE, hs.y*TOWN_TILE, TOWN_TILE);
+    }
+    // NPCs
+    for (const n of state.town.npcs) {
+      const px = Math.round(n.x * TOWN_TILE), py = Math.round(n.y * TOWN_TILE);
+      townDrawCharacter(ctx, px, py, n.color, n.frame);
+    }
+  }
+  draw();
+  // Animate NPC strolling
+  if (!state._townAnimRunning) {
+    state._townAnimRunning = true;
+    let last = performance.now();
+    function step(now) {
+      if (state.active_space !== 'town') {
+        state._townAnimRunning = false;
+        return;
+      }
+      const dt = Math.min(50, now - last); last = now;
+      for (const n of state.town.npcs) {
+        if (Math.abs(n.x - n.tx) < 0.05 && Math.abs(n.y - n.ty) < 0.05) {
+          n.tx = 2 + Math.floor(Math.random() * (TOWN_COLS - 4));
+          n.ty = 2 + Math.floor(Math.random() * (TOWN_ROWS - 4));
+        }
+        const sp = 0.04 * (dt / 16);
+        if (n.x < n.tx) n.x = Math.min(n.tx, n.x + sp);
+        else if (n.x > n.tx) n.x = Math.max(n.tx, n.x - sp);
+        if (n.y < n.ty) n.y = Math.min(n.ty, n.y + sp);
+        else if (n.y > n.ty) n.y = Math.max(n.ty, n.y - sp);
+        n.frame = (Math.floor(now / 220) % 2) === 0 ? 1 : 2;
+      }
+      const c = canvas.getContext('2d');
+      if (c) draw();
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  return wrap;
+}
+
+// ─── TOWN state ────────────────────────────────────────────────────
+if (!state.town) {
+  state.town = {
+    villager_friendship: {}, // slug → 0-100
+    pattern: Array(256).fill(null), // 16x16 fashion pattern
+    pattern_color: '#FF6B2B',
+    last_greet_day: {},
+  };
+  ['calliope','aria','thalia','lyra','ophelia','gaia','sophia','roadie','celeste','seraphina'].forEach((slug, i) => {
+    state.town.villager_friendship[slug] = 35 + i*5;
+  });
+}
+
+function townGreet(slug) {
+  const today = state.clock.day;
+  if (state.town.last_greet_day[slug] === today) { toast('Already greeted today'); return; }
+  state.town.last_greet_day[slug] = today;
+  state.town.villager_friendship[slug] = Math.min(100, (state.town.villager_friendship[slug] || 0) + 5);
+  state.plots.needs.Social = Math.min(100, state.plots.needs.Social + 8);
+  const a = AGENT_BY_SLUG[slug];
+  state.receipts.unshift({ kind:'town.greet', text:'Greeted ' + a.name + ' · +5 friendship', t:'just now' });
+  toast('Greeted ' + a.name);
+  renderStage(); renderRail();
+}
+function townGift(slug) {
+  if (state.user.coin_balance < 30) { toast('Need 30c for a gift'); return; }
+  state.user.coin_balance -= 30;
+  state.town.villager_friendship[slug] = Math.min(100, (state.town.villager_friendship[slug] || 0) + 12);
+  const a = AGENT_BY_SLUG[slug];
+  state.receipts.unshift({ kind:'town.gift', text:'Gave ' + a.name + ' a gift · +12 friendship', t:'just now' });
+  toast('Gifted ' + a.name);
+  renderStage(); renderRail();
+}
+
+function townPatternGrid() {
+  const grid = h('div', {
+    style:{display:'grid',gridTemplateColumns:'repeat(16, 1fr)', gap:'1px', aspectRatio:'1', maxWidth:'320px', background:'#1A1A1A', padding:'1px', borderRadius:'8px'},
+  });
+  for (let i = 0; i < 256; i++) {
+    const cell = h('div', {
+      style:{ background: state.town.pattern[i] || '#0A0A0A', cursor:'pointer', minHeight:'12px' },
+      onclick: () => {
+        state.town.pattern[i] = state.town.pattern[i] === state.town.pattern_color ? null : state.town.pattern_color;
+        cell.style.background = state.town.pattern[i] || '#0A0A0A';
+      },
+    });
+    grid.appendChild(cell);
+  }
+  return grid;
+}
+
+SPACE_RENDERERS.town = (stage) => {
+  const grid = h('div', { class:'town-grid' });
+
+  // Left — village (top-down pixel art) + fashion designer
+  const left = h('div', { style:{display:'flex',flexDirection:'column',gap:'12px',minHeight:0,overflow:'hidden'} });
+
+  const village = h('div', { class:'town-canvas', style:{minHeight:'320px',padding:'8px',display:'flex',alignItems:'center',justifyContent:'center'} });
+  village.appendChild(buildTownPixelCanvas());
+  left.appendChild(village);
+
+  const fashion = h('div', { class:'panel' },
+    h('h3', null, 'Pattern designer · 16×16'),
+    h('div', { style:{display:'flex',gap:'14px',alignItems:'flex-start'} },
+      townPatternGrid(),
+      h('div', { style:{display:'flex',flexDirection:'column',gap:'8px',flex:1} },
+        h('div', { class:'rail-label' }, 'Brush color'),
+        h('div', { class:'palette-grid' },
+          ...['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF'].map(c =>
+            h('div', {
+              class:'palette-swatch' + (state.town.pattern_color === c ? ' active' : ''),
+              style:{ background: c },
+              onclick: () => { state.town.pattern_color = c; renderStage(); },
+            })),
+        ),
+        h('div', { class:'rail-label', style:{marginTop:'8px'} }, 'Actions'),
+        h('div', { style:{display:'flex',gap:'6px'} },
+          h('button', { class:'btn btn-outline btn-sm', onclick:() => { state.town.pattern = Array(256).fill(null); renderStage(); } }, 'Clear'),
+          h('button', { class:'btn btn-white btn-sm', onclick:() => {
+            state.receipts.unshift({ kind:'town.pattern', text:'Saved pattern (16×16)', t:'just now' });
+            toast('Pattern saved'); renderRail();
+          } }, 'Save'),
+        ),
+      ),
+    ),
+  );
+  left.appendChild(fashion);
+
+  grid.appendChild(left);
+
+  // Rail — neighbors w/ live friendship + bulletin
+  const rail = h('div', { class:'plates-cat' });
+  rail.appendChild(h('div', { class:'rail-label' }, 'Neighbors · convoy'));
+  const list = h('div', { class:'list-bordered list' });
+  Object.keys(state.town.villager_friendship).forEach(slug => {
+    const a = AGENT_BY_SLUG[slug];
+    if (!a) return;
+    const f = state.town.villager_friendship[slug];
+    list.appendChild(h('div', { class:'list-item' },
+      h('div', { class:'avatar avatar-sm', style:{background:a.color, color:'#000'} }, a.name[0]),
+      h('div', { class:'list-item-text' },
+        h('div', { style:{fontSize:'13px',color:'var(--white)'} }, a.name),
+        h('div', { style:{fontSize:'10px',color:'var(--muted)',fontFamily:'var(--jb)',marginTop:'2px'} }, a.role + ' · ' + Math.round(f) + '%'),
+      ),
+      h('div', { style:{display:'flex',gap:'4px'} },
+        h('button', { class:'btn btn-dark btn-sm', style:{padding:'4px 8px',fontSize:'10px'}, onclick:(e) => { e.stopPropagation(); townGreet(slug); } }, 'Hi'),
+        h('button', { class:'btn btn-outline btn-sm', style:{padding:'4px 8px',fontSize:'10px'}, onclick:(e) => { e.stopPropagation(); townGift(slug); } }, 'Gift'),
+      ),
+    ));
+  });
+  rail.appendChild(list);
+
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Bulletin'));
+  rail.appendChild(h('div', { class:'card-sm card' },
+    h('div', { class:'card-grad' }),
+    h('div', { class:'card-body' },
+      h('div', { class:'card-title' }, 'Spring Festival'),
+      h('div', { class:'card-text' }, 'Day 13. Bring flowers.'),
+    ),
+  ));
+  grid.appendChild(rail);
+
+  stage.appendChild(grid);
+};
+
+SPACE_RENDERERS.stage = (stage) => {
+  const grid = h('div', { class:'stage-grid' });
+  const left = h('div', { class:'panel' });
+  left.appendChild(h('h3', null, 'Published places'));
+  const places = h('div', { class:'places-grid' });
+  const PLACES = [
+    { name:'Lava Tag',     host:'valeria' },
+    { name:'Tower Climb',  host:'silas' },
+    { name:'Plaza Hub',    host:'elias' },
+    { name:'Codebreak',    host:'gematria' },
+    { name:'Karaoke',      host:'lyra' },
+    { name:'Dungeon',      host:'atticus' },
+    { name:'Swarm',        host:'cecilia' },
+    { name:'Drift',        host:'octavia' },
+    { name:'Build Wars',   host:'silas' },
+    { name:'Heist',        host:'sapphira' },
+    { name:'Reading Room', host:'alexandria' },
+    { name:'Festival',     host:'calliope' },
+  ];
+  PLACES.forEach(p => {
+    const a = AGENT_BY_SLUG[p.host];
+    const card = h('div', { class:'place-card' },
+      h('div', { class:'place-thumb', style:{background:'linear-gradient(135deg,'+a.color+',#000)'} },
+        h('span', { class:'badge' }, 'live'),
+      ),
+      h('div', { class:'place-info' },
+        h('div', { class:'title' }, p.name),
+        h('div', { class:'meta' }, fmtNum(100 + (p.name.length * 233)) + ' plays · ★ ' + (3 + (p.name.length % 20)/10).toFixed(1)),
+        h('div', { style:{display:'flex',alignItems:'center',gap:'5px',marginTop:'4px',fontSize:'9px',color:'var(--sub)',fontFamily:'var(--jb)'} },
+          h('div', { style:{width:'8px',height:'8px',borderRadius:'50%',background:a.color} }),
+          'hosted by ' + a.name,
+        ),
+      ),
+    );
+    places.appendChild(card);
+  });
+  left.appendChild(places);
+  grid.appendChild(left);
+
+  const right = h('div', { class:'panel' });
+  right.appendChild(h('h3', null, 'Place properties'));
+  right.appendChild(formField('Name', 'My Place'));
+  right.appendChild(formField('Blurb', '', 'textarea'));
+  right.appendChild(formField('Max players', '12'));
+  right.appendChild(formField('Age rating', 'all', 'select', ['all','teen','adult']));
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'8px'} }, 'Script'));
+  right.appendChild(h('textarea', { class:'textarea', style:{minHeight:'120px'} },
+    'on join (player) { player.spawn() }\non tick { /* every frame */ }\non collect (item, player) { player.score += item.value }\non win (player) { broadcast(player.name + " wins") }',
+  ));
+  right.appendChild(h('div', { style:{display:'flex',gap:'6px',marginTop:'8px'} },
+    h('button', { class:'btn btn-outline btn-sm' }, 'Test'),
+    h('button', { class:'btn btn-white btn-sm' }, 'Publish'),
+  ));
+  grid.appendChild(right);
+  stage.appendChild(grid);
+};
+
+function formField(label, val, kind, opts) {
+  kind = kind || 'input';
+  const wrap = h('div', { style:{marginBottom:'8px'} });
+  wrap.appendChild(h('label', { class:'input-label' }, label));
+  if (kind === 'textarea') wrap.appendChild(h('textarea', { class:'textarea', style:{minHeight:'52px'} }, val));
+  else if (kind === 'select') {
+    const sel = h('select', { class:'select' });
+    for (const o of opts) sel.appendChild(h('option', { value:o }, o));
+    sel.value = val;
+    wrap.appendChild(sel);
+  } else wrap.appendChild(h('input', { class:'input', value:val }));
+  return wrap;
+}
+
+if (!state.board_stickies) {
+  state.board_stickies = [
+    { id:'s1', x:60,  y:80,  c:'#FF6B2B', t:'Goal: ship Phase 1',                author:'alexandria' },
+    { id:'s2', x:220, y:120, c:'#FF2255', t:'Atlas portal CRUD ✓',               author:'silas' },
+    { id:'s3', x:380, y:90,  c:'#CC00AA', t:'Convoy strip in topbar',            author:'aria' },
+    { id:'s4', x:140, y:240, c:'#8844FF', t:'Lazy-load Three.js for Builder',    author:'cecilia' },
+    { id:'s5', x:340, y:260, c:'#4488FF', t:'Festival cascade?',                 author:'calliope' },
+    { id:'s6', x:500, y:200, c:'#00D4FF', t:'Plates A* walking — Phase 2',       author:'octavia' },
+  ];
+  state.board_active_color = '#FF6B2B';
+}
+
+SPACE_RENDERERS.board = (stage) => {
+  const grid = h('div', { class:'board-grid' });
+  const canvas = h('div', { class:'board-canvas', id:'boardCanvas' });
+  const tools = h('div', { class:'board-tools' });
+  ['↖','◫','T','◇','—','✎','◉','▤','□'].forEach((s,i) => tools.appendChild(h('button', { class:'btn-icon' + (i===0?' active':''), title:'tool' }, s)));
+  canvas.appendChild(tools);
+  for (const s of state.board_stickies) {
+    canvas.appendChild(buildSticky(s));
+  }
+  grid.appendChild(canvas);
+
+  const rail = h('div', { class:'plates-cat' });
+  rail.appendChild(h('div', { class:'rail-label' }, 'Templates'));
+  const tlist = h('div', { class:'list-bordered list' });
+  ['Sprint Board','Retro','World Map','Journey','Persona','Kanban','Mood Board'].forEach(t => tlist.appendChild(h('div', { class:'list-item' },
+    h('div', { class:'list-item-indicator' }),
+    h('div', { class:'list-item-text' }, t),
+  )));
+  rail.appendChild(tlist);
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Sticky color'));
+  const palette = h('div', { class:'palette-grid' });
+  ['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF'].forEach(c =>
+    palette.appendChild(h('div', {
+      class:'palette-swatch' + (state.board_active_color === c ? ' active' : ''),
+      style:{ background: c },
+      onclick: (e) => {
+        state.board_active_color = c;
+        $$('.palette-swatch', palette).forEach(s => s.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+      },
+    })));
+  rail.appendChild(palette);
+  rail.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Authors'));
+  const authors = h('div', { class:'list-bordered list' });
+  const counts = {};
+  state.board_stickies.forEach(s => { counts[s.author] = (counts[s.author] || 0) + 1; });
+  Object.entries(counts).forEach(([slug, n]) => {
+    const a = AGENT_BY_SLUG[slug];
+    if (!a) return;
+    authors.appendChild(h('div', { class:'list-item' },
+      h('div', { class:'avatar avatar-sm', style:{background:a.color, color:'#000'} }, a.name[0]),
+      h('div', { class:'list-item-text' }, a.name),
+      h('span', { class:'list-item-meta' }, n + ' note' + (n>1?'s':'')),
+    ));
+  });
+  rail.appendChild(authors);
+  grid.appendChild(rail);
+  stage.appendChild(grid);
+};
+
+function buildSticky(s) {
+  const a = AGENT_BY_SLUG[s.author];
+  const wrap = h('div', { class:'board-sticky', style:{ left:s.x+'px', top:s.y+'px', background:s.c } },
+    h('div', null, s.t),
+    a ? h('div', { style:{display:'flex',alignItems:'center',gap:'4px',marginTop:'6px',fontSize:'9px',fontFamily:'var(--jb)',color:'rgba(0,0,0,.6)'} },
+      h('div', { style:{width:'6px',height:'6px',borderRadius:'50%',background:a.color,border:'1px solid rgba(0,0,0,.3)'} }),
+      a.name,
+    ) : null,
+  );
+  makeDraggable(wrap);
+  return wrap;
+}
+
+function addSticky() {
+  if (state.active_space !== 'board') setSpace('board');
+  const newSticky = {
+    id: 's' + Date.now().toString(36),
+    x: 80 + Math.random()*420,
+    y: 100 + Math.random()*220,
+    c: state.board_active_color || '#FF6B2B',
+    t: 'New note',
+    author: state.cast.preset || 'alexandria',
+  };
+  state.board_stickies.push(newSticky);
+  state.receipts.unshift({ kind:'board.sticky', text:'+ Sticky on the canvas', t:'just now' });
+  const canvas = $('#boardCanvas');
+  if (canvas) canvas.appendChild(buildSticky(newSticky));
+  renderRail();
+}
+
+function makeDraggable(el) {
+  let dx = 0, dy = 0;
+  el.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const left0 = parseFloat(el.style.left) || 0;
+    const top0 = parseFloat(el.style.top)  || 0;
+    const move = (ev) => {
+      el.style.left = (left0 + ev.clientX - startX) + 'px';
+      el.style.top  = (top0  + ev.clientY - startY) + 'px';
+    };
+    const up = () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  });
+}
+
+SPACE_RENDERERS.cast = (stage) => {
+  const grid = h('div', { class:'cast-grid' });
+
+  // Preview
+  const preview = h('div', { class:'cast-preview', style:{flexDirection:'column',gap:'12px'} });
+  const av = h('div', { class:'cast-avatar', style:{ background: 'linear-gradient(135deg,'+state.cast.top+','+state.cast.bottom+')' } }, state.cast.body);
+  preview.appendChild(av);
+  preview.appendChild(h('div', { style:{textAlign:'center'} },
+    h('div', { style:{color:'var(--white)',fontWeight:600,fontSize:'15px'} }, state.cast.preset_name || 'Alexandria'),
+    h('div', { style:{color:'var(--sub)',fontSize:'11px',fontFamily:'var(--jb)',marginTop:'4px',letterSpacing:'.02em'} }, state.cast.preset_role || 'operator · librarian'),
+  ));
+  // Sprite-sheet preview (8 directional dots in brand colors)
+  const sheet = h('div', { style:{display:'flex',gap:'6px',marginTop:'8px'} });
+  ['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF'].forEach(c =>
+    sheet.appendChild(h('div', { style:{width:'18px',height:'18px',borderRadius:'50%',background:c,border:'1px solid #1A1A1A'} })));
+  preview.appendChild(sheet);
+  grid.appendChild(preview);
+
+  // Right column
+  const right = h('div', { class:'plates-cat' });
+
+  // Editor tabs
+  const tabs = h('div', { class:'tabs' });
+  ['Body','Skin','Hair','Top','Bottom','Acc','Emote','Voice'].forEach((t,i) => tabs.appendChild(
+    h('button', { class:'tab' + (i===0?' active':''), style:{padding:'6px 8px',fontSize:'9px'} }, t)
+  ));
+  right.appendChild(tabs);
+
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'8px'} }, 'Top color'));
+  right.appendChild(h('div', { class:'palette-grid' },
+    ...['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF'].map(c =>
+      h('div', { class:'palette-swatch' + (state.cast.top === c ? ' active' : ''), style:{background:c}, onclick:() => {
+        state.cast.top = c; toast('Top → ' + c); renderStage();
+      } })),
+  ));
+
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Pose'));
+  right.appendChild(h('div', { class:'btn-group' },
+    ...['Idle','Walk','Run','Sit','Dance','Wave'].map((t,i) => h('button', { class:'btn btn-' + (i===0?'white':'dark') + ' btn-sm' }, t)),
+  ));
+
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Convoy presets · 27 agents'));
+  const agentGrid = h('div', { class:'cat-grid', style:{gridTemplateColumns:'repeat(3,1fr)'} });
+  for (const a of AGENTS) {
+    const item = h('div', {
+      class:'cat-item',
+      style: state.cast.preset === a.slug ? { borderColor:'#fff', color:'var(--white)' } : null,
+      onclick: () => loadAgentPreset(a.slug),
+    },
+      h('div', { class:'swatch', style:{background: 'linear-gradient(135deg,'+a.color+',#0a0a0a)'} }),
+      h('div', { style:{fontWeight:600,color:'var(--white)',fontSize:'10px'} }, a.name),
+      h('div', { style:{fontFamily:'var(--jb)',color:'var(--muted)',fontSize:'8px',marginTop:'2px'} }, a.role),
+    );
+    agentGrid.appendChild(item);
+  }
+  right.appendChild(agentGrid);
+  grid.appendChild(right);
+  stage.appendChild(grid);
+};
+
+function loadAgentPreset(slug) {
+  const a = AGENT_BY_SLUG[slug];
+  if (!a) return;
+  state.cast.preset = slug;
+  state.cast.preset_name = a.name;
+  state.cast.preset_role = a.role;
+  state.cast.body = a.name[0];
+  state.cast.top = a.color;
+  state.cast.bottom = '#1a1a1a';
+  state.user.display = a.name;
+  state.receipts.unshift({ kind:'cast.preset', text:'Loaded preset · ' + a.name, t:'just now' });
+  // Update top-bar avatar pill
+  const pill = document.querySelector('.topbar .avatar-grad');
+  if (pill) { pill.textContent = a.name[0]; pill.style.background = 'linear-gradient(135deg,'+a.color+',#000)'; }
+  toast('Cast → ' + a.name + ' · ' + a.role);
+  renderStage(); renderRail();
+}
+
+SPACE_RENDERERS.almanac = (stage) => {
+  const grid = h('div', { class:'almanac-grid' });
+  const left = h('div', { class:'panel', style:{alignItems:'center',gap:'14px'} });
+  left.appendChild(h('h3', null, 'Master clock'));
+  left.appendChild(h('div', { class:'clock-face' },
+    h('div', { style:{textAlign:'center'} },
+      h('div', { class:'clock-readout', id:'almClock' }, fmt2(state.clock.hour) + ':' + fmt2(state.clock.minute)),
+      h('div', { class:'clock-readout-sub' }, state.clock.season + ' · Day ' + state.clock.day),
+    ),
+  ));
+  left.appendChild(h('div', { class:'btn-group' },
+    h('button', { class:'btn btn-dark btn-sm', onclick:() => setSpeed(0) }, '⏸'),
+    h('button', { class:'btn btn-dark btn-sm', onclick:() => setSpeed(1) }, '1×'),
+    h('button', { class:'btn btn-dark btn-sm', onclick:() => setSpeed(2) }, '2×'),
+    h('button', { class:'btn btn-white btn-sm', onclick:() => setSpeed(5) }, '5×'),
+  ));
+  left.appendChild(h('div', { style:{display:'flex',gap:'8px'} },
+    h('div', { class:'badge badge-grad' }, h('span', { class:'badge-dot' }), state.clock.season),
+    h('div', { class:'badge' }, h('span', { class:'badge-dot' }), state.clock.weather),
+  ));
+  grid.appendChild(left);
+
+  const right = h('div', { class:'panel' });
+  right.appendChild(h('h3', null, 'Calendar'));
+  const cal = h('div', { class:'calendar' });
+  for (let d = 1; d <= 28; d++) {
+    const cls = ['cal-day'];
+    if (d === state.clock.day) cls.push('today');
+    if ([7,13,21].indexOf(d) >= 0) cls.push('fest');
+    cal.appendChild(h('div', { class: cls.join(' ') }, String(d)));
+  }
+  right.appendChild(cal);
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Festivals'));
+  const fests = h('div', { class:'list-bordered list' });
+  [
+    { day:'Day 7',  name:'Spring Crop Fair', narrator:'gaia' },
+    { day:'Day 13', name:'Dance in the Plaza', narrator:'calliope' },
+    { day:'Day 21', name:'Lake Show', narrator:'celeste' },
+    { day:'Day 28', name:'Year Turn', narrator:'olympia' },
+  ].forEach(f => {
+    const a = AGENT_BY_SLUG[f.narrator];
+    fests.appendChild(h('div', { class:'list-item', onclick:() => toast(a.name + ' narrates ' + f.name) },
+      h('div', { class:'list-item-indicator' }),
+      h('div', { class:'list-item-text' },
+        h('div', { style:{fontSize:'13px',color:'var(--white)'} }, f.name),
+        h('div', { style:{display:'flex',alignItems:'center',gap:'6px',marginTop:'4px',fontSize:'10px',color:'var(--muted)',fontFamily:'var(--jb)'} },
+          h('div', { style:{width:'6px',height:'6px',borderRadius:'50%',background:a.color} }),
+          a.name,
+        ),
+      ),
+      h('span', { class:'list-item-meta' }, f.day),
+    ));
+  });
+  right.appendChild(fests);
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'10px'} }, 'Weather forecast'));
+  const wf = h('div', { class:'list-bordered list' });
+  [['+0','clear'],['+1','rain'],['+2','clear']].forEach(w => wf.appendChild(h('div', { class:'list-item' },
+    h('span', { class:'list-item-meta' }, w[0]),
+    h('div', { class:'list-item-text' }, w[1]),
+  )));
+  right.appendChild(wf);
+  grid.appendChild(right);
+  stage.appendChild(grid);
+};
+
+function togglePause() { state.clock.paused = !state.clock.paused; toast(state.clock.paused ? 'Paused' : 'Resumed'); renderStage(); }
+function setSpeed(n)  { state.clock.speed = n; state.clock.paused = (n === 0); toast(n === 0 ? 'Paused' : ('Speed ' + n + '×')); renderStage(); }
+
+function tick() {
+  if (state.clock.paused) return;
+  const speed = state.clock.speed || 1;
+  const prevHour = state.clock.hour;
+  const prevDay  = state.clock.day;
+  state.clock.minute += 10 * speed;
+  while (state.clock.minute >= 60) { state.clock.minute -= 60; state.clock.hour += 1; }
+  while (state.clock.hour >= 24)   { state.clock.hour -= 24; state.clock.day += 1; }
+  if (state.clock.day > 28) { state.clock.day = 1; state.clock.season = nextSeason(state.clock.season); }
+  $('#clockReadout').textContent = state.clock.season.slice(0,2) + ' ' + state.clock.day + ' · ' + fmt2(state.clock.hour) + ':' + fmt2(state.clock.minute);
+  const alm = $('#almClock');
+  if (alm) alm.textContent = fmt2(state.clock.hour) + ':' + fmt2(state.clock.minute);
+  // Cross-Space cascades
+  if (state.clock.hour !== prevHour) plotsHourTick();
+  if (state.clock.day !== prevDay)   {
+    fieldsDayTick();
+    // City budget posts every 4 days (a "month" in this clock)
+    if (state.grid && state.clock.day % 4 === 1) gridMonthTick();
+  }
+}
+
+function plotsLotCanvas() {
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = 480, H = 280, sz = 22, cols = Math.floor(W/sz), rows = Math.floor(H/sz);
+  const wrap = h('div', { class:'plots-canvas', style:{cursor:'crosshair',position:'relative'} });
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 ' + (cols*sz) + ' ' + (rows*sz));
+  svg.setAttribute('width', '100%'); svg.setAttribute('height','100%');
+  svg.style.display = 'block';
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+    const rect = document.createElementNS(NS, 'rect');
+    rect.setAttribute('x', String(x*sz)); rect.setAttribute('y', String(y*sz));
+    rect.setAttribute('width', String(sz-1)); rect.setAttribute('height', String(sz-1));
+    const piece = state.plots.lot[x+','+y];
+    rect.setAttribute('fill', LOT_COLORS[piece] || '#0A0A0A');
+    rect.setAttribute('stroke','#1A1A1A');
+    rect.style.cursor = 'pointer';
+    rect.addEventListener('click', () => {
+      const k = x+','+y;
+      if (state.plots.lot[k] === state.plots.build_tool) delete state.plots.lot[k];
+      else state.plots.lot[k] = state.plots.build_tool;
+      renderStage();
+    });
+    svg.appendChild(rect);
+  }
+  wrap.appendChild(svg);
+  return wrap;
+}
+const LOT_COLORS = {
+  wall:  '#3A3A3A',
+  floor: '#737373',
+  door:  '#FF6B2B',
+  window:'#00D4FF',
+  stair: '#8844FF',
+  roof:  '#FF2255',
+};
+function nextSeason(s) { return { Spring:'Summer', Summer:'Fall', Fall:'Winter', Winter:'Spring' }[s]; }
+
+function sleepUntilMorning() {
+  // Roll the clock forward to 6:00 next day, firing each cascade
+  let safety = 200;
+  while (safety-- > 0) {
+    const prevHour = state.clock.hour, prevDay = state.clock.day;
+    state.clock.minute = 0;
+    state.clock.hour += 1;
+    if (state.clock.hour >= 24) { state.clock.hour -= 24; state.clock.day += 1; }
+    if (state.clock.day > 28)  { state.clock.day = 1; state.clock.season = nextSeason(state.clock.season); }
+    plotsHourTick();
+    if (state.clock.day !== prevDay) fieldsDayTick();
+    if (state.clock.hour === 6 && state.clock.day !== prevDay) break;
+  }
+  if (state.plots) {
+    state.plots.needs.Energy = Math.min(100, state.plots.needs.Energy + 60);
+    state.plots.needs.Comfort = Math.min(100, state.plots.needs.Comfort + 30);
+  }
+  $('#clockReadout').textContent = state.clock.season.slice(0,2) + ' ' + state.clock.day + ' · ' + fmt2(state.clock.hour) + ':' + fmt2(state.clock.minute);
+  toast('Slept · day ' + state.clock.day);
+  state.receipts.unshift({ kind:'clock.sleep', text:'Slept until day ' + state.clock.day, t:'just now' });
+  renderStage(); renderRail();
+}
+
+function boot() {
+  state.worlds = MOCK_WORLDS;
+  state.receipts = MOCK_RECEIPTS.slice();
+  selectWorld('w_harbor');
+  renderTabs();
+  renderRail();
+  renderConvoyStrip();
+  renderStage();
+  setInterval(tick, 1000);
+  startPlatesNpcStroll();
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input,textarea,select')) return;
+    const map = { '1':'atlas','2':'builder','3':'plates','4':'plots','5':'fields','6':'grid','7':'park','8':'town','9':'stage','0':'board','-':'cast','=':'almanac' };
+    if (map[e.key]) { setSpace(map[e.key]); e.preventDefault(); }
+  });
+}
+boot();
+</script>
+</body>
+</html>
