@@ -812,7 +812,7 @@ function spaceActions(id) {
   if (id === 'grid')    return [btnOutline('Overlays'), btnDark('Budget'), btnWhite('Tick month')];
   if (id === 'park')    return [btnOutline('Research'), btnDark('Marketing'), btnWhite('Open / close')];
   if (id === 'town')    return [btnOutline('Bulletin'), btnDark('Closet'), btnWhite('Greet neighbors')];
-  if (id === 'stage')   return [btnOutline('Marketplace'), btnDark('Test'), btnWhite('+ New place')];
+  if (id === 'stage')   return [btnOutline('Marketplace'), btnDark('Test', () => stageTestPlace()), btnWhite('+ New place', () => stageNewPlace())];
   if (id === 'board')   return [btnOutline('Templates'), btnDark('Export'), btnWhite('+ Sticky', () => addSticky())];
   if (id === 'cast')    return [btnOutline('Presets'), btnWhite('Save outfit')];
   if (id === 'almanac') return [btnOutline('Speed'), btnDark('Festival'), btnWhite(state.clock.paused ? '▸ Play' : '⏸ Pause', () => togglePause())];
@@ -2821,35 +2821,117 @@ SPACE_RENDERERS.town = (stage) => {
   stage.appendChild(grid);
 };
 
+// ─── STAGE state + DSL runner ──────────────────────────────────────
+if (!state.stage) {
+  state.stage = {
+    places: [
+      { slug:'lava-tag',     name:'Lava Tag',     host:'valeria',    plays: 1842, rating: 4.6, age:'all',  max:24, blurb:'Don\'t touch the floor.' },
+      { slug:'tower-climb',  name:'Tower Climb',  host:'silas',      plays: 2410, rating: 4.7, age:'all',  max:8,  blurb:'Vertical race.' },
+      { slug:'plaza-hub',    name:'Plaza Hub',    host:'elias',      plays: 5160, rating: 4.4, age:'all',  max:64, blurb:'Front-door social.' },
+      { slug:'codebreak',    name:'Codebreak',    host:'gematria',   plays: 980,  rating: 4.5, age:'teen', max:6,  blurb:'Hash-puzzle co-op.' },
+      { slug:'karaoke',      name:'Karaoke',      host:'lyra',       plays: 1330, rating: 4.3, age:'all',  max:12, blurb:'Sing for the convoy.' },
+      { slug:'dungeon',      name:'Dungeon',      host:'atticus',    plays: 760,  rating: 4.0, age:'teen', max:8,  blurb:'Court-room dive.' },
+      { slug:'swarm',        name:'Swarm',        host:'cecilia',    plays: 1410, rating: 4.4, age:'teen', max:16, blurb:'Sub-ms wave defense.' },
+      { slug:'drift',        name:'Drift',        host:'octavia',    plays: 980,  rating: 4.2, age:'all',  max:8,  blurb:'Fleet-themed circuit.' },
+      { slug:'build-wars',   name:'Build Wars',   host:'silas',      plays: 1820, rating: 4.6, age:'all',  max:16, blurb:'Voxel head-to-head.' },
+      { slug:'heist',        name:'Heist',        host:'sapphira',   plays: 540,  rating: 4.1, age:'teen', max:6,  blurb:'5-min strategy heist.' },
+      { slug:'reading-room', name:'Reading Room', host:'alexandria', plays: 220,  rating: 4.8, age:'all',  max:12, blurb:'Slow paced, source-cited chats.' },
+      { slug:'festival',     name:'Festival',     host:'calliope',   plays: 3120, rating: 4.9, age:'all',  max:48, blurb:'Live band + dance floor.' },
+    ],
+    selected: 'lava-tag',
+    script: 'on join (player) {\n  player.spawn(0, 0)\n  broadcast(player.name + " joined")\n}\non tick {\n  // every frame\n}\non collect (item, player) {\n  player.score += item.value\n}\non win (player) {\n  broadcast(player.name + " wins")\n}',
+    console_log: [],
+  };
+}
+
+function stageRunDSL(src) {
+  // Tiny sandboxed parser. Recognizes: on <event> [(args)] { body... }; broadcast(...); player.x += n; etc.
+  // We DON'T eval. We tokenize handlers and simulate one synthetic event.
+  const log = [];
+  const handlers = {};
+  // Strip line comments
+  const clean = src.replace(/\/\/[^\n]*/g, '');
+  // Match `on <name> [(...)] { ... }`
+  const re = /on\s+(\w+)\s*(\([^\)]*\))?\s*\{([\s\S]*?)\}/g;
+  let m;
+  while ((m = re.exec(clean)) !== null) {
+    handlers[m[1]] = { args: m[2] || '()', body: m[3].trim() };
+  }
+  log.push('parsed: ' + Object.keys(handlers).join(', '));
+  // Simulate join event
+  if (handlers.join) {
+    const body = handlers.join.body;
+    const broadcasts = body.match(/broadcast\s*\(([^)]+)\)/g) || [];
+    for (const b of broadcasts) {
+      const inner = b.slice(b.indexOf('(')+1, b.lastIndexOf(')'));
+      log.push('broadcast → ' + inner.replace(/player\.name/g, '"Alexa"'));
+    }
+    if (/spawn/.test(body)) log.push('spawn → (0,0)');
+  }
+  // Simulate collect
+  if (handlers.collect) {
+    log.push('collect → score+=item.value');
+  }
+  // Simulate tick
+  if (handlers.tick) log.push('tick → 60 fps loop registered');
+  if (handlers.win) {
+    const body = handlers.win.body;
+    const broadcasts = body.match(/broadcast\s*\(([^)]+)\)/g) || [];
+    for (const b of broadcasts) {
+      const inner = b.slice(b.indexOf('(')+1, b.lastIndexOf(')'));
+      log.push('win-broadcast → ' + inner.replace(/player\.name/g, '"Alexa"'));
+    }
+  }
+  return { handlers: Object.keys(handlers), log };
+}
+
+function stagePublishPlace() {
+  const sel = state.stage.places.find(p => p.slug === state.stage.selected);
+  if (!sel) return;
+  state.stage.console_log.push('▸ ' + sel.name + ' published · script ' + state.stage.script.length + ' B');
+  state.receipts.unshift({ kind:'place.publish', text:'Published ' + sel.name + ' · host ' + sel.host, t:'just now' });
+  toast('Published ' + sel.name);
+  renderStage(); renderRail();
+}
+function stageTestPlace() {
+  const result = stageRunDSL(state.stage.script);
+  state.stage.console_log = (['◇ Test run']).concat(result.log).concat(state.stage.console_log).slice(0, 30);
+  toast('Test ran · ' + result.handlers.length + ' handlers');
+  renderStage();
+}
+function stageNewPlace() {
+  const name = prompt('New place name:');
+  if (!name) return;
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  if (state.stage.places.find(p => p.slug === slug)) { toast('Slug taken'); return; }
+  const host = state.cast.preset || 'alexandria';
+  state.stage.places.unshift({ slug, name, host, plays:0, rating:0, age:'all', max:12, blurb:'New place.' });
+  state.stage.selected = slug;
+  state.receipts.unshift({ kind:'place.create', text:'Created place ' + name, t:'just now' });
+  toast('Created ' + name);
+  renderStage(); renderRail();
+}
+
 SPACE_RENDERERS.stage = (stage) => {
   const grid = h('div', { class:'stage-grid' });
   const left = h('div', { class:'panel' });
   left.appendChild(h('h3', null, 'Published places'));
   const places = h('div', { class:'places-grid' });
-  const PLACES = [
-    { name:'Lava Tag',     host:'valeria' },
-    { name:'Tower Climb',  host:'silas' },
-    { name:'Plaza Hub',    host:'elias' },
-    { name:'Codebreak',    host:'gematria' },
-    { name:'Karaoke',      host:'lyra' },
-    { name:'Dungeon',      host:'atticus' },
-    { name:'Swarm',        host:'cecilia' },
-    { name:'Drift',        host:'octavia' },
-    { name:'Build Wars',   host:'silas' },
-    { name:'Heist',        host:'sapphira' },
-    { name:'Reading Room', host:'alexandria' },
-    { name:'Festival',     host:'calliope' },
-  ];
-  PLACES.forEach(p => {
+  state.stage.places.forEach(p => {
     const a = AGENT_BY_SLUG[p.host];
-    const card = h('div', { class:'place-card' },
+    const isSel = state.stage.selected === p.slug;
+    const card = h('div', {
+      class:'place-card',
+      style: isSel ? { borderColor: a.color } : null,
+      onclick: () => { state.stage.selected = p.slug; renderStage(); },
+    },
       h('div', { class:'place-thumb', style:{background:'linear-gradient(135deg,'+a.color+',#000)'} },
-        h('span', { class:'badge' }, 'live'),
+        h('span', { class:'badge' }, isSel ? 'editing' : 'live'),
       ),
       h('div', { class:'place-info' },
         h('div', { class:'title' }, p.name),
-        h('div', { class:'meta' }, fmtNum(100 + (p.name.length * 233)) + ' plays · ★ ' + (3 + (p.name.length % 20)/10).toFixed(1)),
-        h('div', { style:{display:'flex',alignItems:'center',gap:'5px',marginTop:'4px',fontSize:'9px',color:'var(--sub)',fontFamily:'var(--jb)'} },
+        h('div', { class:'meta' }, fmtNum(p.plays) + ' plays · ★ ' + p.rating.toFixed(1)),
+        h('div', { style:{display:'flex',alignItems:'center',gap:'5px',marginTop:'4px',fontSize:'10px',color:'var(--muted)',fontFamily:'var(--jb)'} },
           h('div', { style:{width:'8px',height:'8px',borderRadius:'50%',background:a.color} }),
           'hosted by ' + a.name,
         ),
@@ -2861,18 +2943,49 @@ SPACE_RENDERERS.stage = (stage) => {
   grid.appendChild(left);
 
   const right = h('div', { class:'panel' });
-  right.appendChild(h('h3', null, 'Place properties'));
-  right.appendChild(formField('Name', 'My Place'));
-  right.appendChild(formField('Blurb', '', 'textarea'));
-  right.appendChild(formField('Max players', '12'));
-  right.appendChild(formField('Age rating', 'all', 'select', ['all','teen','adult']));
-  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'8px'} }, 'Script'));
-  right.appendChild(h('textarea', { class:'textarea', style:{minHeight:'120px'} },
-    'on join (player) { player.spawn() }\non tick { /* every frame */ }\non collect (item, player) { player.score += item.value }\non win (player) { broadcast(player.name + " wins") }',
+  const sel = state.stage.places.find(p => p.slug === state.stage.selected) || state.stage.places[0];
+  right.appendChild(h('h3', null, 'Editing · ' + sel.name));
+  const nameInput = h('input', { class:'input', value: sel.name });
+  nameInput.addEventListener('change', () => { sel.name = nameInput.value; });
+  right.appendChild(h('div', null, h('label', { class:'input-label' }, 'Name'), nameInput));
+  const blurbBox = h('textarea', { class:'textarea', style:{minHeight:'52px'} }, sel.blurb);
+  blurbBox.addEventListener('change', () => { sel.blurb = blurbBox.value; });
+  right.appendChild(h('div', null, h('label', { class:'input-label' }, 'Blurb'), blurbBox));
+  right.appendChild(h('div', { style:{display:'flex',gap:'8px'} },
+    h('div', { style:{flex:1} }, h('label', { class:'input-label' }, 'Max'), h('input', { class:'input', value: String(sel.max) })),
+    h('div', { style:{flex:1} }, h('label', { class:'input-label' }, 'Rating'), (() => {
+      const sel2 = h('select', { class:'select' });
+      ['all','teen','adult'].forEach(o => sel2.appendChild(h('option', { value:o }, o)));
+      sel2.value = sel.age;
+      sel2.addEventListener('change', () => { sel.age = sel2.value; });
+      return sel2;
+    })()),
   ));
+
+  // Script editor
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'8px'} }, 'Script · DSL'));
+  const scriptBox = h('textarea', { class:'textarea', style:{minHeight:'140px',fontSize:'11px'} }, state.stage.script);
+  scriptBox.addEventListener('change', () => { state.stage.script = scriptBox.value; });
+  right.appendChild(scriptBox);
+
+  // Console output
+  right.appendChild(h('div', { class:'rail-label', style:{marginTop:'8px'} }, 'Console'));
+  const console = h('div', { class:'list-bordered list', style:{maxHeight:'140px',overflowY:'auto'} });
+  if (state.stage.console_log.length === 0) {
+    console.appendChild(h('div', { class:'list-item', style:{color:'var(--muted)',cursor:'default'} },
+      h('div', { class:'list-item-text' }, 'No output yet — hit Test')));
+  } else {
+    state.stage.console_log.forEach(line => {
+      console.appendChild(h('div', { class:'list-item', style:{cursor:'default'} },
+        h('div', { class:'list-item-text', style:{fontFamily:'var(--jb)',fontSize:'11px',whiteSpace:'pre'} }, line)));
+    });
+  }
+  right.appendChild(console);
+
   right.appendChild(h('div', { style:{display:'flex',gap:'6px',marginTop:'8px'} },
-    h('button', { class:'btn btn-outline btn-sm' }, 'Test'),
-    h('button', { class:'btn btn-white btn-sm' }, 'Publish'),
+    h('button', { class:'btn btn-outline btn-sm', onclick:() => stageTestPlace() }, 'Test'),
+    h('button', { class:'btn btn-dark btn-sm', onclick:() => { state.stage.console_log = []; renderStage(); } }, 'Clear'),
+    h('button', { class:'btn btn-white btn-sm', onclick:() => stagePublishPlace() }, 'Publish'),
   ));
   grid.appendChild(right);
   stage.appendChild(grid);
@@ -3082,6 +3195,59 @@ function loadAgentPreset(slug) {
   renderStage(); renderRail();
 }
 
+if (!state.almanac) {
+  state.almanac = {
+    broadcast_text: '',
+    broadcast_channel: 'plaza-live',
+    custom_festivals: [],
+    live_broadcasts: [],
+  };
+}
+
+function almanacGoLive() {
+  const text = state.almanac.broadcast_text.trim();
+  if (!text) { toast('Type something to broadcast'); return; }
+  const channel = state.almanac.broadcast_channel || 'plaza-live';
+  const broadcast = {
+    id: 'bc_' + Date.now().toString(36),
+    channel, text,
+    started_day: state.clock.day, started_hour: state.clock.hour,
+    narrator: state.cast.preset || 'olympia',
+  };
+  state.almanac.live_broadcasts.unshift(broadcast);
+  state.receipts.unshift({ kind:'wire.go-live', text:'Live on ' + channel + ': ' + text.slice(0,40) + (text.length>40?'…':''), t:'just now' });
+  state.almanac.broadcast_text = '';
+  toast('Live on ' + channel);
+  renderStage(); renderRail();
+}
+
+function almanacJumpDate(targetDay) {
+  if (targetDay === state.clock.day) { toast('Already there'); return; }
+  let safety = 1000;
+  while (state.clock.day !== targetDay && safety-- > 0) {
+    const prevHour = state.clock.hour, prevDay = state.clock.day;
+    state.clock.minute = 0;
+    state.clock.hour += 1;
+    if (state.clock.hour >= 24) { state.clock.hour -= 24; state.clock.day += 1; }
+    if (state.clock.day > 28) { state.clock.day = 1; state.clock.season = nextSeason(state.clock.season); }
+    if (state.clock.hour !== prevHour) plotsHourTick();
+    if (state.clock.day !== prevDay) {
+      fieldsDayTick();
+      if (state.grid && state.clock.day % 4 === 1) gridMonthTick();
+    }
+  }
+  state.receipts.unshift({ kind:'clock.jump', text:'Jumped to day ' + state.clock.day, t:'just now' });
+  toast('Now day ' + state.clock.day);
+  renderStage(); renderRail();
+}
+
+function almanacAddFestival(day, name) {
+  state.almanac.custom_festivals.push({ day, name, narrator: state.cast.preset || 'calliope' });
+  state.receipts.unshift({ kind:'almanac.festival', text:'Added festival ' + name + ' on day ' + day, t:'just now' });
+  toast('Festival added');
+  renderStage(); renderRail();
+}
+
 SPACE_RENDERERS.almanac = (stage) => {
   const grid = h('div', { class:'almanac-grid' });
   const left = h('div', { class:'panel', style:{alignItems:'center',gap:'14px'} });
@@ -3144,6 +3310,105 @@ SPACE_RENDERERS.almanac = (stage) => {
   )));
   right.appendChild(wf);
   grid.appendChild(right);
+
+  // Wire panel — broadcast composer + time-travel + custom festivals (full-width below)
+  const wirePanel = h('div', { class:'panel', style:{gridColumn:'1 / -1',marginTop:'8px'} });
+  wirePanel.appendChild(h('h3', null, 'RoadWire · go live + time travel'));
+
+  const composerRow = h('div', { style:{display:'grid',gridTemplateColumns:'160px 1fr 80px',gap:'8px',alignItems:'flex-end'} });
+  // Channel
+  const chanCol = h('div', null);
+  chanCol.appendChild(h('label', { class:'input-label' }, 'Channel'));
+  const chanSel = h('select', { class:'select' });
+  ['plaza-live','workshop','convoy','festival','field-cam','park-cam'].forEach(c => chanSel.appendChild(h('option', { value:c }, c)));
+  chanSel.value = state.almanac.broadcast_channel;
+  chanSel.addEventListener('change', () => { state.almanac.broadcast_channel = chanSel.value; });
+  chanCol.appendChild(chanSel);
+  composerRow.appendChild(chanCol);
+  // Text
+  const txtCol = h('div', null);
+  txtCol.appendChild(h('label', { class:'input-label' }, 'Broadcast text'));
+  const txt = h('input', { class:'input', placeholder:'Now playing on the plaza...', value: state.almanac.broadcast_text });
+  txt.addEventListener('input', () => { state.almanac.broadcast_text = txt.value; });
+  txt.addEventListener('keydown', (e) => { if (e.key === 'Enter') almanacGoLive(); });
+  txtCol.appendChild(txt);
+  composerRow.appendChild(txtCol);
+  // Button
+  composerRow.appendChild(h('button', { class:'btn btn-white btn-sm', style:{height:'40px'}, onclick:() => almanacGoLive() }, 'Go live'));
+  wirePanel.appendChild(composerRow);
+
+  // Live broadcast list
+  if (state.almanac.live_broadcasts.length) {
+    wirePanel.appendChild(h('div', { class:'rail-label', style:{marginTop:'12px'} }, 'Live now'));
+    const livelist = h('div', { class:'list-bordered list' });
+    state.almanac.live_broadcasts.slice(0, 5).forEach(bc => {
+      const a = AGENT_BY_SLUG[bc.narrator] || AGENT_BY_SLUG['olympia'];
+      livelist.appendChild(h('div', { class:'list-item' },
+        h('div', { class:'avatar avatar-sm', style:{background:a.color, color:'#000'} }, a.name[0]),
+        h('div', { class:'list-item-text' },
+          h('div', { style:{fontSize:'13px',color:'var(--white)'} }, bc.text),
+          h('div', { style:{fontSize:'10px',color:'var(--muted)',fontFamily:'var(--jb)',marginTop:'2px'} }, bc.channel + ' · narrated by ' + a.name + ' · day ' + bc.started_day),
+        ),
+        h('span', { class:'badge', style:{borderColor:'#00D4FF',color:'#00D4FF'} },
+          h('span', { class:'badge-dot', style:{background:'#00D4FF'} }), 'live'),
+      ));
+    });
+    wirePanel.appendChild(livelist);
+  }
+
+  // Time travel + festival composer row
+  const ttRow = h('div', { style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginTop:'12px'} });
+  // Time travel
+  const ttCol = h('div', null);
+  ttCol.appendChild(h('div', { class:'rail-label' }, 'Time travel'));
+  const ttGroup = h('div', { style:{display:'flex',gap:'6px'} });
+  const ttInput = h('input', { class:'input', type:'number', value: String(state.clock.day), min:'1', max:'28' });
+  const ttBtn = h('button', { class:'btn btn-white btn-sm', onclick:() => {
+    const d = parseInt(ttInput.value, 10);
+    if (!isNaN(d) && d >= 1 && d <= 28) almanacJumpDate(d);
+  } }, 'Jump');
+  ttGroup.appendChild(ttInput); ttGroup.appendChild(ttBtn);
+  ttCol.appendChild(ttGroup);
+  ttCol.appendChild(h('div', { class:'alert', style:{marginTop:'8px'} },
+    h('div', { class:'alert-bar' }),
+    h('div', null,
+      h('div', { class:'alert-title' }, 'Cascades fire'),
+      h('div', { class:'alert-text' }, 'Plots needs decay + Fields growth + Grid budget all run on the way.'),
+    ),
+  ));
+  ttRow.appendChild(ttCol);
+  // Custom festival
+  const fcCol = h('div', null);
+  fcCol.appendChild(h('div', { class:'rail-label' }, 'New festival'));
+  const fcGroup = h('div', { style:{display:'flex',gap:'6px'} });
+  const fcDay = h('input', { class:'input', type:'number', value: String(Math.min(28, state.clock.day + 3)), min:'1', max:'28', style:{width:'80px'} });
+  const fcName = h('input', { class:'input', placeholder:'Festival name' });
+  const fcBtn = h('button', { class:'btn btn-white btn-sm', onclick:() => {
+    const d = parseInt(fcDay.value, 10);
+    if (!isNaN(d) && fcName.value.trim()) {
+      almanacAddFestival(d, fcName.value.trim());
+      fcName.value = '';
+    } else toast('Day + name required');
+  } }, '+');
+  fcGroup.appendChild(fcDay); fcGroup.appendChild(fcName); fcGroup.appendChild(fcBtn);
+  fcCol.appendChild(fcGroup);
+  if (state.almanac.custom_festivals.length) {
+    const cflist = h('div', { class:'list-bordered list', style:{marginTop:'8px'} });
+    state.almanac.custom_festivals.forEach(f => {
+      const a = AGENT_BY_SLUG[f.narrator];
+      cflist.appendChild(h('div', { class:'list-item' },
+        h('div', { class:'list-item-indicator' }),
+        h('div', { class:'list-item-text' }, f.name),
+        h('span', { class:'list-item-meta' }, 'day ' + f.day),
+      ));
+    });
+    fcCol.appendChild(cflist);
+  }
+  ttRow.appendChild(fcCol);
+  wirePanel.appendChild(ttRow);
+
+  grid.appendChild(wirePanel);
+
   stage.appendChild(grid);
 };
 
