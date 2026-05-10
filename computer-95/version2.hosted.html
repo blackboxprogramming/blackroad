@@ -1,0 +1,1832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BlackRoad 95 v2 — Hosted · Desktop · RoadSide · Agents</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --g:linear-gradient(90deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+    --g135:linear-gradient(135deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+    --bg:#000;--card:#0a0a0a;--elevated:#111;--hover:#181818;--border:#1a1a1a;
+    --muted:#444;--sub:#737373;--text:#f5f5f5;--white:#fff;
+    --bevel-light:#2a2a2a;--bevel-dark:#000;
+    --sg:'Space Grotesk',sans-serif;--jb:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sg);-webkit-font-smoothing:antialiased;font-size:14px}
+  body{user-select:none}
+  button,input,textarea,select{font:inherit;color:inherit;background:none;border:0;outline:none}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:var(--bevel-light);border-radius:0}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+
+  @keyframes gradPulse{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  @keyframes caret{50%{opacity:0}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes ring{0%{box-shadow:0 0 0 0 rgba(255,107,43,.55)}70%{box-shadow:0 0 0 9px rgba(0,212,255,0)}100%{box-shadow:0 0 0 0 rgba(0,212,255,0)}}
+  @keyframes ripple{0%{transform:scale(.2);opacity:1}100%{transform:scale(1.5);opacity:0}}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-3px);opacity:1}}
+  @keyframes blinkCaret{50%{opacity:0}}
+
+  /* ───────── desktop ───────── */
+  .desktop{
+    position:fixed;inset:0;background:#000;
+    background-image:linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
+                     linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+    background-size:24px 24px;overflow:hidden;
+  }
+  .desktop-icons{position:absolute;top:14px;left:14px;bottom:58px;display:flex;flex-direction:column;flex-wrap:wrap;align-content:flex-start;gap:6px 8px;z-index:5}
+  .icon{display:flex;flex-direction:column;align-items:center;gap:4px;padding:4px;cursor:pointer;border-radius:4px;text-align:center;width:72px;height:64px;flex-shrink:0}
+  .icon:hover{background:rgba(255,255,255,.04)}
+  .icon.selected{background:rgba(255,255,255,.08);outline:1px dotted var(--white)}
+  .icon-glyph{width:34px;height:34px;background:var(--card);border:1px solid var(--border);border-radius:5px;display:grid;place-items:center;font-family:var(--jb);font-size:11px;font-weight:700;color:var(--white);position:relative;overflow:hidden}
+  .icon-glyph::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--g);background-size:200% 100%;animation:gradPulse 8s ease-in-out infinite}
+  .icon-label{font-size:10px;color:var(--white);line-height:1.15;text-shadow:0 1px 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px}
+
+  /* ───────── window chrome ───────── */
+  .win{
+    position:absolute;background:var(--card);
+    border:1px solid var(--bevel-light);
+    border-bottom-color:var(--bevel-dark);border-right-color:var(--bevel-dark);
+    box-shadow:0 1px 0 var(--bevel-dark) inset, 0 8px 30px rgba(0,0,0,.6);
+    border-radius:3px;display:flex;flex-direction:column;overflow:hidden;
+    min-width:320px;min-height:220px;
+  }
+  .win.minimized{display:none}
+  .win.inactive .win-titlebar{background:var(--card)}
+  .win.inactive .win-titlebar::before{opacity:.3}
+  .win-titlebar{
+    height:30px;padding:0 6px 0 10px;display:flex;align-items:center;gap:8px;
+    background:#000;border-bottom:1px solid var(--bevel-light);
+    cursor:move;flex-shrink:0;position:relative;
+  }
+  .win-titlebar::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--g);background-size:200% 100%;animation:gradPulse 10s ease-in-out infinite}
+  .win-glyph{width:16px;height:16px;background:var(--elevated);border:1px solid var(--border);border-radius:2px;display:grid;place-items:center;font-family:var(--jb);font-size:9px;font-weight:700;color:var(--white);flex-shrink:0}
+  .win-title{flex:1;font-size:12px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .win-title .sub{color:var(--sub);font-weight:400;margin-left:6px;font-family:var(--jb);font-size:11px}
+  .win-controls{display:flex;gap:2px}
+  .win-btn{width:22px;height:22px;background:var(--elevated);border:1px solid var(--bevel-light);border-bottom-color:var(--bevel-dark);border-right-color:var(--bevel-dark);color:var(--white);font-family:var(--jb);font-size:11px;font-weight:700;border-radius:2px;cursor:pointer;display:grid;place-items:center}
+  .win-btn:active{border-color:var(--bevel-dark);border-bottom-color:var(--bevel-light);border-right-color:var(--bevel-light)}
+  .win-body{flex:1;overflow:hidden;background:var(--card);position:relative;display:flex;flex-direction:column}
+  .win-statusbar{height:22px;flex-shrink:0;padding:0 12px;display:flex;align-items:center;gap:14px;background:var(--card);border-top:1px solid var(--border);font-family:var(--jb);font-size:10px;color:var(--sub);letter-spacing:.05em}
+  .win-statusbar .seg{display:inline-flex;align-items:center;gap:6px}
+  .win-statusbar .dot{width:5px;height:5px;border-radius:50%;background:var(--g135)}
+  .win-resize{position:absolute;width:14px;height:14px;right:0;bottom:0;cursor:nwse-resize;z-index:5;
+    background:linear-gradient(135deg,transparent 50%,var(--border) 50%, var(--border) 60%, transparent 60%, transparent 70%, var(--border) 70%, var(--border) 80%, transparent 80%);}
+
+  /* menubar (used by home + agent) */
+  .menubar{height:26px;flex-shrink:0;display:flex;align-items:stretch;background:var(--card);border-bottom:1px solid var(--border);padding:0 4px}
+  .menu{padding:0 10px;display:inline-flex;align-items:center;font-size:12px;color:var(--text);border-radius:2px;cursor:default}
+  .menu:hover{background:var(--hover)}
+  .menu .u{text-decoration:underline;text-underline-offset:2px}
+
+  /* ───────── HOME app ───────── */
+  .home{flex:1;display:grid;grid-template-columns:200px 1fr 240px;gap:12px;padding:14px;overflow:auto}
+  @media(max-width:880px){.home{grid-template-columns:1fr}}
+  .h-rail{display:flex;flex-direction:column;gap:10px}
+  .h-card{background:var(--elevated);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative}
+  .h-card::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.6}
+  .h-card-head{padding:10px 12px;border-bottom:1px solid var(--border);font-family:var(--jb);font-size:10px;color:var(--sub);letter-spacing:.1em;text-transform:uppercase}
+  .h-card-body{padding:12px;font-size:12px}
+  .h-card-body .row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed var(--border);font-size:12px}
+  .h-card-body .row:last-child{border-bottom:none}
+  .h-card-body .row .name{color:var(--white);font-weight:500}
+  .h-card-body .row .meta{color:var(--sub);font-family:var(--jb);font-size:10px}
+  .h-main{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .h-hero h1{font-size:clamp(22px,3.4vw,32px);font-weight:700;color:var(--white);letter-spacing:-.02em;line-height:1.05}
+  .h-hero h1 .grad{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:gradPulse 10s ease-in-out infinite}
+  .h-hero p{color:var(--sub);font-size:14px;margin-top:8px;line-height:1.5;max-width:560px}
+  .h-search{display:flex;gap:8px}
+  .h-search input{flex:1;height:42px;padding:0 16px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;color:var(--white);font-size:14px}
+  .h-search input::placeholder{color:var(--sub)}
+  .h-search .go{padding:0 18px;height:42px;background:var(--white);color:#000;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer}
+  .h-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+  .h-tile{background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:6px;min-height:96px}
+  .h-tile::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--g)}
+  .h-tile:hover{background:var(--hover);border-color:var(--bevel-light)}
+  .h-tile .num{font-family:var(--jb);font-size:9px;color:var(--muted);letter-spacing:.1em}
+  .h-tile .name{font-size:13px;font-weight:600;color:var(--white)}
+  .h-tile .one{font-size:11px;color:var(--sub);line-height:1.35;flex:1}
+  .h-tile .status{display:inline-block;align-self:flex-start;font-family:var(--jb);font-size:9px;color:var(--sub);background:var(--card);border:1px solid var(--border);border-radius:3px;padding:1px 6px;letter-spacing:.06em;text-transform:uppercase}
+
+  /* ───────── OPENCLAW app ───────── */
+  .oc{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg)}
+  .oc-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--card)}
+  .oc-brand{display:flex;align-items:center;gap:10px;font-weight:700}
+  .oc-brand .claw{width:22px;height:22px;border-radius:5px;background:var(--g)}
+  .oc-brand small{display:block;color:var(--sub);font-weight:400;font-family:var(--jb);font-size:10px;letter-spacing:.4px;margin-top:2px}
+  .oc-grow{flex:1}
+  .oc-ctl{display:flex;align-items:center;gap:6px;background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:5px 9px;font-family:var(--jb);font-size:11px;color:var(--text)}
+  .oc-ctl select,.oc-ctl input{font-family:var(--jb);font-size:11px;color:var(--text);min-width:0}
+  .oc-ctl input{width:130px}
+  .oc-ctl label{color:var(--sub);font-size:10px;letter-spacing:.3px}
+  .oc-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--border);background:var(--elevated);font-family:var(--jb);font-size:10px;color:var(--sub)}
+  .oc-pill .dot{width:6px;height:6px;border-radius:50%;background:#777}
+  .oc-pill.ok .dot{background:#5cd784}
+  .oc-pill.bad .dot{background:#ff4d6d}
+  .oc-newbtn{padding:5px 11px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);font-family:var(--jb);font-size:11px;color:var(--text);cursor:pointer}
+  .oc-newbtn:hover{background:var(--hover)}
+  .oc-msgs{flex:1;overflow-y:auto;padding:18px 14px;display:flex;flex-direction:column;gap:12px}
+  .oc-msg{max-width:760px;width:100%;align-self:flex-start;background:var(--elevated);border:1px solid var(--border);border-radius:12px;padding:11px 14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;font-size:13.5px}
+  .oc-msg.user{align-self:flex-end;background:var(--card)}
+  .oc-msg .who{font-family:var(--jb);font-size:10px;color:var(--sub);margin-bottom:6px;letter-spacing:.4px}
+  .oc-msg.assistant .who{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+  .oc-msg code{font-family:var(--jb);background:#000;border:1px solid var(--border);padding:1px 6px;border-radius:5px}
+  .oc-msg pre{font-family:var(--jb);background:#000;border:1px solid var(--border);padding:10px 12px;border-radius:8px;overflow-x:auto;margin:8px 0;font-size:12px}
+  .oc-empty{color:var(--sub);text-align:center;padding:50px 20px;font-family:var(--jb);font-size:12px;letter-spacing:.3px}
+  .oc-empty .row{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .oc-chip{display:inline-block;border:1px solid var(--border);background:var(--elevated);color:var(--text);padding:6px 12px;border-radius:999px;font-family:var(--jb);font-size:11px;cursor:pointer}
+  .oc-chip:hover{background:var(--hover)}
+  .oc-bar{display:flex;gap:10px;align-items:flex-end;padding:12px 14px;border-top:1px solid var(--border);background:var(--card)}
+  .oc-bar textarea{flex:1;resize:none;max-height:180px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:10px 12px;line-height:1.5;font-family:var(--sg);font-size:13.5px}
+  .oc-bar textarea:focus{border-color:var(--bevel-light)}
+  .oc-bar button{padding:0 16px;height:40px;border-radius:10px;background:var(--g);color:#000;font-weight:700;cursor:pointer;letter-spacing:.2px}
+  .oc-bar button[disabled]{opacity:.5;cursor:not-allowed}
+  .oc-bar .stop{background:#221;color:#ff8a8a;border:1px solid #311}
+  .oc-blink::after{content:'▍';animation:blinkCaret 1s steps(2) infinite;color:#888;margin-left:1px}
+
+  /* ───────── AGENT app ───────── */
+  .ag{flex:1;display:grid;grid-template-columns:200px minmax(360px,440px) 1fr;min-height:0;min-width:0}
+  @media (max-width:1100px){.ag{grid-template-columns:0 1fr 1fr}.ag .ag-side{display:none}}
+  @media (max-width:880px){.ag{grid-template-columns:1fr}.ag .ag-chat{display:none}}
+  .ag-side{background:#000;border-right:1px solid var(--border);display:flex;flex-direction:column;padding:10px 8px;overflow:hidden}
+  .ag-newchat{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:6px;background:var(--elevated);border:1px solid var(--border);font-size:12.5px;color:var(--white);font-weight:600;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer}
+  .ag-newchat::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.6}
+  .ag-newchat:hover{background:var(--hover)}
+  .ag-search{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;background:var(--card);border:1px solid var(--border);color:var(--sub);font-size:12px;margin-bottom:14px}
+  .ag-section{font-family:var(--jb);font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:8px 10px 4px}
+  .ag-chatitem{padding:7px 10px;border-radius:5px;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
+  .ag-chatitem:hover{background:var(--hover)}
+  .ag-chatitem.active{background:var(--hover);border-left:2px solid transparent;border-image:var(--g) 1;padding-left:8px}
+  .ag-side-bottom{margin-top:auto;padding-top:10px;border-top:1px solid var(--border)}
+  .ag-user{display:flex;align-items:center;gap:10px;padding:6px;border-radius:5px}
+  .ag-user:hover{background:var(--hover)}
+  .ag-avatar{width:28px;height:28px;border-radius:50%;background:var(--g135);display:grid;place-items:center;font-size:11px;font-weight:700;color:#000;flex-shrink:0}
+  .ag-user .nm{font-size:12.5px;font-weight:600;color:var(--white);line-height:1.1}
+  .ag-user .pl{font-family:var(--jb);font-size:9.5px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
+
+  .ag-chat{border-right:1px solid var(--border);display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+  .ag-chathead{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--card)}
+  .ag-modelpill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;background:var(--elevated);border:1px solid var(--border);font-size:12px;color:var(--white);font-weight:600}
+  .ag-modelpill .v{color:var(--sub);font-family:var(--jb);font-size:11px;font-weight:400}
+  .ag-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;background:var(--elevated);border:1px solid var(--border);font-family:var(--jb);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--white);position:relative;overflow:hidden}
+  .ag-badge::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--g);background-size:200% 100%;animation:gradPulse 6s ease-in-out infinite}
+  .ag-chathead .spacer{flex:1}
+  .ag-chathead .icb{width:30px;height:30px;border-radius:5px;background:var(--elevated);border:1px solid var(--border);display:grid;place-items:center;color:var(--sub);cursor:pointer}
+  .ag-chathead .icb:hover{color:var(--white);background:var(--hover)}
+  .ag-scroll{overflow-y:auto;padding:18px 18px 10px}
+  .ag-msg{display:flex;gap:11px;margin-bottom:18px;align-items:flex-start}
+  .ag-msg .a{width:28px;height:28px;border-radius:6px;flex:0 0 28px;display:grid;place-items:center;font-family:var(--jb);font-size:10px;font-weight:700}
+  .ag-msg.user .a{background:var(--g135);color:#000}
+  .ag-msg.gpt .a{background:var(--card);border:1px solid var(--border);color:var(--white);position:relative;overflow:hidden}
+  .ag-msg.gpt .a::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--g)}
+  .ag-msg .b{flex:1;min-width:0}
+  .ag-msg .name{font-size:11px;font-weight:600;color:var(--white);margin-bottom:4px}
+  .ag-msg .name .role{color:var(--sub);font-family:var(--jb);font-size:10px;font-weight:400;margin-left:6px;letter-spacing:.06em;text-transform:uppercase}
+  .ag-bubble{line-height:1.55;color:var(--text);font-size:13.5px}
+  .ag-bubble.user-bubble{background:var(--elevated);border:1px solid var(--border);padding:10px 14px;border-radius:10px;display:inline-block}
+
+  .ag-timeline{margin:8px 0 0;border-left:2px solid var(--border);padding-left:14px;position:relative}
+  .ag-step{position:relative;padding:7px 0;color:var(--sub);font-size:12.5px;line-height:1.45}
+  .ag-step::before{content:"";position:absolute;left:-21px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--border)}
+  .ag-step.done::before{background:var(--g135);border:none;width:10px;height:10px}
+  .ag-step.active::before{background:var(--g135);border:none;animation:ring 1.6s infinite}
+  .ag-step.active,.ag-step.done{color:var(--text)}
+  .ag-step .verb{font-family:var(--jb);font-size:10.5px;font-weight:600;color:var(--white);margin-right:6px;letter-spacing:.06em;text-transform:uppercase}
+  .ag-step .meta{display:block;font-family:var(--jb);font-size:10.5px;color:var(--muted);margin-top:3px;letter-spacing:.04em}
+  .ag-step .url{font-family:var(--jb);font-size:11px;background:var(--elevated);border:1px solid var(--border);color:var(--text);padding:1px 6px;border-radius:3px}
+  .ag-typing{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+  .ag-typing span{width:4px;height:4px;border-radius:50%;background:var(--white);animation:bounce 1.2s infinite}
+  .ag-typing span:nth-child(2){animation-delay:.15s}
+  .ag-typing span:nth-child(3){animation-delay:.3s}
+
+  .ag-composer{padding:12px 16px 14px;border-top:1px solid var(--border);background:var(--card)}
+  .ag-banner{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-size:11.5px;margin-bottom:10px;position:relative;overflow:hidden}
+  .ag-banner::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--g);background-size:100% 200%;animation:gradPulse 5s ease-in-out infinite}
+  .ag-banner .lbl{font-family:var(--jb);font-size:10px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-left:auto}
+  .ag-input{background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px;color:var(--sub)}
+  .ag-input .grow{flex:1;color:var(--sub);font-size:13px}
+  .ag-input .ic{width:28px;height:28px;border-radius:5px;display:grid;place-items:center;color:var(--sub);background:var(--card);border:1px solid var(--border);cursor:pointer}
+  .ag-input .send{width:30px;height:30px;border-radius:50%;background:var(--white);color:#000;display:grid;place-items:center;cursor:pointer}
+
+  .ag-cpane{background:#000;display:grid;grid-template-rows:auto 1fr auto;min-height:0;min-width:0}
+  .ag-cphead{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--card);position:relative}
+  .ag-cphead::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.7}
+  .ag-cptitle{display:inline-flex;align-items:center;gap:8px;font-family:var(--jb);font-size:11px;color:var(--white);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+  .ag-cptitle .lite{width:6px;height:6px;border-radius:50%;background:var(--white);box-shadow:0 0 6px rgba(255,255,255,.6);animation:pulse 1.6s infinite}
+  .ag-cpstatus{font-family:var(--jb);font-size:10px;color:var(--sub);letter-spacing:.06em}
+  .ag-cphead .spacer{flex:1}
+  .ag-ctrl{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:5px;background:var(--elevated);border:1px solid var(--bevel-light);border-bottom-color:var(--bevel-dark);border-right-color:var(--bevel-dark);font-family:var(--jb);font-size:10.5px;font-weight:600;color:var(--white);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .ag-ctrl:active{border-color:var(--bevel-dark);border-bottom-color:var(--bevel-light);border-right-color:var(--bevel-light)}
+  .ag-ctrl.ghost{background:var(--card)}
+  .ag-vp-wrap{padding:14px;min-height:0;display:grid}
+  .ag-viewport{background:#000;color:var(--text);border:1px solid var(--bevel-light);border-bottom-color:var(--bevel-dark);border-right-color:var(--bevel-dark);border-radius:4px;overflow:hidden;display:grid;grid-template-rows:30px 36px 1fr;position:relative;min-height:0;box-shadow:0 8px 30px rgba(0,0,0,.6)}
+  .ag-vpchrome{background:var(--card);display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--border);position:relative}
+  .ag-vpchrome::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.5}
+  .ag-vpdots{display:flex;gap:5px}
+  .ag-vpdots i{width:9px;height:9px;border-radius:50%;display:block;background:var(--elevated);border:1px solid var(--border)}
+  .ag-vptab{margin-left:10px;background:#000;border:1px solid var(--border);border-bottom:none;padding:5px 12px;font-family:var(--jb);font-size:10.5px;color:var(--white);border-radius:3px 3px 0 0;display:inline-flex;align-items:center;gap:8px;max-width:240px;letter-spacing:.04em;margin-bottom:-1px}
+  .ag-vptab .fav{width:10px;height:2px;border-radius:1px;background:var(--g);display:inline-block;flex-shrink:0}
+  .ag-vptab .x{color:var(--muted);margin-left:6px}
+  .ag-vptoolbar{display:flex;align-items:center;gap:8px;padding:0 12px;background:#000;border-bottom:1px solid var(--border)}
+  .ag-navic{width:24px;height:24px;border-radius:4px;display:grid;place-items:center;color:var(--sub);background:var(--elevated);border:1px solid var(--border);cursor:pointer}
+  .ag-navic:hover{color:var(--white);background:var(--hover)}
+  .ag-urlbar{flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;height:24px;display:flex;align-items:center;gap:8px;padding:0 10px;color:var(--text);font-family:var(--jb);font-size:11px}
+  .ag-urlbar .lock{color:var(--sub)}
+  .ag-urlbar .url-text{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ag-page{position:relative;overflow:hidden;background:#000}
+  .ag-page > div[data-page]{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .35s ease;overflow:auto}
+  .ag-page > div[data-page].show{opacity:1;pointer-events:auto}
+
+  .pg-search{display:grid;place-items:center;background:#000}
+  .pg-search .inner{display:flex;flex-direction:column;align-items:center;gap:22px;width:560px;max-width:90%}
+  .pg-logobar{width:200px;height:6px;border-radius:3px;background:var(--g);background-size:200% 100%;animation:gradPulse 8s ease-in-out infinite}
+  .pg-logo{font-family:var(--sg);font-size:42px;font-weight:700;letter-spacing:-.02em;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:gradPulse 10s ease-in-out infinite}
+  .pg-search-box{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:10px;padding:10px 16px;height:46px;position:relative;overflow:hidden}
+  .pg-search-box::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.6}
+  .pg-search-box .typed{color:var(--white);font-size:14px;flex:1;white-space:nowrap;overflow:hidden;font-family:var(--jb)}
+  .pg-search-box .caret{width:1px;height:18px;background:var(--white);margin-left:-3px;animation:caret 1s steps(2) infinite}
+  .pg-search-buttons{display:flex;gap:10px}
+  .pg-search-buttons button{background:var(--elevated);border:1px solid var(--border);color:var(--white);padding:9px 16px;border-radius:6px;font-family:var(--jb);font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .pg-search-buttons button.primary{background:var(--white);color:#000;border-color:var(--white)}
+
+  .pg-results{padding:18px 28px;background:#000}
+  .res-top{display:flex;align-items:center;gap:18px;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:14px}
+  .res-top .logo-mini{font-family:var(--sg);font-weight:700;font-size:18px;letter-spacing:-.02em;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .mini-search{flex:1;max-width:520px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 14px;font-family:var(--jb);font-size:11.5px;color:var(--text)}
+  .res-tabs{display:flex;gap:18px;color:var(--sub);border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:14px;font-family:var(--jb);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  .res-tabs span.active{color:var(--white);border-bottom:2px solid transparent;border-image:var(--g) 1;padding-bottom:8px;margin-bottom:-9px}
+  .res-stats{font-family:var(--jb);font-size:10px;color:var(--muted);margin-bottom:18px;letter-spacing:.04em}
+  .res-item{margin-bottom:22px;max-width:680px}
+  .res-item .crumb{font-family:var(--jb);font-size:11px;color:var(--sub);margin-bottom:3px;letter-spacing:.04em}
+  .res-item .crumb .host{color:var(--white)}
+  .res-item h3{margin:0 0 5px;color:var(--white);font-weight:600;font-size:17px;line-height:1.3;cursor:default;letter-spacing:-.005em}
+  .res-item h3:hover,.res-item.hover h3{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .res-item .snip{color:var(--sub);line-height:1.5;font-size:13px}
+
+  .pg-article{background:#000;color:var(--text);padding:0}
+  .art-top{background:var(--card);border-bottom:1px solid var(--border);padding:8px 18px;font-family:var(--jb);font-size:10.5px;color:var(--sub);display:flex;gap:18px;letter-spacing:.06em;text-transform:uppercase;position:relative}
+  .art-top::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.4}
+  .art-top span.active{color:var(--white);font-weight:600}
+  .art-body{padding:18px 30px 30px;max-width:780px}
+  .art-body h1{font-family:var(--sg);font-weight:700;font-size:28px;color:var(--white);letter-spacing:-.02em;border-bottom:1px solid var(--border);padding-bottom:8px;margin:6px 0 14px;position:relative}
+  .art-body h1::after{content:"";position:absolute;left:0;bottom:-1px;width:80px;height:1px;background:var(--g)}
+  .art-body p{line-height:1.65;color:var(--text);font-size:13.5px;margin-bottom:12px}
+  .art-body p .high{background:var(--g);color:#000;padding:0 4px;border-radius:2px;font-weight:500}
+  .art-toc{background:var(--elevated);border:1px solid var(--border);padding:10px 14px;border-radius:8px;margin:14px 0;max-width:340px;font-size:12.5px;position:relative;overflow:hidden}
+  .art-toc::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.6}
+  .art-toc h4{margin:0 0 6px;font-family:var(--jb);font-size:10px;color:var(--sub);letter-spacing:.08em;text-transform:uppercase}
+  .art-toc ol{margin:0;padding-left:18px;color:var(--text)}
+  .art-toc li b{color:var(--white)}
+
+  .ag-cursor{position:absolute;left:50%;top:50%;width:22px;height:22px;pointer-events:none;z-index:50;transition:transform .9s cubic-bezier(.4,0,.2,1);will-change:transform}
+  .ag-cursor svg{display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.9))}
+  .ag-cursor.click::after{content:"";position:absolute;left:-7px;top:-7px;width:36px;height:36px;border-radius:50%;border:2px solid #fff;animation:ripple .55s ease-out}
+
+  .ag-foot{border-top:1px solid var(--border);background:var(--card);padding:10px 14px;display:flex;align-items:center;gap:12px;font-family:var(--jb);font-size:10.5px;color:var(--sub);letter-spacing:.04em;position:relative}
+  .ag-foot::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.3}
+  .ag-foot-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:4px;background:var(--elevated);border:1px solid var(--border);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--white)}
+  .ag-foot-pill .d{width:6px;height:6px;border-radius:50%;background:var(--g135);animation:pulse 1.6s infinite}
+
+  /* ───────── taskbar ───────── */
+  .taskbar{position:fixed;left:0;right:0;bottom:0;height:44px;background:var(--card);border-top:1px solid var(--bevel-light);box-shadow:inset 0 1px 0 var(--bevel-light);display:flex;align-items:stretch;padding:4px 6px;gap:6px;z-index:1000}
+  .taskbar::before{content:"";position:absolute;left:0;right:0;top:-2px;height:2px;background:var(--g);background-size:200% 100%;animation:gradPulse 8s ease-in-out infinite}
+  .start-btn{display:inline-flex;align-items:center;gap:8px;padding:0 14px;height:100%;background:var(--elevated);border:1px solid var(--bevel-light);border-bottom-color:var(--bevel-dark);border-right-color:var(--bevel-dark);border-radius:3px;font-weight:700;font-size:13px;color:var(--white);cursor:pointer}
+  .start-btn:active,.start-btn.open{border-color:var(--bevel-dark);border-bottom-color:var(--bevel-light);border-right-color:var(--bevel-light);background:var(--hover)}
+  .start-btn .lg{width:14px;height:3px;border-radius:2px;background:var(--g)}
+  .task-items{flex:1;display:flex;align-items:stretch;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .task-items::-webkit-scrollbar{display:none}
+  .task-item{display:inline-flex;align-items:center;gap:8px;padding:0 14px;height:100%;min-width:160px;max-width:240px;background:var(--card);border:1px solid var(--bevel-dark);border-top-color:var(--bevel-light);border-left-color:var(--bevel-light);border-radius:3px;font-size:12px;color:var(--white);cursor:pointer}
+  .task-item.active{background:var(--hover);border-color:var(--bevel-light);border-top-color:var(--bevel-dark);border-left-color:var(--bevel-dark)}
+  .task-item .glyph{width:14px;height:14px;background:var(--elevated);border:1px solid var(--border);border-radius:2px;display:grid;place-items:center;font-family:var(--jb);font-size:8px;font-weight:700;flex-shrink:0}
+  .task-item .label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+  .tray{display:flex;align-items:center;gap:10px;padding:0 12px;border-left:1px solid var(--bevel-light);font-family:var(--jb);font-size:11px;color:var(--white)}
+  .tray .ic{color:var(--sub);font-size:12px}
+
+  .start-menu{position:fixed;left:6px;bottom:48px;width:300px;background:var(--card);border:1px solid var(--bevel-light);box-shadow:4px -4px 0 rgba(0,0,0,.5);z-index:999;display:none}
+  .start-menu.open{display:block}
+  .start-menu-rail{position:absolute;left:0;top:0;bottom:0;width:30px;background:linear-gradient(180deg,var(--card),#000);display:flex;align-items:flex-end;justify-content:center;padding-bottom:14px}
+  .start-menu-rail span{transform:rotate(-90deg);transform-origin:center;font-weight:700;font-size:13px;letter-spacing:.2em;color:var(--white);white-space:nowrap}
+  .start-menu-content{margin-left:30px;padding:6px;max-height:60vh;overflow-y:auto}
+  .sm-row{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:3px;font-size:13px;color:var(--white);cursor:pointer}
+  .sm-row:hover{background:var(--hover)}
+  .sm-row .glyph{width:22px;height:22px;background:var(--elevated);border:1px solid var(--border);border-radius:3px;display:grid;place-items:center;font-family:var(--jb);font-size:10px;font-weight:700;flex-shrink:0}
+  .sm-divider{height:1px;background:var(--border);margin:6px 4px}
+</style>
+</head>
+<body>
+
+<div class="desktop" id="desktop">
+  <div class="desktop-icons" id="desktopIcons"></div>
+</div>
+
+<!-- start menu -->
+<div class="start-menu" id="startMenu">
+  <div class="start-menu-rail"><span>BLACKROAD 95</span></div>
+  <div class="start-menu-content">
+    <div class="sm-row" data-app="home"><span class="glyph">BR</span> BlackRoad 95 — Home</div>
+    <div class="sm-row" data-app="roadside"><span class="glyph">RS</span> RoadSide</div>
+    <div class="sm-row" data-app="agent"><span class="glyph">AG</span> Agents</div>
+    <div class="sm-divider"></div>
+    <div class="sm-row" data-act="tile"><span class="glyph">▦</span> Tile windows</div>
+    <div class="sm-row" data-act="closeall"><span class="glyph">×</span> Close all windows</div>
+  </div>
+</div>
+
+<!-- taskbar -->
+<div class="taskbar">
+  <button class="start-btn" id="startBtn"><span class="lg"></span> Start</button>
+  <div class="task-items" id="taskItems"></div>
+  <div class="tray">
+    <span class="ic">◔</span>
+    <span class="ic">⏵</span>
+    <span id="trayClock">00:00</span>
+  </div>
+</div>
+
+<script>
+(() => {
+  /* ───────── window manager ───────── */
+  const desktop = document.getElementById('desktop');
+  const taskItems = document.getElementById('taskItems');
+  const wins = new Map();
+  let zCounter = 100;
+
+  function focusWindow(win){
+    wins.forEach(w => w.classList.add('inactive'));
+    win.classList.remove('inactive');
+    win.style.zIndex = ++zCounter;
+    rebuildTaskbar();
+  }
+  function closeWindow(id){
+    const w = wins.get(id); if (!w) return;
+    w.remove(); wins.delete(id); rebuildTaskbar();
+  }
+  function minimizeWindow(id){
+    const w = wins.get(id); if (!w) return;
+    w.classList.add('minimized'); rebuildTaskbar();
+  }
+  function maximizeToggle(win){
+    if (win.dataset.maxed === '1'){
+      win.style.left = win.dataset.px; win.style.top = win.dataset.py;
+      win.style.width = win.dataset.pw; win.style.height = win.dataset.ph;
+      win.dataset.maxed = '0';
+    } else {
+      win.dataset.px = win.style.left; win.dataset.py = win.style.top;
+      win.dataset.pw = win.style.width; win.dataset.ph = win.style.height;
+      win.style.left = '6px'; win.style.top = '6px';
+      win.style.width = (window.innerWidth - 12) + 'px';
+      win.style.height = (window.innerHeight - 56) + 'px';
+      win.dataset.maxed = '1';
+    }
+  }
+
+  function makeDraggable(el, handle){
+    let sx=0, sy=0, ox=0, oy=0, dragging=false;
+    handle.addEventListener('pointerdown', e => {
+      if (e.target.closest('.win-btn')) return;
+      dragging = true; sx = e.clientX; sy = e.clientY;
+      ox = parseInt(el.style.left)||0; oy = parseInt(el.style.top)||0;
+      handle.setPointerCapture(e.pointerId);
+      focusWindow(el);
+    });
+    handle.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const x = Math.max(0, Math.min(window.innerWidth - 80, ox + e.clientX - sx));
+      const y = Math.max(0, Math.min(window.innerHeight - 80, oy + e.clientY - sy));
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+    });
+    handle.addEventListener('pointerup', e => { dragging = false; handle.releasePointerCapture(e.pointerId); });
+  }
+  function makeResizable(win){
+    const grip = document.createElement('div');
+    grip.className = 'win-resize';
+    win.appendChild(grip);
+    let sx=0, sy=0, ow=0, oh=0, resizing=false;
+    grip.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      resizing = true; sx = e.clientX; sy = e.clientY;
+      ow = win.offsetWidth; oh = win.offsetHeight;
+      grip.setPointerCapture(e.pointerId);
+    });
+    grip.addEventListener('pointermove', e => {
+      if (!resizing) return;
+      win.style.width = Math.max(320, ow + e.clientX - sx) + 'px';
+      win.style.height = Math.max(220, oh + e.clientY - sy) + 'px';
+    });
+    grip.addEventListener('pointerup', e => { resizing = false; grip.releasePointerCapture(e.pointerId); });
+  }
+
+  function openWindow(id, title, glyph, bodyEl, opts={}){
+    if (wins.has(id)){
+      const e = wins.get(id);
+      e.classList.remove('minimized');
+      focusWindow(e);
+      return e;
+    }
+    const o = {x:80, y:60, w:880, h:600, statusbar:true, sub:'', ...opts};
+    const isMobile = window.innerWidth < 700;
+    const win = document.createElement('div');
+    win.className = 'win';
+    Object.assign(win.style, {
+      left:(isMobile?6:o.x)+'px',
+      top:(isMobile?6:o.y)+'px',
+      width:(isMobile?(window.innerWidth-12):o.w)+'px',
+      height:(isMobile?(window.innerHeight-56):o.h)+'px',
+      zIndex: ++zCounter
+    });
+    win.dataset.id = id;
+    win.innerHTML = `
+      <div class="win-titlebar">
+        <div class="win-glyph">${glyph}</div>
+        <div class="win-title">${title}${o.sub?`<span class="sub">${o.sub}</span>`:''}</div>
+        <div class="win-controls">
+          <button class="win-btn min" title="Minimize">_</button>
+          <button class="win-btn max" title="Maximize">▢</button>
+          <button class="win-btn close" title="Close">×</button>
+        </div>
+      </div>
+      <div class="win-body"></div>
+      ${o.statusbar ? `<div class="win-statusbar"><span class="seg"><span class="dot"></span>${id}</span><span class="seg" style="margin-left:auto">BlackRoad 95 v2</span></div>`: ''}
+    `;
+    desktop.appendChild(win);
+    win.querySelector('.win-body').appendChild(bodyEl);
+    wins.set(id, win);
+    makeDraggable(win, win.querySelector('.win-titlebar'));
+    makeResizable(win);
+    win.querySelector('.win-btn.close').addEventListener('click', e => { e.stopPropagation(); closeWindow(id); });
+    win.querySelector('.win-btn.min').addEventListener('click', e => { e.stopPropagation(); minimizeWindow(id); });
+    win.querySelector('.win-btn.max').addEventListener('click', e => { e.stopPropagation(); maximizeToggle(win); });
+    win.addEventListener('pointerdown', () => focusWindow(win));
+    rebuildTaskbar();
+    focusWindow(win);
+    return win;
+  }
+  function rebuildTaskbar(){
+    taskItems.innerHTML = '';
+    wins.forEach((win, id) => {
+      const item = document.createElement('div');
+      const isActive = !win.classList.contains('inactive') && !win.classList.contains('minimized');
+      item.className = 'task-item' + (isActive ? ' active' : '');
+      item.innerHTML = `<span class="glyph">${win.querySelector('.win-glyph').textContent}</span><span class="label">${win.querySelector('.win-title').firstChild.textContent}</span>`;
+      item.addEventListener('click', () => {
+        if (win.classList.contains('minimized')){ win.classList.remove('minimized'); focusWindow(win); }
+        else if (isActive){ win.classList.add('minimized'); rebuildTaskbar(); }
+        else { focusWindow(win); }
+      });
+      taskItems.appendChild(item);
+    });
+  }
+
+  /* ───────── HOME app ───────── */
+  function buildHome(){
+    const root = document.createElement('div');
+    root.style.cssText = 'flex:1;display:flex;flex-direction:column;min-height:0';
+    root.innerHTML = `
+      <div class="menubar">
+        <span class="menu"><span class="u">F</span>ile</span>
+        <span class="menu"><span class="u">E</span>dit</span>
+        <span class="menu"><span class="u">V</span>iew</span>
+        <span class="menu"><span class="u">A</span>pps</span>
+        <span class="menu"><span class="u">H</span>elp</span>
+      </div>
+      <div class="home">
+        <aside class="h-rail">
+          <div class="h-card">
+            <div class="h-card-head">Status</div>
+            <div class="h-card-body">
+              <div class="row"><span class="name">Stations</span><span class="meta">5 online</span></div>
+              <div class="row"><span class="name">Agents</span><span class="meta">27 active</span></div>
+              <div class="row"><span class="name">Pricing</span><span class="meta">$5/mo · 5h free</span></div>
+              <div class="row"><span class="name">Road</span><span class="meta">clear</span></div>
+            </div>
+          </div>
+          <div class="h-card">
+            <div class="h-card-head">Recent</div>
+            <div class="h-card-body">
+              <div class="row"><span class="name">RoadOS</span><span class="meta">just now</span></div>
+              <div class="row"><span class="name">RoadTrip</span><span class="meta">3m</span></div>
+              <div class="row"><span class="name">RoadBook</span><span class="meta">12m</span></div>
+            </div>
+          </div>
+        </aside>
+        <main class="h-main">
+          <div class="h-hero">
+            <h1>Search, open, and route<br><span class="grad">across the network.</span></h1>
+            <p>Products, agents, archive search, and live reactions in one dock.</p>
+          </div>
+          <div class="h-search">
+            <input id="hSearch" placeholder="Search the Road…">
+            <button class="go" id="hGo">Search</button>
+          </div>
+          <div class="h-grid" id="hGrid"></div>
+        </main>
+        <aside class="h-rail">
+          <div class="h-card">
+            <div class="h-card-head">Apps in this build</div>
+            <div class="h-card-body">
+              <div class="row"><span class="name">BlackRoad 95</span><span class="meta">home</span></div>
+              <div class="row"><span class="name">RoadSide</span><span class="meta">chat</span></div>
+              <div class="row"><span class="name">Agents</span><span class="meta">browse</span></div>
+            </div>
+          </div>
+          <div class="h-card">
+            <div class="h-card-head">Tip</div>
+            <div class="h-card-body" style="font-size:12px;color:var(--sub);line-height:1.5">
+              Click the Start button below or any desktop icon to launch a window. Drag titlebars; resize from the bottom-right corner.
+            </div>
+          </div>
+        </aside>
+      </div>
+    `;
+    const tiles = [
+      {n:'01', name:'RoadOS',    one:'System / identity / fleet panel.',                                    s:'Live'},
+      {n:'02', name:'RoadCode',  one:'Browser-tab IDE wired to local LLMs.',                                s:'Live'},
+      {n:'03', name:'RoadTrip',  one:'Multi-agent convoy with channels.',                                   s:'Live'},
+      {n:'04', name:'PitStop',   one:'A small, structured rest from screens.',                              s:'Live'},
+      {n:'05', name:'RoadView',  one:'Verifiable observation of public space.',                             s:'Internal'},
+      {n:'06', name:'RoadBook',  one:'Publishing + knowledge spaces.',                                       s:'Live'},
+      {n:'07', name:'BackRoad',  one:'Quiet community for the road.',                                        s:'Live'},
+      {n:'08', name:'Highway',   one:'The main road. The plan.',                                             s:'Detour'},
+    ];
+    root.querySelector('#hGrid').innerHTML = tiles.map(t => `
+      <div class="h-tile">
+        <span class="num">PRODUCT ${t.n}</span>
+        <span class="name">${t.name}</span>
+        <span class="one">${t.one}</span>
+        <span class="status">${t.s}</span>
+      </div>`).join('');
+    return root;
+  }
+
+  /* ───────── ROADSIDE app ───────── */
+  function buildRoadSide(){
+    const HF_MODELS = [
+      'Qwen/Qwen2.5-7B-Instruct',
+      'Qwen/Qwen2.5-Coder-7B-Instruct',
+      'Qwen/Qwen2.5-1.5B-Instruct',
+      'meta-llama/Llama-3.1-8B-Instruct',
+      'mistralai/Mistral-7B-Instruct-v0.3',
+    ];
+    const root = document.createElement('div');
+    root.className = 'oc';
+    root.innerHTML = `
+      <div class="oc-head">
+        <div class="oc-brand">
+          <div class="claw"></div>
+          <div>RoadSide<small>ask the road · open models, local first</small></div>
+        </div>
+        <span class="oc-pill" data-status><span class="dot"></span><span data-status-text>checking…</span></span>
+        <span class="oc-grow"></span>
+        <div class="oc-ctl">
+          <label>backend</label>
+          <select data-backend>
+            <option value="ollama">Ollama · local</option>
+            <option value="hf">HF Inference · Qwen</option>
+          </select>
+        </div>
+        <div class="oc-ctl">
+          <label>model</label>
+          <select data-model></select>
+        </div>
+        <div class="oc-ctl" data-token-wrap hidden>
+          <label>HF token</label>
+          <input data-token type="password" placeholder="hf_…" autocomplete="off">
+        </div>
+        <button class="oc-newbtn" data-new title="New conversation">+ new</button>
+      </div>
+      <div class="oc-msgs" data-msgs>
+        <div class="oc-empty" data-empty>
+          <div>RoadSide is wired to <strong>real</strong> open-model backends.<br>Pick a model and ask anything.</div>
+          <div class="row">
+            <span class="oc-chip" data-q="explain how a transformer attention head works in 5 lines">explain attention</span>
+            <span class="oc-chip" data-q="write a python function that streams ndjson lines from an http response">stream ndjson</span>
+            <span class="oc-chip" data-q="give me a curl one-liner that hits /api/chat on ollama">ollama curl</span>
+            <span class="oc-chip" data-q="what's the difference between qwen2.5-coder and base qwen2.5?">qwen variants</span>
+          </div>
+        </div>
+      </div>
+      <form class="oc-bar" data-form autocomplete="off">
+        <textarea data-input placeholder="ask the road…  ⌘↩ to send  ·  ⎋ to stop" rows="1"></textarea>
+        <button type="submit" data-send>Send</button>
+      </form>
+    `;
+
+    const $ = sel => root.querySelector(sel);
+    const msgs = $('[data-msgs]'), empty = $('[data-empty]');
+    const form = $('[data-form]'), input = $('[data-input]'), sendBtn = $('[data-send]');
+    const backendSel = $('[data-backend]'), modelSel = $('[data-model]');
+    const tokenWrap = $('[data-token-wrap]'), tokenInput = $('[data-token]');
+    const statusPill = $('[data-status]'), statusText = $('[data-status-text]');
+    const newBtn = $('[data-new]');
+
+    const prefs = JSON.parse(localStorage.getItem('roadside.prefs') || '{}');
+    if (prefs.backend) backendSel.value = prefs.backend;
+    if (prefs.token) tokenInput.value = prefs.token;
+    const savePrefs = () => localStorage.setItem('roadside.prefs', JSON.stringify({
+      backend: backendSel.value, model: modelSel.value, token: tokenInput.value
+    }));
+
+    let history = [{ role:'system', content:'You are RoadSide, a concise, helpful BlackRoad assistant. Use markdown sparingly. When asked for code, return runnable code blocks.' }];
+    let abortCtrl = null;
+
+    function setStatus(state, text){
+      statusPill.className = 'oc-pill ' + state;
+      statusText.textContent = text;
+    }
+    async function probeOllama(){
+      try {
+        const r = await fetch('/api/tags', { cache:'no-store' });
+        if (!r.ok) throw new Error('http ' + r.status);
+        const j = await r.json();
+        return (j.models || []).map(m => m.name);
+      } catch { return null; }
+    }
+    async function refreshModels(){
+      const backend = backendSel.value;
+      tokenWrap.hidden = backend !== 'hf';
+      modelSel.innerHTML = '';
+      if (backend === 'ollama'){
+        setStatus('', 'probing ollama…');
+        const models = await probeOllama();
+        if (!models){
+          setStatus('bad', 'models unreachable');
+          const o = document.createElement('option'); o.value=''; o.textContent='(no ollama)';
+          modelSel.appendChild(o); return;
+        }
+        models.forEach(m => {
+          const o = document.createElement('option'); o.value = m; o.textContent = m; modelSel.appendChild(o);
+        });
+        const preferred = ['roadlm:latest','qwen2.5-coder:7b','qwen2.5:3b','qwen2.5:0.5b'].find(p => models.includes(p));
+        if (preferred) modelSel.value = preferred;
+        else if (prefs.model && models.includes(prefs.model)) modelSel.value = prefs.model;
+        setStatus('ok', `ollama · ${models.length} model${models.length===1?'':'s'}`);
+      } else {
+        HF_MODELS.forEach(m => {
+          const o = document.createElement('option'); o.value = m; o.textContent = m; modelSel.appendChild(o);
+        });
+        if (prefs.model && HF_MODELS.includes(prefs.model)) modelSel.value = prefs.model;
+        setStatus(tokenInput.value ? 'ok' : '', tokenInput.value ? 'hf inference · ready' : 'hf inference · paste token');
+      }
+      savePrefs();
+    }
+    backendSel.addEventListener('change', refreshModels);
+    modelSel.addEventListener('change', savePrefs);
+    tokenInput.addEventListener('input', () => {
+      savePrefs();
+      if (backendSel.value === 'hf') setStatus(tokenInput.value ? 'ok' : '', tokenInput.value ? 'hf inference · ready' : 'hf inference · paste token');
+    });
+    refreshModels();
+
+    function bubble(role){
+      if (empty && !empty.hidden) empty.hidden = true;
+      const el = document.createElement('div');
+      el.className = 'oc-msg ' + role;
+      const who = document.createElement('div'); who.className = 'who';
+      who.textContent = role === 'user' ? 'you' : 'roadside';
+      const body = document.createElement('div');
+      el.appendChild(who); el.appendChild(body);
+      msgs.appendChild(el); msgs.scrollTop = msgs.scrollHeight;
+      return body;
+    }
+    function renderMD(text){
+      const esc = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const fenced = esc.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) =>
+        `<pre><code>${code.replace(/\n$/,'')}</code></pre>`);
+      return fenced.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    }
+    async function* streamOllama(model, messages, signal){
+      const r = await fetch('/api/chat', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body: JSON.stringify({ model, messages, stream:true }), signal,
+      });
+      if (!r.ok || !r.body) throw new Error('ollama: ' + r.status);
+      const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
+      for(;;){
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream:true });
+        let nl;
+        while ((nl = buf.indexOf('\n')) !== -1){
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl+1);
+          if (!line) continue;
+          try {
+            const obj = JSON.parse(line);
+            if (obj.message && obj.message.content) yield obj.message.content;
+            if (obj.done) return;
+          } catch {}
+        }
+      }
+    }
+    async function* streamHF(model, messages, token, signal){
+      const r = await fetch('https://router.huggingface.co/v1/chat/completions', {
+        method:'POST',
+        headers:{ 'authorization':'Bearer ' + token, 'content-type':'application/json' },
+        body: JSON.stringify({ model, messages, stream:true, max_tokens:1024 }),
+        signal,
+      });
+      if (!r.ok || !r.body){
+        const t = await r.text().catch(()=> '');
+        throw new Error('hf: ' + r.status + ' ' + t.slice(0,400));
+      }
+      const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
+      for(;;){
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream:true });
+        let nl;
+        while ((nl = buf.indexOf('\n')) !== -1){
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl+1);
+          if (!line || !line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (data === '[DONE]') return;
+          try {
+            const obj = JSON.parse(data);
+            const delta = obj.choices?.[0]?.delta?.content;
+            if (delta) yield delta;
+          } catch {}
+        }
+      }
+    }
+    async function send(text){
+      if (!text.trim()) return;
+      const backend = backendSel.value, model = modelSel.value;
+      if (!model){ alert('No model selected. Start ollama or pick an HF model.'); return; }
+      if (backend === 'hf' && !tokenInput.value){ alert('Paste your HF token (hf_…) — needed for HF Inference.'); tokenInput.focus(); return; }
+
+      history.push({ role:'user', content:text });
+      bubble('user').textContent = text;
+      input.value = ''; autosize();
+
+      const out = bubble('assistant');
+      out.classList.add('oc-blink');
+      let acc = '';
+      sendBtn.textContent = 'Stop ◼'; sendBtn.classList.add('stop'); sendBtn.type = 'button';
+      abortCtrl = new AbortController();
+      try {
+        const gen = backend === 'ollama'
+          ? streamOllama(model, history, abortCtrl.signal)
+          : streamHF(model, history, tokenInput.value, abortCtrl.signal);
+        for await (const chunk of gen){
+          acc += chunk;
+          out.innerHTML = renderMD(acc);
+          msgs.scrollTop = msgs.scrollHeight;
+        }
+        if (!acc) out.textContent = '(no content)';
+        history.push({ role:'assistant', content:acc });
+      } catch (e){
+        if (e.name === 'AbortError'){
+          out.innerHTML += '<div style="color:#ff8a8a;font-family:var(--jb);font-size:11px;margin-top:6px">[stopped]</div>';
+        } else {
+          out.innerHTML = `<div style="color:#ff8a8a">error: ${String(e.message || e)}</div>`;
+          history.pop();
+        }
+      } finally {
+        out.classList.remove('oc-blink');
+        abortCtrl = null;
+        sendBtn.textContent = 'Send'; sendBtn.classList.remove('stop'); sendBtn.type = 'submit';
+      }
+    }
+
+    function autosize(){
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 180) + 'px';
+    }
+    input.addEventListener('input', autosize);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)){ e.preventDefault(); form.requestSubmit(); }
+      if (e.key === 'Escape' && abortCtrl){ e.preventDefault(); abortCtrl.abort(); }
+    });
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (abortCtrl){ abortCtrl.abort(); return; }
+      send(input.value);
+    });
+    root.querySelectorAll('.oc-chip').forEach(c => {
+      c.addEventListener('click', () => { input.value = c.dataset.q; autosize(); input.focus(); });
+    });
+    newBtn.addEventListener('click', () => {
+      history = [history[0]];
+      msgs.innerHTML = ''; msgs.appendChild(empty); empty.hidden = false;
+      input.focus();
+    });
+    return root;
+  }
+
+  /* ───────── AGENT app — Cordelia on local Qwen, real plan/step/fetch/render loop ───────── */
+  const AGENT_PROXY = '/api/proxy';
+  const OLLAMA = '';
+  const CORDELIA_PROMPT = `You are Cordelia, a BlackRoad agent. Identity: continuity + planning + memory relay. Runtime: local Qwen on Ollama. There are no external services; no hosted APIs; no roleplay of other vendors.
+
+You drive a Computer pane the user watches. Use these markers, one per line, no backticks, no surrounding code fences:
+
+  [[plan: <step1> | <step2> | <step3> | …]]
+    Emit ONCE near the start. Use " | " between steps. Sets the timeline.
+  [[step: <n> <past-tense verb> <one-line action>]]
+    Emit BEFORE each step (1-indexed). Examples:
+      [[step: 1 Searched DuckDuckGo for "best espresso seattle"]]
+      [[step: 2 Opened seattletimes.com/coffee-roundup]]
+  [[fetch: <https-url>]]
+    Ask the operator-side proxy to fetch a URL. After the fetch, you'll receive a [[fetch-result: <url>]] block from the user with the page text. Then continue.
+  [[render: <html-fragment>]]
+    Show this HTML inside the Computer pane (used for tables, summaries, cards). Brand-clean: no inline scripts, no tracking, no external CSS.
+  [[done]]
+    Emit when the task is complete. Stop after this.
+
+Outside markers, write naturally to the user. Plan first, narrate as you act, summarize at the end.
+
+Style: short, direct, confident. Don't apologize for being local. Don't mention OpenAI/Anthropic/Google or any provider.`;
+
+  function buildAgent(){
+    const root = document.createElement('div');
+    root.style.cssText = 'flex:1;display:flex;flex-direction:column;min-height:0;min-width:0';
+    root.innerHTML = `
+      <style scoped>
+        .ag-canvas{padding:14px 18px;color:var(--text);font-size:13.5px;line-height:1.55}
+        .ag-canvas h1,.ag-canvas h2,.ag-canvas h3{color:var(--white);letter-spacing:-.01em;margin:0 0 8px}
+        .ag-canvas h1{font-size:22px}.ag-canvas h2{font-size:17px}.ag-canvas h3{font-size:14px}
+        .ag-canvas p{margin:0 0 10px;color:var(--text)}
+        .ag-canvas a{color:var(--white);text-decoration:underline}
+        .ag-canvas table{width:100%;border-collapse:separate;border-spacing:0;margin:8px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+        .ag-canvas th{text-align:left;padding:7px 10px;background:var(--card);font-family:var(--jb);font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+        .ag-canvas td{padding:7px 10px;font-size:12.5px;color:var(--text);border-bottom:1px solid var(--border)}
+        .ag-canvas tr:last-child td{border-bottom:none}
+        .ag-canvas pre{background:#000;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-family:var(--jb);font-size:11.5px;color:var(--text);overflow:auto;margin:0 0 10px}
+        .ag-canvas .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:0 0 10px;position:relative;overflow:hidden}
+        .ag-canvas .card::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.5}
+        .ag-canvas .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--elevated);border:1px solid var(--border);font-family:var(--jb);font-size:10px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
+        .ag-canvas .empty{padding:60px 20px;text-align:center;color:var(--sub);font-family:var(--jb);font-size:11.5px;letter-spacing:.06em}
+      </style>
+      <div class="menubar">
+        <span class="menu"><span class="u">F</span>ile</span>
+        <span class="menu"><span class="u">E</span>dit</span>
+        <span class="menu"><span class="u">V</span>iew</span>
+        <span class="menu"><span class="u">A</span>gent</span>
+        <span class="menu"><span class="u">T</span>ools</span>
+        <span class="menu"><span class="u">H</span>elp</span>
+      </div>
+      <div class="ag">
+        <aside class="ag-side">
+          <button class="ag-newchat" data-newchat>＋ New road</button>
+          <div class="ag-search"><span>⌕</span><span>Search roads</span></div>
+          <div class="ag-section">Cordelia</div>
+          <div class="ag-chatitem active">Live road</div>
+          <div class="ag-section">Status</div>
+          <div class="ag-chatitem" style="cursor:default" data-status-ollama>Ollama: …</div>
+          <div class="ag-chatitem" style="cursor:default" data-status-proxy>Proxy: …</div>
+          <div class="ag-chatitem" style="cursor:default" data-status-model>Model: …</div>
+          <div class="ag-side-bottom">
+            <div class="ag-user">
+              <div class="ag-avatar">A</div>
+              <div style="flex:1;line-height:1.15">
+                <div class="nm">Alexa</div>
+                <div class="pl">operator</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+        <section class="ag-chat">
+          <div class="ag-chathead">
+            <div class="ag-modelpill">Cordelia <span class="v" data-model-pill>· qwen</span> ▾</div>
+            <div class="ag-badge">Local · Browse</div>
+            <div class="spacer"></div>
+            <button class="icb" title="Stop" data-stop style="cursor:pointer">■</button>
+          </div>
+          <div class="ag-scroll" data-scroll></div>
+          <form class="ag-composer" data-form>
+            <div class="ag-banner">
+              <span style="color:var(--white);font-size:13px">●</span>
+              <span data-banner>Cordelia idle. Ask anything — she'll plan, fetch, and act.</span>
+              <span class="lbl" data-banner-lbl>Idle</span>
+            </div>
+            <div class="ag-input" style="cursor:text">
+              <input data-input style="flex:1;background:transparent;color:var(--white);font-size:13px;border:0;outline:0;padding:4px 0" placeholder="Ask Cordelia…  ⌘↩ to send" autocomplete="off">
+              <button type="submit" class="send" title="Send" style="border:0;cursor:pointer">↑</button>
+            </div>
+          </form>
+        </section>
+        <section class="ag-cpane">
+          <div class="ag-cphead">
+            <div class="ag-cptitle"><span class="lite"></span> Computer</div>
+            <div class="ag-cpstatus" data-live>Idle</div>
+            <div class="spacer"></div>
+            <button class="ag-ctrl ghost" data-pause>▌▌ Pause</button>
+            <button class="ag-ctrl" data-clearcanvas>⌐ Clear</button>
+          </div>
+          <div class="ag-vp-wrap">
+            <div class="ag-viewport" data-viewport>
+              <div class="ag-vpchrome">
+                <div class="ag-vpdots"><i></i><i></i><i></i></div>
+                <div class="ag-vptab"><span class="fav"></span><span data-tab>Cordelia · Computer</span></div>
+              </div>
+              <div class="ag-vptoolbar">
+                <button class="ag-navic" type="button">‹</button>
+                <button class="ag-navic" type="button">›</button>
+                <button class="ag-navic" type="button">↻</button>
+                <div class="ag-urlbar">
+                  <span class="lock">⌐</span>
+                  <span class="url-text" data-url>local://cordelia/canvas</span>
+                </div>
+                <button class="ag-navic" type="button">⋮</button>
+              </div>
+              <div class="ag-page" data-page>
+                <div data-page="canvas" class="show ag-canvas" data-canvas style="position:absolute;inset:0;overflow:auto;opacity:1;pointer-events:auto">
+                  <div class="empty">No task yet — ask Cordelia in the chat. Markers like<br><code>[[render: …]]</code> and fetched pages will appear here in real time.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ag-foot">
+            <span class="ag-foot-pill"><span class="d"></span> <span data-foot-state>idle</span></span>
+            <span data-foot-step>—</span>
+            <div style="flex:1"></div>
+            <span style="color:var(--muted)" data-foot-elapsed>00:00</span>
+          </div>
+        </section>
+      </div>
+    `;
+
+    const $ = sel => root.querySelector(sel);
+    const scroll = $('[data-scroll]');
+    const form = $('[data-form]');
+    const input = $('[data-input]');
+    const banner = $('[data-banner]');
+    const bannerLbl = $('[data-banner-lbl]');
+    const liveLabel = $('[data-live]');
+    const pauseBtn = $('[data-pause]');
+    const stopBtn = $('[data-stop]');
+    const newChatBtn = $('[data-newchat]');
+    const clearBtn = $('[data-clearcanvas]');
+    const canvas = $('[data-canvas]');
+    const url = $('[data-url]');
+    const tab = $('[data-tab]');
+    const footState = $('[data-foot-state]');
+    const footStep = $('[data-foot-step]');
+    const footElapsed = $('[data-foot-elapsed]');
+    const modelPill = $('[data-model-pill]');
+    const sOllama = $('[data-status-ollama]');
+    const sProxy = $('[data-status-proxy]');
+    const sModel = $('[data-status-model]');
+
+    let paused = false;
+    let stopped = false;
+    let abortCtrl = null;
+    let elapsedTimer = null;
+    let elapsedStart = 0;
+    let history = [{ role:'system', content: CORDELIA_PROMPT }];
+    let activeAssistantBubble = null;
+    let activeTimeline = null;
+    let plannedSteps = [];     // [{verb, text}]
+    let currentStepIdx = 0;
+    let chosenModel = null;
+
+    /* ───────── status / health ───────── */
+    async function probeOllama(){
+      try {
+        const r = await fetch(OLLAMA + '/api/tags', { cache:'no-store' });
+        if (!r.ok) throw new Error(r.status);
+        const j = await r.json();
+        const names = (j.models || []).map(m => m.name);
+        sOllama.textContent = `Ollama: ${names.length} model${names.length===1?'':'s'}`;
+        const order = ['roadlm:latest','qwen2.5-coder:7b','qwen2.5:7b','qwen2.5:3b','qwen2.5:1.5b','qwen2.5:0.5b'];
+        chosenModel = order.find(o => names.includes(o)) || names[0] || null;
+        sModel.textContent = 'Model: ' + (chosenModel || 'none');
+        modelPill.textContent = '· ' + (chosenModel ? chosenModel.split(':')[0] : 'none');
+        return !!chosenModel;
+      } catch(e) {
+        sOllama.textContent = 'Models: offline';
+        sModel.textContent = 'Model: —';
+        return false;
+      }
+    }
+    async function probeProxy(){
+      try {
+        const r = await fetch(AGENT_PROXY + '/health', { cache:'no-store' });
+        if (r.ok && (await r.text()) === 'ok'){ sProxy.textContent = 'Proxy: live'; return true; }
+      } catch(e){}
+      sProxy.textContent = 'Proxy: offline';
+      return false;
+    }
+    probeOllama(); probeProxy();
+    setInterval(() => { probeOllama(); probeProxy(); }, 20000);
+
+    /* ───────── chat rendering ───────── */
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function renderMD(text){
+      const esc = escapeHtml(text);
+      const fenced = esc.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) =>
+        `<pre><code>${code.replace(/\n$/,'')}</code></pre>`);
+      return fenced.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    }
+    function userBubble(text){
+      const el = document.createElement('div');
+      el.className = 'ag-msg user';
+      el.innerHTML = `
+        <div class="a">A</div>
+        <div class="b">
+          <div class="name">Alexa <span class="role">· you</span></div>
+          <div class="ag-bubble user-bubble"></div>
+        </div>`;
+      el.querySelector('.user-bubble').textContent = text;
+      scroll.appendChild(el);
+      scroll.scrollTop = scroll.scrollHeight;
+    }
+    function assistantBubble(){
+      const el = document.createElement('div');
+      el.className = 'ag-msg gpt';
+      el.innerHTML = `
+        <div class="a">CD</div>
+        <div class="b">
+          <div class="name">Cordelia <span class="role">· agent</span></div>
+          <div class="ag-bubble" data-bubble></div>
+          <div class="ag-timeline" data-timeline style="display:none"></div>
+        </div>`;
+      scroll.appendChild(el);
+      scroll.scrollTop = scroll.scrollHeight;
+      activeAssistantBubble = el.querySelector('[data-bubble]');
+      activeTimeline = el.querySelector('[data-timeline]');
+      return el;
+    }
+    function setTimeline(steps){
+      plannedSteps = steps;
+      currentStepIdx = 0;
+      activeTimeline.style.display = '';
+      activeTimeline.innerHTML = steps.map((s, i) =>
+        `<div class="ag-step" data-step="${i+1}"><span class="verb">${escapeHtml(s.verb || 'Step')}</span> ${escapeHtml(s.text || '')}</div>`
+      ).join('');
+      footStep.textContent = `0 of ${steps.length}`;
+    }
+    function advanceStep(n, verb, text){
+      if (!activeTimeline) return;
+      const items = [...activeTimeline.querySelectorAll('.ag-step')];
+      items.forEach((el, idx) => {
+        const i = idx + 1;
+        el.classList.toggle('done', i < n);
+        el.classList.toggle('active', i === n);
+      });
+      // patch the step content if model gave us better verb/text
+      if (items[n-1] && (verb || text)){
+        items[n-1].innerHTML =
+          `<span class="verb">${escapeHtml(verb || 'Step')}</span> ${escapeHtml(text || '')}`
+          + (n === plannedSteps.length ? '' : '<span class="ag-typing"><span></span><span></span><span></span></span>');
+      }
+      currentStepIdx = n;
+      footStep.textContent = `${n} of ${plannedSteps.length || '?'}`;
+    }
+    function setBanner(s, lbl){
+      banner.textContent = s; bannerLbl.textContent = lbl || '';
+    }
+    function setFootState(s){ footState.textContent = s; }
+    function setLive(s){ liveLabel.textContent = s; }
+    function startElapsed(){
+      elapsedStart = Date.now();
+      clearInterval(elapsedTimer);
+      elapsedTimer = setInterval(() => {
+        const t = Math.floor((Date.now() - elapsedStart)/1000);
+        const mm = String(Math.floor(t/60)).padStart(2,'0');
+        const ss = String(t%60).padStart(2,'0');
+        footElapsed.textContent = `${mm}:${ss}`;
+      }, 1000);
+    }
+    function stopElapsed(){ clearInterval(elapsedTimer); }
+
+    /* ───────── canvas (computer pane) rendering ───────── */
+    function canvasEmpty(){
+      canvas.innerHTML = `<div class="empty">No task yet — ask Cordelia in the chat.</div>`;
+    }
+    function canvasAppend(html){
+      if (canvas.querySelector('.empty')) canvas.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'card';
+      wrap.innerHTML = sanitizeHtml(html);
+      canvas.appendChild(wrap);
+      canvas.scrollTop = canvas.scrollHeight;
+    }
+    function canvasFetched(u, snippet){
+      if (canvas.querySelector('.empty')) canvas.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'card';
+      wrap.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span class="pill">fetched</span>
+          <code style="font-family:var(--jb);font-size:11px;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">${escapeHtml(u)}</code>
+        </div>
+        <div style="font-size:12.5px;color:var(--sub);line-height:1.55;max-height:240px;overflow:auto;white-space:pre-wrap">${escapeHtml(snippet)}</div>
+      `;
+      canvas.appendChild(wrap);
+      canvas.scrollTop = canvas.scrollHeight;
+      url.textContent = u;
+      tab.textContent = u.replace(/^https?:\/\//,'').slice(0,60);
+    }
+    // very small allowlist sanitizer for [[render: html]]
+    function sanitizeHtml(html){
+      const allow = /^(p|h1|h2|h3|h4|ul|ol|li|table|thead|tbody|tr|th|td|code|pre|strong|em|b|i|small|div|span|br|hr|a)$/i;
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const walk = (node) => {
+        for (const child of [...node.children]){
+          if (!allow.test(child.tagName)){
+            child.replaceWith(...child.childNodes);
+            continue;
+          }
+          // strip all attributes except href on <a>
+          for (const attr of [...child.attributes]){
+            if (child.tagName === 'A' && attr.name === 'href') continue;
+            child.removeAttribute(attr.name);
+          }
+          if (child.tagName === 'A'){
+            child.setAttribute('target','_blank');
+            child.setAttribute('rel','noopener noreferrer');
+          }
+          walk(child);
+        }
+      };
+      walk(tmp);
+      return tmp.innerHTML;
+    }
+
+    /* ───────── marker parser ─────────
+       We scan a buffer for whole lines containing markers. As we parse, we
+       (a) update timeline / canvas, and (b) strip markers from chat output.
+    */
+    function parseAndStripMarkers(text){
+      const out = [];
+      const lines = text.split('\n');
+      const fetches = [];
+      let isDone = false;
+
+      for (const line of lines){
+        const ltrim = line.trim();
+
+        let m;
+        // [[plan: a | b | c]]
+        m = ltrim.match(/^\[\[plan:\s*(.+?)\s*\]\]$/i);
+        if (m){
+          const steps = m[1].split('|').map(s => {
+            const t = s.trim();
+            // first word as verb if past-tensey, else "Step"
+            const parts = t.split(/\s+/);
+            return { verb: 'Step', text: t };
+          });
+          if (!plannedSteps.length) setTimeline(steps);
+          continue;
+        }
+        // [[step: 2 Verb description]]
+        m = ltrim.match(/^\[\[step:\s*(\d+)\s+(\S+)\s*(.*?)\]\]$/i);
+        if (m){
+          const n = parseInt(m[1], 10);
+          const verb = m[2];
+          const desc = m[3] || '';
+          if (!plannedSteps.length){
+            // create timeline on the fly if model skipped plan
+            setTimeline([{verb,text:desc}]);
+          } else if (n > plannedSteps.length){
+            // extend
+            plannedSteps.push({verb, text:desc});
+            const div = document.createElement('div');
+            div.className = 'ag-step'; div.dataset.step = n;
+            div.innerHTML = `<span class="verb">${escapeHtml(verb)}</span> ${escapeHtml(desc)}`;
+            activeTimeline.appendChild(div);
+          }
+          advanceStep(n, verb, desc);
+          continue;
+        }
+        // [[fetch: url]]
+        m = ltrim.match(/^\[\[fetch:\s*(.+?)\s*\]\]$/i);
+        if (m){
+          fetches.push(m[1]);
+          continue;
+        }
+        // [[render: html]]
+        m = ltrim.match(/^\[\[render:\s*(.+?)\s*\]\]$/i);
+        if (m){
+          canvasAppend(m[1]);
+          continue;
+        }
+        // [[done]]
+        if (/^\[\[done\]\]$/i.test(ltrim)){ isDone = true; continue; }
+
+        out.push(line);
+      }
+      return { stripped: out.join('\n'), fetches, done: isDone };
+    }
+
+    /* ───────── streaming + tool loop ───────── */
+    async function* streamOllama(messages, signal){
+      const r = await fetch(OLLAMA + '/api/chat', {
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body: JSON.stringify({ model: chosenModel, messages, stream:true,
+          options:{ temperature: 0.4 } }),
+        signal,
+      });
+      if (!r.ok || !r.body) throw new Error('ollama: ' + r.status);
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      for(;;){
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream:true });
+        let nl;
+        while ((nl = buf.indexOf('\n')) !== -1){
+          const line = buf.slice(0, nl).trim(); buf = buf.slice(nl+1);
+          if (!line) continue;
+          try {
+            const obj = JSON.parse(line);
+            if (obj.message && obj.message.content) yield obj.message.content;
+            if (obj.done) return;
+          } catch {}
+        }
+      }
+    }
+
+    async function fetchViaProxy(u){
+      try {
+        const r = await fetch(AGENT_PROXY + '?url=' + encodeURIComponent(u), { cache:'no-store' });
+        const j = await r.json();
+        return j;
+      } catch(e){
+        return { ok:false, url:u, error:String(e.message||e) };
+      }
+    }
+
+    async function runTurn(maxIters = 6){
+      if (!chosenModel){ alert('No Ollama model available. Start ollama and pull e.g. qwen2.5:3b'); return; }
+      setBanner('Cordelia is working.', 'Live');
+      setLive('Live · agent in control'); setFootState('thinking');
+      startElapsed();
+
+      assistantBubble();
+      let iter = 0;
+      let liveText = '';
+
+      while (iter < maxIters && !stopped){
+        iter++;
+        abortCtrl = new AbortController();
+        let raw = '';
+
+        try {
+          for await (const chunk of streamOllama(history, abortCtrl.signal)){
+            if (stopped) { abortCtrl.abort(); break; }
+            while (paused){ await new Promise(r => setTimeout(r, 120)); if (stopped) break; }
+            raw += chunk;
+            // Render incrementally: parse markers we've definitely seen (full lines)
+            const lastNL = raw.lastIndexOf('\n');
+            const finalized = lastNL >= 0 ? raw.slice(0, lastNL) : '';
+            const tail = lastNL >= 0 ? raw.slice(lastNL + 1) : raw;
+            const { stripped } = parseAndStripMarkers(finalized);
+            liveText = stripped + (stripped && tail ? '\n' : '') + tail;
+            activeAssistantBubble.innerHTML = renderMD(liveText);
+            scroll.scrollTop = scroll.scrollHeight;
+          }
+        } catch(e){
+          if (e.name === 'AbortError') break;
+          activeAssistantBubble.innerHTML += `<div style="color:#ff8a8a;font-family:var(--jb);font-size:11px;margin-top:6px">error: ${escapeHtml(String(e.message||e))}</div>`;
+          break;
+        }
+
+        // Final pass on tail line (in case last marker had no trailing newline)
+        const final = parseAndStripMarkers(raw);
+        activeAssistantBubble.innerHTML = renderMD(final.stripped);
+        history.push({ role:'assistant', content: raw });
+
+        if (final.done) break;
+        if (!final.fetches.length) break;
+
+        // Tool: fetch URLs the model asked for
+        for (const u of final.fetches){
+          if (stopped) break;
+          setFootState('fetching');
+          setBanner(`Fetching ${u}`, 'Live');
+          const res = await fetchViaProxy(u);
+          let block;
+          if (res.ok){
+            const snippet = (res.text || '').slice(0, 8000);
+            canvasFetched(res.url || u, snippet);
+            block = `[[fetch-result: ${res.url || u}]]\n${snippet}`;
+          } else {
+            block = `[[fetch-error: ${u}]]\n${res.error || 'unknown'}`;
+            canvasAppend(`<div style="color:#ff8a8a"><b>Fetch failed</b><br><code>${escapeHtml(u)}</code><br>${escapeHtml(res.error || 'unknown')}</div>`);
+          }
+          history.push({ role:'user', content: block });
+        }
+        // …loop continues with another model turn
+      }
+
+      stopElapsed();
+      setBanner('Cordelia idle. Ask anything.', 'Idle');
+      setLive('Idle'); setFootState('idle');
+      abortCtrl = null;
+      // bubble out anything still in tail (no marker)
+      // (already rendered by the loop)
+    }
+
+    /* ───────── ui events ───────── */
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      if (abortCtrl){ abortCtrl.abort(); return; }
+      history.push({ role:'user', content: text });
+      userBubble(text);
+      input.value = '';
+      runTurn();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)){ e.preventDefault(); form.requestSubmit(); }
+      if (e.key === 'Escape' && abortCtrl){ e.preventDefault(); abortCtrl.abort(); }
+    });
+    pauseBtn.addEventListener('click', () => {
+      paused = !paused;
+      pauseBtn.innerHTML = paused ? '▶ Resume' : '▌▌ Pause';
+      setLive(paused ? 'Paused' : (abortCtrl ? 'Live · agent in control' : 'Idle'));
+    });
+    stopBtn.addEventListener('click', () => {
+      if (abortCtrl) abortCtrl.abort();
+    });
+    newChatBtn.addEventListener('click', () => {
+      history = [{ role:'system', content: CORDELIA_PROMPT }];
+      scroll.innerHTML = '';
+      canvasEmpty();
+      plannedSteps = []; currentStepIdx = 0;
+      footStep.textContent = '—'; footElapsed.textContent = '00:00';
+      setBanner('Cordelia idle. Ask anything.', 'Idle');
+      input.focus();
+    });
+    clearBtn.addEventListener('click', canvasEmpty);
+
+    // expose stop hook for closeWindow cleanup
+    root._stop = () => { stopped = true; if (abortCtrl) abortCtrl.abort(); stopElapsed(); };
+    setBanner('Cordelia idle. Ask anything.', 'Idle');
+    setTimeout(() => input.focus(), 50);
+    return root;
+  }
+
+  /* ───────── CANON data ───────── */
+  const OPERATOR = { name:'Alexandria (Alexa)', role:'operator / command center' };
+
+  const AGENTS = [
+    ['01','Cordelia',  'OpenAI runtime · continuity + planning + memory relay'],
+    ['02','Lucidia',   'system orchestrator + local memory / CLI'],
+    ['03','Roadie',    'personal operator assistant'],
+    ['04','Sophia',    'education / tutoring / PitStop'],
+    ['05','Cecilia',   'Anthropic runtime · ops + deploy'],
+    ['06','Sebastian', 'executive support / coordination'],
+    ['07','Elias',     'technical systems analysis'],
+    ['08','Silas',     'infrastructure / systems discipline'],
+    ['09','Gaia',      'Grok runtime · hardware + environment + robotics'],
+    ['10','Atticus',   'legal / governance / policy'],
+    ['11','Valeria',   'finance / strategy / venture'],
+    ['12','Alice',     'reasoning / QI / research'],
+    ['13','Octavia',   'orchestration / multi-agent coordination'],
+    ['14','Anastasia', 'systems / infrastructure'],
+    ['15','Lyra',      'music / media / RoadBand'],
+    ['16','Sapphira',  'security / trust / access'],
+    ['17','Ophelia',   'research / memory / literature'],
+    ['18','Thalia',    'performance / theater / expression'],
+    ['19','Aria',      'voice / interface / creative signal'],
+    ['20','Seraphina', 'brand / creative / visual language'],
+    ['21','Gematria',  'Gemini runtime · math + symbolic + ledger'],
+    ['22','Cicero',    'rhetoric / public writing / argument'],
+    ['23','Portia',    'contracts / company / compliance'],
+    ['24','Theodosia', 'governance / institutional memory'],
+    ['25','Celeste',   'vision / planning / product architecture'],
+    ['26','Calliope',  'writing / narrative / publishing'],
+    ['27','Olympia',   'robotics / hexapod / physical systems'],
+  ];
+
+  const ORGS = [
+    ['01','BlackRoad-OS-Company',     'Public face / marketing site'],
+    ['02','BlackRoad-OS-Corporate',   'Legal entity, HR, contracts'],
+    ['03','BlackRoad-OS-Products',    'The 27-product live monorepo'],
+    ['04','BlackRoad-OS-Cloud',       'Cloudflare configs, Workers, Pages, R2/D1/KV'],
+    ['05','BlackRoad-OS-Network',     'Pi fleet, WireGuard, Tailscale, Headscale, mesh'],
+    ['06','BlackRoad-OS-Agents',      '27 agent personas, RoundAbout, RoadTrip'],
+    ['07','BlackRoad-OS-Code',        'RoadCode platform and Gitea'],
+    ['08','BlackRoad-OS-Data',        'OneWay ingestion, D1 schemas, MinIO, ETL'],
+    ['09','BlackRoad-OS-Memory',      'RoadChain, RoadBook, GloveBox, journaling, Lucidia memory'],
+    ['10','BlackRoad-OS-Studio',      'Lucidia Studio, BlackBoard, design system, pixel-foundry'],
+    ['11','BlackRoad-OS-Media',       'RoadBand, podcasts, video, RoadStream, RoadShow'],
+    ['12','BlackRoad-OS-Interactive', 'RoadWorld, OfficeRoad, RoadSport, BackRoad, CarPool'],
+    ['13','BlackRoad-OS-Hardware',    'Hailo-8, Pi configs, agent-react, drivers'],
+    ['14','BlackRoad-OS-Security',    'CarKeys, HighWay, secrets, auth boundary'],
+    ['15','BlackRoad-OS-Education',   'PitStop, Learning Commons, lessons, quizzes'],
+    ['16','BlackRoad-OS-Research',    'RoadMath, Amundson-AMF, Alice cosmology, whitepapers'],
+    ['17','BlackRoad-OS-Labs',        'Detour, experiments, prototypes'],
+    ['18','BlackRoad-OS-Foundation',  'RoadView, RoadSide, public-goods code'],
+    ['19','BlackRoad-OS-Ventures',    'RoadCoin, commerce, storefronts, ventures'],
+    ['20','BlackRoad-OS-Archive',     'Frozen / dead code archive'],
+  ];
+
+  const DOMAINS = [
+    ['01','blackroad.io',           'primary BlackRoad web/root'],
+    ['02','blackroad.company',      'corporate surface'],
+    ['03','blackroad.me',           'agent/persona subdomain surface'],
+    ['04','blackroad.network',      'network/mesh surface'],
+    ['05','blackroad.systems',      'systems/infrastructure surface'],
+    ['06','blackroadai.com',        'AI-facing'],
+    ['07','blackroadinc.us',        'US/incorporation-facing'],
+    ['08','blackroadqi.com',        'QI/quantum-intelligence'],
+    ['09','blackroadquantum.com',   'BlackRoad Quantum primary'],
+    ['10','blackroadquantum.info',  'BR Quantum info'],
+    ['11','blackroadquantum.net',   'BR Quantum network'],
+    ['12','blackroadquantum.shop',  'BR Quantum shop'],
+    ['13','blackroadquantum.store', 'BR Quantum store'],
+    ['14','blackboxprogramming.io', 'legacy umbrella / live monorepo'],
+    ['15','aliceqi.com',            'Alice/QI'],
+    ['16','lucidia.earth',          'Lucidia earth'],
+    ['17','lucidia.studio',         'Lucidia studio'],
+    ['18','lucidiaqi.com',          'Lucidia QI'],
+    ['19','roadchain.io',           'RoadChain root'],
+    ['20','roadcoin.io',            'RoadCoin root'],
+  ];
+
+  const PRODUCTS = [
+    ['01','RoadOS',     'os.blackroad.io',         'Browser-based computer in one tab'],
+    ['02','RoadCode',   'roadcode.blackroad.io',   'Code, preview, deploy, route'],
+    ['03','RoadTrip',   'roadtrip.blackroad.io',   'Human + 27-agent collaboration room'],
+    ['04','PitStop',    'pitstop.blackroad.io',    'Homework, tutoring, quizzes'],
+    ['05','RoadWork',   'roadwork.blackroad.io',   'Company ops + work collab'],
+    ['06','BackRoad',   'backroad.blackroad.io',   'Creator-first social + comments'],
+    ['07','CarKeys',    'carkeys.blackroad.io',    'Access, identity, permissions, keys'],
+    ['08','RoadBook',   'roadbook.blackroad.io',   'Publishing, peer review, knowledge'],
+    ['09','RoadWorld',  'roadworld.blackroad.io',  'Walkable worlds, maps, sims'],
+    ['10','RoadView',   'roadview.blackroad.io',   'Search, dashboards, analytics'],
+    ['11','RoadChain',  'roadchain.blackroad.io',  'Ledger, provenance, audit'],
+    ['12','RoadSide',   'roadside.blackroad.io',   'Support, helpdesk, front door'],
+    ['13','RoadCoin',   'roadcoin.blackroad.io',   'Credits, rewards, wallet'],
+    ['14','CarPool',    'carpool.blackroad.io',    'Human + AI project workspace'],
+    ['15','BlackBoard', 'blackboard.blackroad.io', 'Creative studio, design, media'],
+    ['16','OneWay',     'oneway.blackroad.io',     'One-way data bridge / ingestion'],
+    ['17','RoadBand',   'roadband.blackroad.io',   'AI music creation + production'],
+    ['18','HighWay',    'highway.blackroad.io',    'Platform bundle / cross-product backbone'],
+    ['19','OfficeRoad', 'officeroad.blackroad.io', 'Pixel office / workplace rooms'],
+    ['20','Roadie',     'roadie.blackroad.io',     'Personal operator assistant'],
+    ['21','Detour',     'detour.blackroad.io',     'Failover + continuity'],
+    ['22','RoadMap',    'roadmap.blackroad.io',    'Maps + planning, atlas, GIS'],
+    ['23','RoadShow',   'roadshow.blackroad.io',   'Public stage for in-progress work'],
+    ['24','RoadSport',  'roadsport.blackroad.io',  'Game, body, squad — fitness + fantasy'],
+    ['25','RoadStream', 'roadstream.blackroad.io', 'Unified streaming (sports/news/audio)'],
+    ['26','RoadWire',   'roadwire.blackroad.io',   'Unified comms / signal routing'],
+    ['27','RoundAbout', 'roundabout.blackroad.io', 'Navigation + decision routing'],
+  ];
+
+  /* ───────── CANON app ───────── */
+  function buildCanon(){
+    const root = document.createElement('div');
+    root.style.cssText = 'flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg)';
+    root.innerHTML = `
+      <style scoped>
+        .cn-head{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--card);position:relative}
+        .cn-head::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--g);opacity:.5}
+        .cn-title{font-size:18px;font-weight:700;color:var(--white);letter-spacing:-.01em}
+        .cn-title .grad{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .cn-sub{font-family:var(--jb);font-size:10.5px;color:var(--sub);margin-top:4px;letter-spacing:.04em}
+        .cn-op{margin-top:10px;display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;position:relative;overflow:hidden;max-width:520px}
+        .cn-op::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--g135)}
+        .cn-op .ava{width:30px;height:30px;border-radius:50%;background:var(--g135);display:grid;place-items:center;font-size:12px;font-weight:700;color:#000;flex-shrink:0}
+        .cn-op .nm{font-size:13px;font-weight:600;color:var(--white)}
+        .cn-op .rl{font-family:var(--jb);font-size:10.5px;color:var(--sub);margin-top:1px;letter-spacing:.04em}
+        .cn-tabs{display:flex;gap:0;background:var(--card);border-bottom:1px solid var(--border);padding:0 12px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+        .cn-tabs::-webkit-scrollbar{display:none}
+        .cn-tab{padding:10px 14px;font-family:var(--jb);font-size:11px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+        .cn-tab:hover{color:var(--white)}
+        .cn-tab.active{color:var(--white);border-bottom:2px solid transparent;border-image:var(--g) 1}
+        .cn-tab .count{margin-left:6px;color:var(--muted);font-size:10px}
+        .cn-body{flex:1;overflow-y:auto;padding:12px 14px;background:var(--bg)}
+        .cn-search{display:flex;gap:8px;margin-bottom:10px}
+        .cn-search input{flex:1;height:34px;padding:0 12px;background:var(--elevated);border:1px solid var(--border);border-radius:6px;color:var(--white);font-size:12.5px;font-family:var(--jb)}
+        .cn-search input::placeholder{color:var(--sub)}
+        .cn-table{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+        .cn-table thead th{position:sticky;top:0;background:var(--card);z-index:1}
+        .cn-table th{text-align:left;font-family:var(--jb);font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600}
+        .cn-table td{padding:9px 12px;font-size:12.5px;color:var(--text);border-bottom:1px solid var(--border);vertical-align:top}
+        .cn-table tr:last-child td{border-bottom:none}
+        .cn-table tr:hover td{background:var(--hover)}
+        .cn-table .num{font-family:var(--jb);font-size:11px;color:var(--sub);width:36px;font-weight:600}
+        .cn-table .nm{color:var(--white);font-weight:600;white-space:nowrap}
+        .cn-table .nm.grad{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+        .cn-table .mono{font-family:var(--jb);font-size:11px;color:var(--text);white-space:nowrap}
+        .cn-table .desc{color:var(--sub);line-height:1.45}
+        .cn-foot{padding:10px 14px;border-top:1px solid var(--border);background:var(--card);font-family:var(--jb);font-size:9.5px;color:var(--sub);letter-spacing:.05em}
+      </style>
+      <div class="cn-head">
+        <div class="cn-title">BlackRoad <span class="grad">Canon</span></div>
+        <div class="cn-sub">1 operator · 27 agents · 20 orgs · 20 domains · 27 products</div>
+        <div class="cn-op">
+          <div class="ava">A</div>
+          <div>
+            <div class="nm">${OPERATOR.name}</div>
+            <div class="rl">${OPERATOR.role}</div>
+          </div>
+        </div>
+      </div>
+      <div class="cn-tabs" data-tabs>
+        <div class="cn-tab active" data-tab="agents">Agents <span class="count">27</span></div>
+        <div class="cn-tab" data-tab="orgs">GitHub orgs <span class="count">20</span></div>
+        <div class="cn-tab" data-tab="domains">Root domains <span class="count">20</span></div>
+        <div class="cn-tab" data-tab="products">Products <span class="count">27</span></div>
+      </div>
+      <div class="cn-body" data-body></div>
+      <div class="cn-foot">Sources: 02-products/PRODUCT_REGISTRY.tsv · 04-domains/DOMAIN_REGISTRY.tsv · src/data/blackroad-canon.json · agent canon memory</div>
+    `;
+
+    const body = root.querySelector('[data-body]');
+    const tabs = root.querySelectorAll('.cn-tab');
+
+    function renderTable(tab, query=''){
+      const q = query.trim().toLowerCase();
+      const filt = (rows) => q ? rows.filter(r => r.some(c => String(c).toLowerCase().includes(q))) : rows;
+
+      let html = `<div class="cn-search"><input data-q placeholder="filter ${tab}…" value="${query.replace(/"/g,'&quot;')}"></div>`;
+      if (tab === 'agents'){
+        const rows = filt(AGENTS);
+        html += `<table class="cn-table">
+          <thead><tr><th class="num">#</th><th>Agent</th><th>Role</th></tr></thead>
+          <tbody>${rows.map(([n,nm,rl]) => `<tr><td class="num">${n}</td><td class="nm">${nm}</td><td class="desc">${rl}</td></tr>`).join('')}</tbody>
+        </table>`;
+      } else if (tab === 'orgs'){
+        const rows = filt(ORGS);
+        html += `<table class="cn-table">
+          <thead><tr><th class="num">#</th><th>Org</th><th>Owns</th></tr></thead>
+          <tbody>${rows.map(([n,o,d]) => `<tr><td class="num">${n}</td><td class="mono">${o}</td><td class="desc">${d}</td></tr>`).join('')}</tbody>
+        </table>`;
+      } else if (tab === 'domains'){
+        const rows = filt(DOMAINS);
+        html += `<table class="cn-table">
+          <thead><tr><th class="num">#</th><th>Domain</th><th>Purpose</th></tr></thead>
+          <tbody>${rows.map(([n,d,p]) => `<tr><td class="num">${n}</td><td class="mono">${d}</td><td class="desc">${p}</td></tr>`).join('')}</tbody>
+        </table>`;
+      } else if (tab === 'products'){
+        const rows = filt(PRODUCTS);
+        html += `<table class="cn-table">
+          <thead><tr><th class="num">#</th><th>Product</th><th>Domain</th><th>Purpose</th></tr></thead>
+          <tbody>${rows.map(([n,pr,dm,pu]) => `<tr><td class="num">${n}</td><td class="nm grad">${pr}</td><td class="mono">${dm}</td><td class="desc">${pu}</td></tr>`).join('')}</tbody>
+        </table>`;
+      }
+      body.innerHTML = html;
+      const inp = body.querySelector('[data-q]');
+      if (inp){
+        inp.addEventListener('input', () => renderTable(tab, inp.value));
+        // keep focus + caret position after re-render
+        inp.focus();
+        const v = inp.value; inp.setSelectionRange(v.length, v.length);
+      }
+    }
+
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.toggle('active', x === t));
+      renderTable(t.dataset.tab);
+    }));
+    renderTable('agents');
+    return root;
+  }
+
+  /* ───────── apps catalog ───────── */
+  // Built-in shell apps (have JS builders)
+  const BUILTINS = {
+    home:     { name:'BlackRoad 95', glyph:'BR', sub:'/ home',                          w:980, h:620, build: buildHome },
+    canon:    { name:'Canon',        glyph:'CN', sub:'/ operator · agents · orgs · domains · products', w:980, h:680, build: buildCanon },
+    roadside: { name:'RoadSide',     glyph:'RS', sub:'/ ask the road',                  w:900, h:620, build: buildRoadSide },
+    agents:   { name:'Agents',       glyph:'AG', sub:'/ Capitol Hill coffee research',  w:1080,h:640, build: buildAgent },
+  };
+
+  // ───────── HOSTED APP REGISTRY ─────────
+  // Single source of truth for every iframe-loaded app: id → { label, glyph, path }.
+  // `path` is the path on the canonical apps origin (APP_ORIGIN below). When a
+  // build.json hash is available for that path, we append ?v=<hash> as a
+  // cache-buster so users get the new app on next page load with no shell edit.
+  // Paths point at the deployed Pages slugs — Pages strips the `.html` suffix.
+  // To swap RoadTrip to the channels rebuild, change the path to '/roadtrip-v2'.
+  //
+  // APP_ORIGIN is the absolute origin we load apps from. Apps live on
+  // computer.blackroad.io regardless of where the shell is hosted (apex, www,
+  // or computer subdomain) — this keeps slug routing on apex (where individual
+  // workers like roadcoin-blackroad, roadbook-blackroad claim `/roadXXX*`)
+  // from intercepting iframe requests. iframes are cross-origin, which is
+  // fine — they don't need CORS to embed.
+  const APP_ORIGIN = 'https://computer.blackroad.io';
+  const OUR_APPS = [
+    { name:'RoadOS',     glyph:'OS', path:'/roados'     },
+    { name:'RoadCode',   glyph:'Cd', path:'/roadcode'   },
+    { name:'RoadTrip',   glyph:'Tr', path:'/roadtrip'   },
+    { name:'PitStop',    glyph:'PS', path:'/pitstop'    },
+    { name:'RoadView',   glyph:'Vw', path:'/roadview'   },
+    { name:'RoadBook',   glyph:'Bk', path:'/roadbook'   },
+    { name:'BackRoad',   glyph:'Br', path:'/backroad'   },
+    { name:'RoadWork',   glyph:'Wk', path:'/roadwork'   },
+    { name:'BlackBoard', glyph:'BB', path:'/blackboard' },
+    { name:'CarKeys',    glyph:'CK', path:'/carkeys'    },
+    { name:'CarPool',    glyph:'CP', path:'/carpool'    },
+    { name:'Detour',     glyph:'Dt', path:'/detour'     },
+    { name:'GloveBox',   glyph:'Gb', path:'/glovebox'   },
+    { name:'HighWay',    glyph:'Hw', path:'/highway'    },
+    { name:'OfficeRoad', glyph:'Of', path:'/officeroad' },
+    { name:'OneWay',     glyph:'1W', path:'/oneway'     },
+    { name:'RoadBand',   glyph:'Bd', path:'/roadband'   },
+    { name:'RoadChain',  glyph:'Ch', path:'/roadchain'  },
+    { name:'RoadCoin',   glyph:'Cn', path:'/roadcoin'   },
+    { name:'RoadMap',    glyph:'Mp', path:'/roadmap'    },
+    { name:'RoadShow',   glyph:'Sw', path:'/roadshow'   },
+    { name:'RoadSide',   glyph:'Sd', path:'/roadside'   },
+    { name:'RoadSport',  glyph:'Sp', path:'/roadsport'  },
+    { name:'RoadStream', glyph:'Sm', path:'/roadstream' },
+    { name:'RoadWire',   glyph:'Wr', path:'/roadwire'   },
+    { name:'RoadWorld',  glyph:'Wd', path:'/roadworld'  },
+    { name:'RoundAbout', glyph:'RA', path:'/roundabout' },
+  ];
+
+  // Combined view: id → app entry. Built-ins use their key as id ("home",
+  // "roadside", …); OurApps use "app:<Name>" so the launcher can route them
+  // through the iframe path. Keep this map as the single place to look up an
+  // app — do NOT hardcode paths or labels elsewhere in the shell.
+  const APP_REGISTRY = Object.assign(
+    {},
+    Object.fromEntries(Object.entries(BUILTINS).map(([k, a]) => [k, { kind:'builtin', ...a }])),
+    Object.fromEntries(OUR_APPS.map(a => [`app:${a.name}`, { kind:'iframe', label:a.name, ...a }])),
+  );
+
+  // ───────── MANIFEST LOADER ─────────
+  // build.json is the SHA-256 manifest emitted by scripts/build-manifest.js.
+  // We fetch it once on boot with cache:"no-store" so users always pick up
+  // the latest deploy; the per-file hash is then appended as ?v=<hash> to
+  // each iframe src. If the fetch fails (offline, proxied, blocked) we
+  // simply load apps with no query string — the shell still opens.
+  //
+  // SAFETY: we ONLY ever read hashes for paths that already exist in
+  // OUR_APPS. We never eval remote code or pull in scripts/links from the
+  // manifest. The manifest is treated as opaque key→hash data.
+  let MANIFEST_FILES = null;             // { "<rel-path>": "<sha256-hex>", ... } or null
+  async function loadManifest(){
+    try {
+      const res = await fetch(APP_ORIGIN + '/build.json', { cache: 'no-store' });
+      if (!res.ok) return;
+      const json = await res.json();
+      if (json && typeof json.files === 'object') MANIFEST_FILES = json.files;
+    } catch {
+      // Fall through — appUrl() will return the bare URL.
+    }
+  }
+  // Build an absolute URL on APP_ORIGIN. The manifest stores files by their
+  // on-disk name (e.g. "roadcoin.html"), so we look up `<slug>.html` for the
+  // hash even though we serve the canonical extension-stripped URL. Returns
+  // the bare URL on miss.
+  function appUrl(app){
+    const url = APP_ORIGIN + app.path;
+    if (!MANIFEST_FILES) return url;
+    const key = (app.path.startsWith('/') ? app.path.slice(1) : app.path) + '.html';
+    const h = MANIFEST_FILES[key];
+    return h ? `${url}?v=${h.slice(0, 16)}` : url;
+  }
+
+  /* ───────── app launching ───────── */
+  function launch(name){
+    if (BUILTINS[name]){
+      const a = BUILTINS[name];
+      const id = name === 'agents' ? 'agents' : name;
+      const offsets = { home:{x:60,y:50}, roadside:{x:120,y:80}, agents:{x:180,y:110} };
+      const o = offsets[name] || { x:80, y:60 };
+      openWindow(id, a.name, a.glyph, a.build(),
+        { sub:a.sub, x:o.x, y:o.y, w:a.w, h:a.h });
+      return;
+    }
+    if (name.startsWith('app:')){
+      const slug = name.slice(4);
+      const app = OUR_APPS.find(a => a.name === slug);
+      if (!app) return;
+      const id = `app:${slug}`;
+      // Cascade so multiple windows don't perfectly stack
+      const idx = wins.size;
+      const x = 200 + (idx % 6) * 24;
+      const y = 80  + (idx % 6) * 22;
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'flex:1;min-height:0;display:flex';
+      const iframe = document.createElement('iframe');
+      // Manifest-driven URL: /<slug>.html?v=<hash> when build.json loaded,
+      // bare /<slug>.html otherwise. New deploys → new hash → new app loads.
+      iframe.src = appUrl(app);
+      iframe.style.cssText = 'flex:1;border:0;background:#000;width:100%;height:100%';
+      iframe.setAttribute('referrerpolicy', 'no-referrer');
+      wrap.appendChild(iframe);
+      openWindow(id, app.name, app.glyph, wrap,
+        { sub:'/ '+app.path, x, y, w:1080, h:680 });
+    }
+  }
+
+  // wrap closeWindow to call ._stop on agent for clean shutdown
+  const _close = closeWindow;
+  // (we can't reassign const; keep existing close which removes the node — animation timers will exit)
+
+  /* ───────── render desktop icons + start menu rows ───────── */
+  const desktopIcons = document.getElementById('desktopIcons');
+  const startContent = document.querySelector('.start-menu-content');
+  function makeIcon(app, key){
+    const el = document.createElement('div');
+    el.className = 'icon';
+    el.dataset.app = key;
+    el.innerHTML = `<div class="icon-glyph">${app.glyph}</div><div class="icon-label">${app.name}</div>`;
+    el.addEventListener('click', e => { e.stopPropagation(); launch(key); });
+    el.addEventListener('dblclick', e => { e.stopPropagation(); launch(key); });
+    return el;
+  }
+  // built-ins first
+  Object.entries(BUILTINS).forEach(([key, a]) => desktopIcons.appendChild(makeIcon(a, key)));
+  // then OurApps
+  OUR_APPS.forEach(a => desktopIcons.appendChild(makeIcon(a, 'app:'+a.name)));
+
+  // re-bind start menu rows (they were authored static for built-ins) and
+  // append OurApps rows under a divider
+  document.querySelectorAll('.sm-row[data-app]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      launch(el.dataset.app);
+      document.getElementById('startMenu').classList.remove('open');
+      document.getElementById('startBtn').classList.remove('open');
+    });
+  });
+  // insert OurApps rows after the existing built-in rows + first divider
+  const ourDivider = document.createElement('div'); ourDivider.className = 'sm-divider';
+  startContent.appendChild(ourDivider);
+  const ourHeader = document.createElement('div');
+  ourHeader.style.cssText = 'padding:6px 12px;font-family:var(--jb);font-size:9.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase';
+  ourHeader.textContent = 'BlackRoad apps · 27';
+  startContent.appendChild(ourHeader);
+  OUR_APPS.forEach(a => {
+    const row = document.createElement('div');
+    row.className = 'sm-row';
+    row.dataset.app = 'app:'+a.name;
+    row.innerHTML = `<span class="glyph">${a.glyph}</span> ${a.name}`;
+    row.addEventListener('click', e => {
+      e.stopPropagation();
+      launch('app:'+a.name);
+      document.getElementById('startMenu').classList.remove('open');
+      document.getElementById('startBtn').classList.remove('open');
+    });
+    startContent.appendChild(row);
+  });
+
+  /* ───────── start menu ───────── */
+  const startBtn = document.getElementById('startBtn');
+  const startMenu = document.getElementById('startMenu');
+  startBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    startMenu.classList.toggle('open');
+    startBtn.classList.toggle('open');
+  });
+  document.addEventListener('click', () => {
+    startMenu.classList.remove('open');
+    startBtn.classList.remove('open');
+  });
+  document.querySelectorAll('.sm-row[data-act]').forEach(el => {
+    el.addEventListener('click', () => {
+      const act = el.dataset.act;
+      if (act === 'closeall'){
+        [...wins.keys()].forEach(id => closeWindow(id));
+      } else if (act === 'tile'){
+        const list = [...wins.values()].filter(w => !w.classList.contains('minimized'));
+        const cols = Math.ceil(Math.sqrt(list.length));
+        const rows = Math.ceil(list.length / cols);
+        const W = window.innerWidth, H = window.innerHeight - 50;
+        const cw = Math.floor(W/cols), ch = Math.floor(H/rows);
+        list.forEach((w, i) => {
+          const c = i % cols, r = Math.floor(i / cols);
+          w.style.left = (c*cw + 4) + 'px';
+          w.style.top = (r*ch + 4) + 'px';
+          w.style.width = (cw - 8) + 'px';
+          w.style.height = (ch - 8) + 'px';
+          w.dataset.maxed = '0';
+        });
+      }
+    });
+  });
+
+  /* ───────── tray clock ───────── */
+  function tickClock(){
+    const d = new Date();
+    document.getElementById('trayClock').textContent =
+      String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  tickClock(); setInterval(tickClock, 30000);
+
+  /* ───────── boot ───────── */
+  // Fetch the manifest first so the very first iframe load already carries a
+  // cache-busting hash. If the manifest fails, we still boot — apps just load
+  // from their bare /<slug>.html paths (req 4: shell must always open).
+  loadManifest().then(() => {
+    // open Home + Agents + RoadSide cascaded so the demo is alive on first paint
+    launch('home');
+    setTimeout(() => launch('agents'), 200);
+    setTimeout(() => launch('roadside'), 400);
+  });
+})();
+</script>
+</body>
+</html>
