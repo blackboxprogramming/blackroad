@@ -1,5 +1,5 @@
 {
-  "build_hash": "9ef9d618bbefc6b8335eb506e60c02b7eba4db8e9ad6b93b60b02c0bae973a3e",
+  "build_hash": "bcdbe4e30c89a35b946de14e69164eba1ac39026ceb08bd6e1e05011247d9515",
   "algo": "sha256/v1",
   "count": 740,
   "files": {
@@ -166,7 +166,7 @@
     "functions/api/chain/stats.js": "2586e50b4d0cd24c9bfbd8430c01e415a9c0289d5c1ea10ef7b516b075ac0072",
     "functions/api/chain/verify/[id].js": "b63f1c73508fe747f7131503498a314796c4f8744ba515470d76acfb150f06a0",
     "functions/api/chain/witness.js": "2c66de4cfa946c59b8b56fa5fca8497e7b0d2c90d509c67cc8b94dd13db3b9b0",
-    "functions/api/chat.js": "4f0ccad0aa122b0acb34cf1b40d6dfa2b3be40322f40c771bb065dc3a3771d3c",
+    "functions/api/chat.js": "e8d88a4563b3e3d2fce16342d997af7738312457ae8b9bcaa403c519b76aadcb",
     "functions/api/clipboard/index.js": "8137857486988ce81b3c635fac8c7f444bfff8825ebb14bbb9007bb61e41dc8c",
     "functions/api/coin/balance.js": "dac593628dc6a65d1b7b66dc7d8509fa62dacaf03bb65002888b765785f9771f",
     "functions/api/coin/earn.js": "d1b1032b034c385088f5f0a249ffb0144cf77a5e96c5271dea8585a1f1fbadb8",
@@ -740,9 +740,9 @@
     "static/stage-192.png": "4838e6ece62cb49c24a6224a76fdb1727a5d7c5d3d9770ec0d348027901ea6f6",
     "sw.js": "a3a33bea6e0f62b5d006d156acf78e77830e7dc50874c8ccd7f85236dba3949e",
     "verify.html": "8a245dcb7563fd06e1466c5fb4657883a811db785aad8a8cb1bf761bc3713a8e",
-    "version2.hosted.html": "d218ffb9523eb4da0b73ee26f1d2d668a98e84a9baafd057c8ff65a4605534af",
+    "version2.hosted.html": "a76854b8d6f5e35010008df3ea6fb134c8a5a6a7496270b763d4fff161110f14",
     "version2.html": "7de5f7d44e240969e9ccf2eac2b2e9993e93675e7457d45f3de8957a1362e845",
     "wrangler.toml": "0db9e3bd024aa36ec3a36b761de026274510bd581877e74e984a819d555be138"
   },
-  "built_at": "2026-05-10T04:51:26.509Z"
+  "built_at": "2026-05-10T05:10:16.532Z"
 }

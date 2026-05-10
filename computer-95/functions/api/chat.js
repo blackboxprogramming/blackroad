@@ -9,6 +9,13 @@
 
 import { chatStream, chatCompletion } from "../_llm.js";
 
+const CORS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST, GET, OPTIONS",
+  "access-control-allow-headers": "content-type, authorization",
+  "access-control-max-age": "86400",
+};
+
 const OLLAMA_TO_HF = {
   "roadlm:latest": "Qwen/Qwen2.5-72B-Instruct",
   "qwen2.5:72b": "Qwen/Qwen2.5-72B-Instruct",
@@ -49,7 +56,7 @@ export const onRequestPost = async ({ request, env }) => {
   if (!messages.length) {
     return new Response(JSON.stringify({ error: "messages required" }), {
       status: 400,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...CORS },
     });
   }
   const requestedModel = body.model || "";
@@ -67,7 +74,7 @@ export const onRequestPost = async ({ request, env }) => {
         model: requestedModel || usedModel,
         message: { role: "assistant", content },
         done: true,
-      }), { headers: { "content-type": "application/json" } });
+      }), { headers: { "content-type": "application/json", ...CORS } });
     } catch (e) {
       const fb = await workersAiFallback(env, { messages, model: hfModel });
       if (fb) {
@@ -75,10 +82,10 @@ export const onRequestPost = async ({ request, env }) => {
           model: requestedModel || fb.model,
           message: { role: "assistant", content: fb.content },
           done: true,
-        }), { headers: { "content-type": "application/json" } });
+        }), { headers: { "content-type": "application/json", ...CORS } });
       }
       return new Response(JSON.stringify({ error: e.message || "chat failed" }), {
-        status: 502, headers: { "content-type": "application/json" },
+        status: 502, headers: { "content-type": "application/json", ...CORS },
       });
     }
   }
@@ -142,11 +149,15 @@ export const onRequestPost = async ({ request, env }) => {
       "content-type": "application/x-ndjson",
       "cache-control": "no-store",
       "x-accel-buffering": "no",
+      ...CORS,
     },
   });
 };
 
 export const onRequestGet = () =>
   new Response(JSON.stringify({ endpoint: "/api/chat", methods: ["POST"], shape: "ollama" }), {
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", ...CORS },
   });
+
+export const onRequestOptions = () =>
+  new Response(null, { headers: CORS });
