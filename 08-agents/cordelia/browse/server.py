@@ -101,8 +101,17 @@ async def ws_endpoint(ws: WebSocket):
     stop_evt = asyncio.Event()
     snap_task = asyncio.create_task(screenshot_loop(ws, session, stop_evt))
 
+    # P4 take-over state. The planner respects pause_evt (set = paused).
+    # takeover.on means "operator drives" — planner is auto-paused; new
+    # message tasks are rejected; raw input messages are replayed via Playwright.
+    pause_evt = asyncio.Event()       # set → paused
+    takeover = {"on": False}
+
+    async def emit(payload: dict):
+        await ws.send_text(json.dumps(payload))
+
     try:
-        await ws.send_text(json.dumps({"type": "ready", "viewport": {"width": 1280, "height": 800}}))
+        await emit({"type": "ready", "viewport": {"width": 1280, "height": 800}})
         await session.goto("about:blank")
 
         while True:
@@ -110,7 +119,7 @@ async def ws_endpoint(ws: WebSocket):
             try:
                 msg = json.loads(raw)
             except json.JSONDecodeError:
-                await ws.send_text(json.dumps({"type": "error", "msg": "invalid json"}))
+                await emit({"type": "error", "msg": "invalid json"})
                 continue
 
             mtype = msg.get("type")
@@ -118,40 +127,79 @@ async def ws_endpoint(ws: WebSocket):
             if mtype == "tool":
                 name = msg.get("name")
                 args = msg.get("args") or {}
-                await ws.send_text(json.dumps({"type": "step", "verb": name.upper() if name else "?", "text": json.dumps(args), "status": "active"}))
+                await emit({"type": "step", "verb": name.upper() if name else "?", "text": json.dumps(args), "status": "active"})
                 result = await dispatch(session, name, args)
-                await ws.send_text(json.dumps({"type": "tool_result", "name": name, "result": result}))
-                await ws.send_text(json.dumps({"type": "step", "verb": name.upper() if name else "?", "text": json.dumps(args), "status": "done"}))
+                await emit({"type": "tool_result", "name": name, "result": result})
+                await emit({"type": "step", "verb": name.upper() if name else "?", "text": json.dumps(args), "status": "done"})
 
             elif mtype == "message":
+                if takeover["on"]:
+                    await emit({"type": "error", "msg": "operator has taken over — release with takeover_off first"})
+                    continue
                 text = (msg.get("text") or "").strip()
                 if not text:
-                    await ws.send_text(json.dumps({"type": "error", "msg": "empty message"}))
+                    await emit({"type": "error", "msg": "empty message"})
                     continue
                 fleet = Fleet()
                 pick = await fleet.pick()
                 if pick is None:
-                    await ws.send_text(json.dumps({
+                    await emit({
                         "type": "error",
                         "msg": "no fleet host has any preferred model. "
                                f"hosts={fleet.hosts} models={fleet.models}",
-                    }))
+                    })
                     continue
-
-                async def emit(payload: dict):
-                    await ws.send_text(json.dumps(payload))
-
                 try:
-                    await planner_run(text, session, pick, emit)
+                    await planner_run(text, session, pick, emit, pause_evt=pause_evt)
                 except Exception as e:
                     log.exception("planner failed")
-                    await ws.send_text(json.dumps({"type": "error", "msg": f"planner: {type(e).__name__}: {e}"}))
+                    await emit({"type": "error", "msg": f"planner: {type(e).__name__}: {e}"})
+
+            elif mtype == "pause":
+                pause_evt.set()
+                await emit({"type": "paused"})
+
+            elif mtype == "resume":
+                pause_evt.clear()
+                await emit({"type": "resumed"})
+
+            elif mtype == "takeover_on":
+                takeover["on"] = True
+                pause_evt.set()
+                await emit({"type": "takeover", "on": True})
+
+            elif mtype == "takeover_off":
+                takeover["on"] = False
+                pause_evt.clear()
+                await emit({"type": "takeover", "on": False})
+
+            elif mtype == "input":
+                if not takeover["on"]:
+                    await emit({"type": "error", "msg": "input ignored — takeover_on first"})
+                    continue
+                kind = msg.get("kind")
+                try:
+                    if kind == "move":
+                        await session.takeover_move(float(msg["x_pct"]), float(msg["y_pct"]))
+                    elif kind == "click":
+                        await session.takeover_click(float(msg["x_pct"]), float(msg["y_pct"]),
+                                                     button=msg.get("button", "left"))
+                    elif kind == "scroll":
+                        await session.takeover_scroll(int(msg.get("dy", 0)))
+                    elif kind == "type":
+                        await session.takeover_type(str(msg.get("text", "")))
+                    elif kind == "key":
+                        await session.takeover_key(str(msg.get("code", "")))
+                    else:
+                        await emit({"type": "error", "msg": f"unknown input kind: {kind}"})
+                except Exception as e:
+                    await emit({"type": "error", "msg": f"input {kind}: {type(e).__name__}: {e}"})
 
             elif mtype == "ping":
-                await ws.send_text(json.dumps({"type": "pong"}))
+                await emit({"type": "pong"})
 
             else:
-                await ws.send_text(json.dumps({"type": "error", "msg": f"unknown type: {mtype}"}))
+                await emit({"type": "error", "msg": f"unknown type: {mtype}"})
 
     except WebSocketDisconnect:
         log.info("ws disconnected")

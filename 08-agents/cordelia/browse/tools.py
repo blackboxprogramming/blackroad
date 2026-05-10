@@ -85,6 +85,34 @@ class BrowseSession:
         png = await self.page.screenshot(type="png", full_page=False)
         return base64.b64encode(png).decode("ascii")
 
+    # ── Take-over input replay (P4) ──
+    # The client forwards normalized (x_pct, y_pct) coords + key codes from
+    # the live screenshot canvas. We translate to viewport pixels and replay
+    # via Playwright. No "wait_for_load_state" here — operator drives the
+    # cadence and clicks may not navigate.
+
+    def _xy(self, x_pct: float, y_pct: float) -> tuple[int, int]:
+        vp = self.page.viewport_size or {"width": 1280, "height": 800}
+        return int(vp["width"] * x_pct), int(vp["height"] * y_pct)
+
+    async def takeover_move(self, x_pct: float, y_pct: float) -> None:
+        x, y = self._xy(x_pct, y_pct)
+        await self.page.mouse.move(x, y)
+
+    async def takeover_click(self, x_pct: float, y_pct: float, button: str = "left") -> None:
+        x, y = self._xy(x_pct, y_pct)
+        await self.page.mouse.click(x, y, button=button)
+
+    async def takeover_scroll(self, dy: int) -> None:
+        await self.page.mouse.wheel(0, dy)
+
+    async def takeover_type(self, text: str) -> None:
+        await self.page.keyboard.type(text, delay=15)
+
+    async def takeover_key(self, code: str) -> None:
+        # Playwright uses values like "Enter", "Tab", "ArrowDown", "Backspace".
+        await self.page.keyboard.press(code)
+
 
 TOOL_SCHEMAS = [
     {

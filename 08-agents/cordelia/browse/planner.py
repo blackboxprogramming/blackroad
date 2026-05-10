@@ -67,7 +67,10 @@ async def run(
     emit: EmitFn,
     *,
     max_steps: int = MAX_STEPS,
+    pause_evt: asyncio.Event | None = None,
 ) -> None:
+    """If pause_evt is provided, the planner blocks at the top of each step
+    until the event is cleared. server.py sets it on `pause` or `takeover_on`."""
     system = build_system_prompt(operator_name="Alexa", task_hint="version2.html Agent app")
     messages: list[dict[str, Any]] = [
         {"role": "system", "content": system},
@@ -77,6 +80,12 @@ async def run(
     await emit({"type": "plan", "model": pick.model, "host": pick.host})
 
     for step_idx in range(max_steps):
+        # Honor pause/takeover. We poll because the operator may resume any time
+        # and we'd like the planner to wake up promptly without holding a long
+        # blocking wait that fights cancellation.
+        while pause_evt is not None and pause_evt.is_set():
+            await asyncio.sleep(0.25)
+
         body = {
             "model": pick.model,
             "messages": messages,
