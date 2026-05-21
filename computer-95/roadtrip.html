@@ -1,0 +1,2770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadTrip — Remember the Road. Pave Tomorrow.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --g:linear-gradient(90deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+  --g135:linear-gradient(135deg,#FF6B2B,#FF2255,#CC00AA,#8844FF,#4488FF,#00D4FF);
+  --ember:#FF6B2B;--flare:#FF2255;--magenta:#CC00AA;--orchid:#8844FF;--arc:#4488FF;--cyan:#00D4FF;
+  --bg:#000;--card:#0a0a0a;--elevated:#111;--hover:#181818;--border:#1a1a1a;--border-2:#222;
+  --muted:#444;--sub:#737373;--text:#f5f5f5;--white:#fff;
+  --sg:'Space Grotesk',sans-serif;--jb:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sg);font-size:13px;line-height:1.5}
+button{font-family:var(--sg);cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:var(--sg);color:var(--text)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#222;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#333}
+
+/* === SHELL === */
+.app{display:grid;grid-template-rows:56px 1fr;height:100vh}
+.topbar{display:flex;align-items:center;gap:12px;padding:0 16px;border-bottom:1px solid var(--border);background:var(--card);position:relative;z-index:50}
+.topbar::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--g);opacity:.15}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:var(--white);padding-right:14px;border-right:1px solid var(--border);height:36px}
+.brand-bar{width:22px;height:4px;border-radius:2px;background:var(--g)}
+.tb-search{flex:1;max-width:520px;display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;color:var(--sub);cursor:pointer;transition:border-color .15s}
+.tb-search:hover{border-color:#2a2a2a}
+.tb-search-icon{width:14px;height:14px;flex-shrink:0;opacity:.6}
+.tb-search-text{flex:1;font-size:12px}
+.tb-search-kbd{font-family:var(--jb);font-size:10px;color:var(--muted);background:var(--card);padding:2px 6px;border-radius:3px;border:1px solid var(--border)}
+.tb-spacer{flex:1}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.icon-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;color:var(--sub);transition:all .12s;position:relative}
+.icon-btn:hover{background:var(--elevated);color:var(--white)}
+.icon-btn .dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--flare)}
+.tb-status{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--sub)}
+.tb-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:var(--g135);display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:11px;color:#000;cursor:pointer}
+
+/* === SPACES RAIL + MAIN === */
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:0}
+.rail{background:var(--card);border-right:1px solid var(--border);padding:14px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.rail-label{padding:10px 10px 6px;font-family:var(--jb);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.rail-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;color:var(--sub);font-size:13px;font-weight:500;cursor:pointer;transition:all .1s;position:relative}
+.rail-item:hover{background:var(--hover);color:var(--text)}
+.rail-item.active{background:var(--hover);color:var(--white)}
+.rail-item.active::before{content:'';position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:var(--g)}
+.rail-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.rail-key{margin-left:auto;font-family:var(--jb);font-size:9px;color:var(--muted);background:var(--elevated);padding:2px 6px;border-radius:3px}
+.rail-divider{height:1px;background:var(--border);margin:8px 4px}
+.rail-foot{margin-top:auto;padding:10px;border-top:1px solid var(--border);font-family:var(--jb);font-size:9px;color:var(--muted);line-height:1.5}
+.rail-foot-grad{height:2px;border-radius:1px;background:var(--g);opacity:.5;margin-bottom:8px}
+
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
+
+/* === SHARED ATOMS === */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;font-weight:600;font-size:12px;transition:all .12s;border:1px solid transparent}
+.btn-white{background:var(--white);color:#000}
+.btn-white:hover{background:#e5e5e5}
+.btn-dark{background:var(--elevated);color:var(--text);border-color:var(--border)}
+.btn-dark:hover{background:var(--hover);border-color:#2a2a2a}
+.btn-ghost{color:var(--sub)}
+.btn-ghost:hover{color:var(--white);background:var(--elevated)}
+.btn-grad{background:var(--g135);color:#000;font-weight:700}
+.btn-grad:hover{filter:brightness(1.1)}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:5px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-family:var(--jb)}
+.badge-line{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text)}
+.badge-line::before{content:'';width:10px;height:3px;border-radius:2px;background:var(--g)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-online{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.dot-focus{background:var(--orchid)}
+.dot-away{background:var(--ember)}
+.dot-offline{background:var(--muted)}
+.kbd{display:inline-flex;align-items:center;padding:1px 6px;background:var(--elevated);border:1px solid var(--border);border-radius:3px;font-family:var(--jb);font-size:10px;color:var(--sub)}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:500;background:var(--elevated);border:1px solid var(--border);color:var(--sub);font-family:var(--jb)}
+.avatar{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#000;flex-shrink:0;position:relative;overflow:hidden}
+.avatar-sm{width:22px;height:22px;font-size:9px}
+.avatar-lg{width:40px;height:40px;font-size:14px}
+.avatar-xl{width:56px;height:56px;font-size:18px}
+.avatar-stack{display:inline-flex}
+.avatar-stack .avatar{margin-left:-6px;border:2px solid var(--bg)}
+.avatar-stack .avatar:first-child{margin-left:0}
+
+/* === SPACE HEADER === */
+.space{display:flex;flex-direction:column;height:100%;min-height:0}
+.space-head{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--card);min-height:54px}
+.space-head-grad{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--g);opacity:.25}
+.space-title{font-weight:600;font-size:15px;color:var(--white);display:flex;align-items:center;gap:10px}
+.space-sub{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.space-tabs{display:flex;gap:0;align-items:center}
+.space-tab{padding:6px 14px;font-size:12px;font-weight:500;color:var(--sub);border-radius:6px;cursor:pointer;transition:all .1s}
+.space-tab:hover{color:var(--white)}
+.space-tab.active{color:var(--white);background:var(--elevated)}
+.space-body{flex:1;display:grid;min-height:0;overflow:hidden}
+
+/* === CONVOY === */
+.convoy{grid-template-columns:280px 1fr 300px}
+.cv-threads{border-right:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;min-height:0}
+.cv-thread-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.cv-thread-search{flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--text);outline:none}
+.cv-thread-list{flex:1;overflow-y:auto;padding:8px}
+.cv-thread-group{font-family:var(--jb);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;padding:10px 8px 6px}
+.cv-thread{display:block;padding:10px 12px;border-radius:7px;cursor:pointer;transition:background .1s;border:1px solid transparent;margin-bottom:2px}
+.cv-thread:hover{background:var(--hover)}
+.cv-thread.active{background:var(--hover);border-color:var(--border-2)}
+.cv-thread-row1{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.cv-thread-title{font-size:12px;font-weight:600;color:var(--white);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cv-thread-time{font-family:var(--jb);font-size:9px;color:var(--muted)}
+.cv-thread-snip{font-size:11px;color:var(--sub);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cv-thread-pins{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
+.cv-pin-chip{font-family:var(--jb);font-size:9px;padding:1px 6px;border-radius:3px;background:var(--elevated);border:1px solid var(--border);color:var(--sub)}
+
+.cv-chat{display:flex;flex-direction:column;min-height:0;min-width:0;position:relative}
+.cv-chat-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--card)}
+.cv-chat-title{font-weight:600;font-size:14px;color:var(--white)}
+.cv-chat-meta{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.cv-chat-pins{display:flex;gap:4px;align-items:center;margin-left:auto}
+.cv-stream{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:18px}
+.msg-user{align-self:flex-end;max-width:78%;background:var(--elevated);border:1px solid var(--border);border-radius:10px 10px 2px 10px;padding:10px 14px;font-size:13px;color:var(--text)}
+.msg-user-meta{font-family:var(--jb);font-size:9px;color:var(--muted);text-align:right;margin-top:4px;display:flex;gap:8px;justify-content:flex-end}
+.msg-row{display:flex;gap:12px;align-items:flex-start}
+.msg-agent-avatar{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#000;flex-shrink:0}
+.msg-agent-body{flex:1;min-width:0}
+.msg-agent-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.msg-agent-name{font-weight:600;font-size:12px;color:var(--white)}
+.msg-agent-time{font-family:var(--jb);font-size:9px;color:var(--muted)}
+.msg-bubble{background:var(--card);border:1px solid var(--border);border-radius:2px 10px 10px 10px;padding:10px 14px;font-size:13px;color:var(--text);line-height:1.65;position:relative;overflow:hidden}
+.msg-bubble::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--agent-color,var(--g))}
+.msg-bubble .receipt{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;font-family:var(--jb);font-size:9px;color:var(--muted)}
+
+.cv-convoy-grid{display:grid;gap:12px;grid-template-columns:repeat(2,1fr)}
+.lane{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;min-height:140px}
+.lane-head{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--elevated)}
+.lane-stripe{width:3px;height:14px;border-radius:2px}
+.lane-name{font-size:11px;font-weight:600;color:var(--white)}
+.lane-status{margin-left:auto;font-family:var(--jb);font-size:9px;color:var(--muted)}
+.lane-body{padding:10px 12px;font-size:12px;color:var(--text);line-height:1.6;flex:1}
+.lane-foot{padding:6px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;font-family:var(--jb);font-size:9px;color:var(--muted)}
+.synth-card{margin-top:6px;background:var(--card);border:1px solid var(--border-2);border-radius:8px;overflow:hidden}
+.synth-grad{height:3px;background:var(--g)}
+.synth-head{padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.synth-title{font-weight:700;font-size:12px;color:var(--white)}
+.synth-body{padding:14px;font-size:13px;color:var(--text);line-height:1.7}
+.synth-foot{padding:8px 14px;border-top:1px solid var(--border);display:flex;gap:10px;font-family:var(--jb);font-size:9px;color:var(--muted)}
+
+.cv-composer{padding:12px 18px;border-top:1px solid var(--border);background:var(--card)}
+.cv-composer-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.cv-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:12px;font-size:10px;font-weight:600;background:var(--elevated);border:1px solid var(--border);cursor:pointer;transition:all .1s}
+.cv-pill:hover{border-color:#333}
+.cv-pill.on{border-color:var(--orchid);color:var(--white)}
+.cv-pill .pdot{width:8px;height:8px;border-radius:50%}
+.cv-input-wrap{display:flex;align-items:flex-end;gap:8px;background:var(--elevated);border:1px solid var(--border);border-radius:10px;padding:8px 10px;transition:border-color .15s}
+.cv-input-wrap:focus-within{border-color:#333}
+.cv-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:13px;resize:none;max-height:200px;min-height:22px;line-height:1.5;padding:4px 0}
+.cv-actions{display:flex;align-items:center;gap:4px}
+.cv-mini-btn{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;color:var(--sub);transition:all .1s}
+.cv-mini-btn:hover{background:var(--hover);color:var(--white)}
+.cv-send{padding:6px 14px;background:var(--white);color:#000;border-radius:6px;font-weight:700;font-size:11px}
+.cv-send:hover{background:#e5e5e5}
+.cv-hint{margin-top:6px;font-family:var(--jb);font-size:9px;color:var(--muted);display:flex;gap:14px}
+
+.cv-right{border-left:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;min-height:0}
+.cv-right-tabs{display:flex;border-bottom:1px solid var(--border)}
+.cv-rt-tab{flex:1;padding:10px;font-size:11px;font-weight:600;color:var(--sub);text-align:center;cursor:pointer;border-bottom:2px solid transparent}
+.cv-rt-tab.active{color:var(--white);border-bottom-color:var(--white)}
+.cv-rt-body{flex:1;overflow-y:auto;padding:12px}
+.artifact{padding:10px 12px;border:1px solid var(--border);border-radius:7px;margin-bottom:8px;cursor:pointer;transition:all .1s;background:var(--elevated)}
+.artifact:hover{border-color:#2a2a2a}
+.artifact-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.artifact-icon{width:24px;height:24px;border-radius:5px;background:var(--card);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--sub)}
+.artifact-name{flex:1;font-size:12px;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artifact-kind{font-family:var(--jb);font-size:9px;color:var(--muted)}
+.artifact-meta{font-family:var(--jb);font-size:9px;color:var(--muted);display:flex;gap:8px}
+
+.agent-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;cursor:pointer;transition:background .1s}
+.agent-row:hover{background:var(--hover)}
+.agent-row .avatar{width:26px;height:26px;font-size:10px}
+.agent-meta{flex:1;min-width:0}
+.agent-name{font-size:12px;font-weight:600;color:var(--white);display:flex;align-items:center;gap:6px}
+.agent-role{font-size:10px;color:var(--sub)}
+
+/* === CHANNELS === */
+.channels{grid-template-columns:200px 1fr 240px}
+.ch-tree{background:var(--card);border-right:1px solid var(--border);overflow-y:auto;padding:10px 6px}
+.ch-ws-head{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:7px;background:var(--elevated);margin-bottom:10px}
+.ch-ws-icon{width:22px;height:22px;border-radius:5px;background:var(--g135);font-weight:700;color:#000;display:inline-flex;align-items:center;justify-content:center;font-size:10px}
+.ch-ws-name{font-weight:700;font-size:12px;color:var(--white);flex:1}
+.ch-section{margin-bottom:12px}
+.ch-section-head{display:flex;align-items:center;gap:6px;padding:4px 10px;font-family:var(--jb);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;cursor:pointer}
+.ch-row{display:flex;align-items:center;gap:7px;padding:5px 10px;border-radius:5px;font-size:12px;color:var(--sub);cursor:pointer;position:relative}
+.ch-row:hover{background:var(--hover);color:var(--text)}
+.ch-row.active{background:var(--hover);color:var(--white);font-weight:500}
+.ch-row.unread{color:var(--white);font-weight:600}
+.ch-row .ch-prefix{font-family:var(--jb);font-size:11px;color:var(--muted);width:12px;text-align:center}
+.ch-row.active .ch-prefix{color:var(--white)}
+.ch-row .ch-badge{margin-left:auto;font-family:var(--jb);font-size:9px;background:var(--flare);color:#fff;padding:0 5px;border-radius:8px;font-weight:700}
+
+.ch-stream{display:flex;flex-direction:column;min-height:0;background:var(--bg)}
+.ch-stream-head{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--card);min-height:54px}
+.ch-name{font-weight:700;font-size:14px;color:var(--white);display:flex;align-items:center;gap:6px}
+.ch-topic{font-size:11px;color:var(--sub);padding-left:10px;border-left:1px solid var(--border);max-width:340px}
+.ch-actions{margin-left:auto;display:flex;align-items:center;gap:4px}
+.ch-feed{flex:1;overflow-y:auto;padding:14px 20px;display:flex;flex-direction:column;gap:8px}
+.ch-msg{display:flex;gap:12px;padding:8px 8px;border-radius:7px;position:relative}
+.ch-msg:hover{background:#0c0c0c}
+.ch-msg-tools{position:absolute;top:-12px;right:14px;background:var(--card);border:1px solid var(--border);border-radius:6px;display:none;padding:2px}
+.ch-msg:hover .ch-msg-tools{display:flex;gap:1px}
+.ch-tool{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;color:var(--sub);font-size:11px}
+.ch-tool:hover{background:var(--hover);color:var(--white)}
+.ch-msg-body{flex:1;min-width:0}
+.ch-msg-head{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.ch-msg-name{font-weight:700;font-size:12px;color:var(--white)}
+.ch-msg-time{font-family:var(--jb);font-size:9px;color:var(--muted)}
+.ch-msg-text{font-size:13px;color:var(--text);line-height:1.6;word-wrap:break-word}
+.ch-msg-text .mention{color:var(--cyan);background:rgba(0,212,255,.08);padding:0 3px;border-radius:3px}
+.ch-msg-text code{font-family:var(--jb);font-size:11px;background:var(--elevated);padding:1px 5px;border-radius:3px}
+.ch-msg-reactions{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.ch-react{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:10px;background:var(--elevated);border:1px solid var(--border);font-size:10px;cursor:pointer;transition:all .1s}
+.ch-react:hover{border-color:#333}
+.ch-react.mine{border-color:var(--orchid);background:rgba(136,68,255,.12)}
+.ch-react-add{padding:2px 6px;color:var(--muted)}
+.ch-thread-link{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:4px 8px;border-radius:5px;background:var(--elevated);border:1px solid var(--border);font-size:11px;color:var(--cyan);cursor:pointer}
+.ch-thread-link:hover{border-color:#333}
+.ch-day{display:flex;align-items:center;gap:14px;margin:14px 0 6px}
+.ch-day-line{flex:1;height:1px;background:var(--border)}
+.ch-day-text{font-family:var(--jb);font-size:10px;color:var(--muted);padding:0 10px;border:1px solid var(--border);border-radius:10px;background:var(--card)}
+.ch-compose{padding:12px 18px;border-top:1px solid var(--border);background:var(--card)}
+.ch-compose-toolbar{display:flex;gap:2px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.ch-cb{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;color:var(--sub);font-family:var(--jb);font-size:11px}
+.ch-cb:hover{background:var(--hover);color:var(--white)}
+.ch-compose-input{display:flex;gap:8px;align-items:flex-end}
+.ch-compose-input textarea{flex:1;background:var(--elevated);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;outline:none;resize:none;min-height:38px;max-height:160px;line-height:1.5}
+.ch-compose-input textarea:focus{border-color:#333}
+.ch-members{background:var(--card);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;min-height:0}
+.ch-mem-head{padding:12px 14px;border-bottom:1px solid var(--border);font-family:var(--jb);font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.ch-mem-list{flex:1;overflow-y:auto;padding:8px 6px}
+.ch-mem-group{font-family:var(--jb);font-size:9px;color:var(--muted);padding:8px 10px 4px;text-transform:uppercase;letter-spacing:.1em}
+.ch-mem{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:5px;cursor:pointer}
+.ch-mem:hover{background:var(--hover)}
+.ch-mem-name{font-size:12px;color:var(--text)}
+.ch-mem-status{font-size:10px;color:var(--muted);margin-left:auto}
+
+/* === HUDDLE === */
+.huddle{grid-template-columns:1fr 280px}
+.hd-stage{display:flex;flex-direction:column;min-height:0;background:#050505}
+.hd-stage-head{padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);background:var(--card)}
+.hd-meet-name{font-weight:600;font-size:13px;color:var(--white)}
+.hd-rec{display:inline-flex;align-items:center;gap:6px;font-family:var(--jb);font-size:10px;color:var(--flare);font-weight:600}
+.hd-rec::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--flare);box-shadow:0 0 8px var(--flare);animation:rec-pulse 1.4s infinite}
+@keyframes rec-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.hd-timer{font-family:var(--jb);font-size:11px;color:var(--sub)}
+.hd-grid{flex:1;display:grid;grid-template-columns:2fr 1fr;gap:8px;padding:8px;min-height:0;overflow:hidden}
+.hd-share{background:#080808;border:1px solid var(--border);border-radius:10px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hd-share-fake{width:90%;height:88%;background:linear-gradient(135deg,#0a0a0a,#080808);border:1px solid #1a1a1a;border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:12px;font-family:var(--jb);font-size:11px;color:#666;position:relative}
+.hd-share-fake::before{content:'screen — pages.roadtrip / Q3 ROADMAP';position:absolute;top:-22px;left:8px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+.hd-share-line{height:8px;background:var(--elevated);border-radius:2px}
+.hd-share-line.short{width:60%}
+.hd-share-line.med{width:80%}
+.hd-share-h{height:14px;width:40%;background:var(--g);border-radius:2px;opacity:.6}
+.hd-share-grad{position:absolute;top:0;left:0;right:0;height:2px;background:var(--g);opacity:.4}
+.hd-tiles{display:grid;grid-template-rows:repeat(3,1fr);gap:8px;min-height:0}
+.hd-tile{background:var(--card);border:1px solid var(--border);border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.hd-tile-bg{position:absolute;inset:0;opacity:.6}
+.hd-tile .tile-init{position:relative;font-weight:800;font-size:32px;color:#000;text-shadow:0 1px 0 rgba(255,255,255,.3)}
+.hd-tile-name{position:absolute;left:8px;bottom:8px;font-size:11px;font-weight:600;color:var(--white);background:rgba(0,0,0,.55);padding:2px 8px;border-radius:4px;backdrop-filter:blur(4px)}
+.hd-tile-mic{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.55);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--white);backdrop-filter:blur(4px)}
+.hd-tile-mic.muted{color:var(--flare)}
+.hd-tile.speaking{box-shadow:0 0 0 2px var(--cyan)}
+.hd-captions{padding:10px 16px;border-top:1px solid var(--border);background:var(--card);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)}
+.hd-cc-name{font-weight:700;color:var(--cyan)}
+.hd-controls{padding:10px 16px;border-top:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;gap:6px}
+.hd-ctl{width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--elevated);border:1px solid var(--border);color:var(--text);font-size:14px;cursor:pointer}
+.hd-ctl:hover{background:var(--hover)}
+.hd-ctl.on{background:var(--white);color:#000;border-color:var(--white)}
+.hd-ctl.danger{background:var(--flare);color:#fff;border-color:var(--flare);width:auto;padding:0 18px;border-radius:21px;font-weight:600;font-size:12px}
+.hd-rail{background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.hd-rail-tabs{display:flex;border-bottom:1px solid var(--border)}
+.hd-rt{flex:1;padding:10px;font-size:11px;font-weight:600;color:var(--sub);text-align:center;cursor:pointer;border-bottom:2px solid transparent}
+.hd-rt.active{color:var(--white);border-bottom-color:var(--white)}
+.hd-rail-body{flex:1;overflow-y:auto;padding:12px}
+.poll{padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;background:var(--elevated)}
+.poll-q{font-size:12px;font-weight:600;color:var(--white);margin-bottom:8px}
+.poll-opt{margin-bottom:6px}
+.poll-opt-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
+.poll-bar{height:4px;background:var(--card);border-radius:2px;overflow:hidden}
+.poll-fill{height:100%;background:var(--g);border-radius:2px}
+.breakout{padding:10px 12px;border:1px solid var(--border);border-radius:7px;margin-bottom:8px;background:var(--elevated)}
+.breakout-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.breakout-name{font-size:12px;font-weight:600;color:var(--white)}
+.breakout-count{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.hd-chat-msg{padding:6px 0;border-bottom:1px solid var(--border)}
+.hd-chat-meta{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.hd-chat-name{font-size:11px;font-weight:700;color:var(--white)}
+.hd-chat-time{font-family:var(--jb);font-size:9px;color:var(--muted)}
+.hd-chat-text{font-size:12px;color:var(--text);line-height:1.5}
+
+/* === PAGES === */
+.pages{grid-template-columns:220px 1fr 260px}
+.pg-tree{background:var(--card);border-right:1px solid var(--border);overflow-y:auto;padding:10px 4px}
+.pg-tree-head{padding:8px 10px;font-family:var(--jb);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.pg-tree-item{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:5px;font-size:12px;color:var(--sub);cursor:pointer;position:relative}
+.pg-tree-item:hover{background:var(--hover);color:var(--text)}
+.pg-tree-item.active{background:var(--hover);color:var(--white);font-weight:500}
+.pg-tree-item.nested{padding-left:24px}
+.pg-tree-item.nested-2{padding-left:38px}
+.pg-tree-icon{width:14px;font-size:10px;text-align:center;color:var(--muted)}
+.pg-doc-wrap{overflow-y:auto;display:flex;flex-direction:column}
+.pg-doc{max-width:760px;margin:0 auto;padding:48px 60px;width:100%}
+.pg-cover{height:140px;background:var(--g);opacity:.55;border-radius:10px;margin-bottom:32px}
+.pg-icon{font-size:48px;margin-bottom:14px}
+.pg-doc h1{font-size:36px;font-weight:700;color:var(--white);margin-bottom:12px;line-height:1.2}
+.pg-doc h2{font-size:22px;font-weight:600;color:var(--white);margin:28px 0 10px;line-height:1.3}
+.pg-doc h3{font-size:17px;font-weight:600;color:var(--white);margin:20px 0 8px}
+.pg-doc p{font-size:14px;color:#d0d0d0;line-height:1.75;margin-bottom:12px}
+.pg-block{position:relative;padding:2px 0}
+.pg-block:hover .pg-block-handle{opacity:1}
+.pg-block-handle{position:absolute;left:-32px;top:6px;display:flex;gap:2px;opacity:0;transition:opacity .1s}
+.pg-bh{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);border-radius:3px;font-size:11px;cursor:pointer}
+.pg-bh:hover{background:var(--hover)}
+.pg-callout{display:flex;gap:14px;padding:14px 18px;border:1px solid var(--border);border-radius:8px;background:var(--card);margin:14px 0;align-items:flex-start;position:relative;overflow:hidden}
+.pg-callout::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--g)}
+.pg-callout-icon{font-size:18px;line-height:1}
+.pg-callout-text{flex:1;font-size:13px;color:var(--text);line-height:1.7}
+.pg-code{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin:14px 0;font-family:var(--jb);font-size:12px;color:var(--text);line-height:1.7;overflow-x:auto}
+.pg-code-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--jb);font-size:10px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.pg-toggle{margin:8px 0}
+.pg-toggle-head{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--text);font-weight:500}
+.pg-toggle-arrow{transition:transform .15s}
+.pg-toggle.open .pg-toggle-arrow{transform:rotate(90deg)}
+.pg-toggle-body{display:none;padding:8px 0 8px 24px;font-size:13px;color:var(--sub);line-height:1.7}
+.pg-toggle.open .pg-toggle-body{display:block}
+.pg-quote{border-left:3px solid;border-image:var(--g) 1;padding:6px 16px;margin:14px 0;font-size:14px;color:var(--sub);font-style:italic}
+.pg-list{margin:8px 0 14px 24px;font-size:14px;color:#d0d0d0;line-height:1.8}
+.pg-divider{height:2px;background:var(--g);opacity:.15;border-radius:1px;margin:24px 0}
+.pg-embed{display:flex;gap:14px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);margin:12px 0;cursor:pointer}
+.pg-embed:hover{border-color:#2a2a2a}
+.pg-embed-thumb{width:64px;height:64px;border-radius:6px;background:var(--g);opacity:.7;flex-shrink:0}
+.pg-embed-meta{flex:1;min-width:0}
+.pg-embed-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px}
+.pg-embed-desc{font-size:11px;color:var(--sub);margin-bottom:6px}
+.pg-embed-url{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.pg-db{margin:14px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.pg-db-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--card)}
+.pg-db-title{font-size:12px;font-weight:700;color:var(--white)}
+.pg-db-views{display:flex;gap:4px;margin-left:auto}
+.pg-db-view{padding:3px 8px;font-size:10px;border-radius:4px;color:var(--sub);cursor:pointer}
+.pg-db-view.active{background:var(--elevated);color:var(--white)}
+.pg-db-table{width:100%;border-collapse:collapse;font-size:12px}
+.pg-db-table th{text-align:left;padding:8px 14px;font-family:var(--jb);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--card);border-bottom:1px solid var(--border);font-weight:600}
+.pg-db-table td{padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+.pg-db-table tr:last-child td{border-bottom:none}
+.pg-status{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--elevated);border:1px solid var(--border)}
+.pg-props{background:var(--card);border-left:1px solid var(--border);overflow-y:auto;padding:14px}
+.pg-props-head{font-family:var(--jb);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.pg-prop{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.pg-prop:last-child{border-bottom:none}
+.pg-prop-key{font-size:11px;color:var(--sub);width:80px;flex-shrink:0}
+.pg-prop-val{font-size:12px;color:var(--text)}
+.pg-comments-head{font-family:var(--jb);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin:18px 0 10px}
+.pg-comment{padding:10px 0;border-bottom:1px solid var(--border)}
+.pg-comment-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.pg-comment-name{font-size:11px;font-weight:700;color:var(--white)}
+.pg-comment-time{font-family:var(--jb);font-size:9px;color:var(--muted)}
+.pg-comment-text{font-size:12px;color:var(--text);line-height:1.6}
+
+/* === CANVAS === */
+.canvas-space{grid-template-columns:1fr 220px}
+.cnv-area{position:relative;overflow:hidden;background:#080808;background-image:radial-gradient(circle at center,#1a1a1a 1px,transparent 1px);background-size:20px 20px}
+.cnv-toolbar{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;display:flex;gap:2px;z-index:10;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.cnv-tool{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;color:var(--sub);font-size:13px}
+.cnv-tool:hover{background:var(--hover);color:var(--white)}
+.cnv-tool.active{background:var(--white);color:#000}
+.cnv-zoom{position:absolute;bottom:14px;right:14px;background:var(--card);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;padding:2px;z-index:10}
+.cnv-zoom-btn{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:5px;color:var(--sub);font-size:13px}
+.cnv-zoom-btn:hover{background:var(--hover);color:var(--white)}
+.cnv-zoom-val{padding:0 8px;font-family:var(--jb);font-size:11px;color:var(--sub)}
+.cnv-mini{position:absolute;bottom:14px;left:14px;width:160px;height:100px;background:var(--card);border:1px solid var(--border);border-radius:6px;z-index:10;padding:6px;font-family:var(--jb);font-size:9px;color:var(--muted)}
+.cnv-frame{position:absolute;border:1.5px dashed var(--border-2);border-radius:6px;padding:10px}
+.cnv-frame-label{position:absolute;top:-22px;left:0;font-family:var(--jb);font-size:10px;color:var(--sub);background:var(--bg);padding:2px 6px;border-radius:3px}
+.cnv-sticky{position:absolute;width:140px;min-height:100px;padding:12px;border-radius:4px;font-size:12px;line-height:1.4;color:#000;font-weight:500;cursor:grab;box-shadow:0 4px 12px rgba(0,0,0,.5);transform:rotate(var(--rot,0deg))}
+.cnv-sticky.s-yellow{background:#FFE680}
+.cnv-sticky.s-pink{background:#FFB3D9}
+.cnv-sticky.s-blue{background:#A8D8FF}
+.cnv-sticky.s-green{background:#B6F2C5}
+.cnv-sticky.s-orange{background:#FFC59E}
+.cnv-sticky-head{font-family:var(--jb);font-size:9px;color:rgba(0,0,0,.5);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em}
+.cnv-shape{position:absolute;border:2px solid var(--cyan);border-radius:6px;background:rgba(0,212,255,.06);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--white);font-weight:600}
+.cnv-shape.circle{border-radius:50%}
+.cnv-arrow{position:absolute;pointer-events:none}
+.cnv-cursor{position:absolute;pointer-events:none;display:flex;align-items:flex-start;gap:0;z-index:20;transition:left .8s,top .8s}
+.cnv-cursor-icon{width:14px;height:14px;color:var(--cyan);transform:rotate(-12deg)}
+.cnv-cursor-label{margin-left:14px;margin-top:14px;background:var(--cyan);color:#000;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.cnv-cursor.c-magenta .cnv-cursor-icon{color:var(--magenta)}
+.cnv-cursor.c-magenta .cnv-cursor-label{background:var(--magenta);color:#fff}
+.cnv-cursor.c-orchid .cnv-cursor-icon{color:var(--orchid)}
+.cnv-cursor.c-orchid .cnv-cursor-label{background:var(--orchid);color:#fff}
+.cnv-cursor.c-ember .cnv-cursor-icon{color:var(--ember)}
+.cnv-cursor.c-ember .cnv-cursor-label{background:var(--ember);color:#000}
+.cnv-layers{background:var(--card);border-left:1px solid var(--border);overflow-y:auto;padding:10px}
+.cnv-l-head{font-family:var(--jb);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;padding:6px 8px;margin-bottom:6px}
+.cnv-l-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;font-size:12px;color:var(--sub);cursor:pointer}
+.cnv-l-row:hover{background:var(--hover);color:var(--text)}
+.cnv-l-icon{width:16px;text-align:center;font-size:11px;color:var(--muted)}
+.cnv-l-vis{margin-left:auto;font-size:10px;color:var(--muted)}
+
+/* === TRACKS === */
+.tracks{grid-template-columns:180px 1fr}
+.tracks.with-panel{grid-template-columns:180px 1fr 320px}
+.tk-side{background:var(--card);border-right:1px solid var(--border);overflow-y:auto;padding:12px 6px}
+.tk-side-h{padding:8px 10px;font-family:var(--jb);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:10px}
+.tk-side-h:first-child{margin-top:0}
+.tk-side-row{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:5px;font-size:12px;color:var(--sub);cursor:pointer}
+.tk-side-row:hover{background:var(--hover);color:var(--text)}
+.tk-side-row.active{background:var(--hover);color:var(--white);font-weight:500}
+.tk-side-icon{width:14px;text-align:center;font-size:10px}
+.tk-side-count{margin-left:auto;font-family:var(--jb);font-size:9px;color:var(--muted)}
+.tk-main{display:flex;flex-direction:column;min-height:0;min-width:0}
+.tk-toolbar{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--card)}
+.tk-views{display:flex;background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:2px}
+.tk-view{padding:5px 12px;font-size:11px;font-weight:600;color:var(--sub);border-radius:4px;cursor:pointer}
+.tk-view.active{background:var(--card);color:var(--white)}
+.tk-filter{padding:5px 10px;font-size:11px;color:var(--sub);border:1px solid var(--border);border-radius:5px;background:var(--elevated);cursor:pointer}
+.tk-content{flex:1;overflow:auto}
+.tk-list-row{display:grid;grid-template-columns:60px 24px 1fr 100px 70px 70px 100px 80px;gap:12px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;transition:background .1s}
+.tk-list-row:hover{background:#0c0c0c}
+.tk-list-row.selected{background:var(--hover)}
+.tk-list-head{font-family:var(--jb);font-size:9px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);background:var(--card);position:sticky;top:0;z-index:1}
+.tk-id{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.tk-pri{font-size:11px;text-align:center}
+.tk-pri.urgent{color:var(--flare)}
+.tk-pri.high{color:var(--ember)}
+.tk-pri.med{color:var(--cyan)}
+.tk-pri.low{color:var(--sub)}
+.tk-title{font-size:12px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text)}
+.tk-status-dot{width:8px;height:8px;border-radius:50%}
+.tk-status-dot.backlog{border:2px solid var(--muted);background:transparent;width:10px;height:10px}
+.tk-status-dot.todo{border:2px solid var(--sub);background:transparent;width:10px;height:10px}
+.tk-status-dot.progress{background:conic-gradient(var(--cyan) 60%,var(--elevated) 0)}
+.tk-status-dot.review{background:conic-gradient(var(--orchid) 80%,var(--elevated) 0)}
+.tk-status-dot.done{background:var(--cyan)}
+.tk-labels{display:flex;gap:4px;flex-wrap:wrap}
+.tk-label{font-family:var(--jb);font-size:9px;padding:1px 6px;border-radius:3px;background:var(--elevated);border:1px solid var(--border)}
+.tk-label.bug{color:var(--flare);border-color:rgba(255,34,85,.3)}
+.tk-label.feature{color:var(--cyan);border-color:rgba(0,212,255,.3)}
+.tk-label.design{color:var(--magenta);border-color:rgba(204,0,170,.3)}
+.tk-label.infra{color:var(--ember);border-color:rgba(255,107,43,.3)}
+.tk-due{font-family:var(--jb);font-size:10px;color:var(--sub)}
+
+.tk-board{display:flex;gap:12px;padding:14px;height:100%;overflow-x:auto;align-items:flex-start}
+.tk-col{flex-shrink:0;width:280px;display:flex;flex-direction:column;background:#070707;border:1px solid var(--border);border-radius:8px;max-height:100%}
+.tk-col-head{padding:10px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.tk-col-name{font-size:11px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.06em}
+.tk-col-count{font-family:var(--jb);font-size:10px;color:var(--muted);margin-left:auto}
+.tk-col-list{padding:8px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;flex:1}
+.tk-card{padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:border-color .1s}
+.tk-card:hover{border-color:#2a2a2a}
+.tk-card-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.tk-card-id{font-family:var(--jb);font-size:9px;color:var(--muted)}
+.tk-card-pri{margin-left:auto;font-size:10px}
+.tk-card-title{font-size:12px;color:var(--text);font-weight:500;line-height:1.4;margin-bottom:8px}
+.tk-card-foot{display:flex;align-items:center;gap:6px}
+
+.tk-roadmap{padding:18px;height:100%;overflow:auto}
+.tk-rm-head{display:flex;border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:12px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+.tk-rm-title-col{width:200px;flex-shrink:0}
+.tk-rm-grid{flex:1;display:grid;grid-template-columns:repeat(12,1fr);gap:0;text-align:center;text-transform:uppercase;letter-spacing:.06em}
+.tk-rm-grid div{border-left:1px solid var(--border);padding:0 4px}
+.tk-rm-row{display:flex;align-items:center;height:42px;border-bottom:1px solid var(--border)}
+.tk-rm-name{width:200px;flex-shrink:0;font-size:12px;color:var(--white);font-weight:600}
+.tk-rm-track{flex:1;position:relative;height:24px}
+.tk-rm-bar{position:absolute;height:100%;border-radius:5px;display:flex;align-items:center;padding:0 10px;font-size:10px;font-weight:600;color:#000;font-family:var(--jb)}
+
+.tk-panel{background:var(--card);border-left:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;min-height:0}
+.tk-p-head{padding:14px 16px;border-bottom:1px solid var(--border)}
+.tk-p-id{font-family:var(--jb);font-size:10px;color:var(--muted);margin-bottom:6px}
+.tk-p-title{font-size:15px;font-weight:600;color:var(--white);line-height:1.4;margin-bottom:10px}
+.tk-p-meta{display:flex;flex-wrap:wrap;gap:6px}
+.tk-p-body{padding:14px 16px;font-size:13px;color:var(--text);line-height:1.7}
+.tk-p-section{padding:14px 16px;border-top:1px solid var(--border)}
+.tk-p-sec-h{font-family:var(--jb);font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.tk-p-prop{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px}
+.tk-p-prop-k{width:84px;color:var(--sub);font-size:11px}
+.tk-p-sub{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;font-size:12px}
+.tk-p-sub:hover{background:var(--hover)}
+.tk-p-sub-id{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.tk-p-sub-title{flex:1;color:var(--text)}
+
+/* === TASKS === */
+.tasks{grid-template-columns:200px 1fr}
+.ts-side{background:var(--card);border-right:1px solid var(--border);overflow-y:auto;padding:12px 6px}
+.ts-main{display:flex;flex-direction:column;min-height:0;min-width:0}
+.ts-toolbar{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--card)}
+.ts-content{flex:1;overflow:auto}
+
+.ts-list-section{margin-bottom:8px}
+.ts-list-shead{padding:10px 16px;font-size:11px;font-weight:700;color:var(--white);background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px}
+.ts-list-shead-count{font-family:var(--jb);font-size:10px;color:var(--muted);font-weight:500}
+.ts-row{display:grid;grid-template-columns:24px 1fr 110px 80px 80px 70px;gap:12px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;transition:background .1s}
+.ts-row:hover{background:#0c0c0c}
+.ts-check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--sub);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:10px}
+.ts-check.done{background:var(--cyan);border-color:var(--cyan);color:#000}
+.ts-row.done .ts-title{color:var(--muted);text-decoration:line-through}
+.ts-title{font-size:12px;color:var(--text);font-weight:500}
+.ts-add{padding:8px 16px;font-size:12px;color:var(--muted);cursor:pointer}
+.ts-add:hover{color:var(--white);background:#0c0c0c}
+
+.ts-board{display:flex;gap:12px;padding:14px;height:100%;overflow-x:auto;align-items:flex-start}
+
+.ts-tl{padding:18px;height:100%;overflow:auto;min-width:900px}
+.ts-tl-head{display:flex;border-bottom:1px solid var(--border);margin-bottom:8px}
+.ts-tl-name-col{width:220px;flex-shrink:0;padding:10px 0;font-family:var(--jb);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.ts-tl-days{flex:1;display:grid;grid-template-columns:repeat(28,1fr);font-family:var(--jb);font-size:9px;color:var(--muted);text-align:center;padding:10px 0}
+.ts-tl-row{display:flex;height:36px;border-bottom:1px solid var(--border);align-items:center}
+.ts-tl-name{width:220px;flex-shrink:0;font-size:12px;color:var(--text);font-weight:500;padding-right:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-tl-track{flex:1;position:relative;height:24px}
+.ts-tl-bar{position:absolute;height:100%;border-radius:4px;background:var(--g);opacity:.85;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:600;color:#000}
+.ts-tl-dep{position:absolute;border-top:1.5px dashed var(--orchid);pointer-events:none}
+
+.ts-cal{padding:18px;height:100%;overflow:auto}
+.ts-cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-family:var(--jb);font-size:10px;color:var(--muted);padding:8px 0;text-transform:uppercase;letter-spacing:.08em;text-align:center}
+.ts-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:120px;gap:1px;background:var(--border)}
+.ts-cal-day{background:#070707;padding:6px 8px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.ts-cal-day.other{background:#040404;color:var(--muted)}
+.ts-cal-day.today{background:var(--card)}
+.ts-cal-num{font-family:var(--jb);font-size:11px;color:var(--sub);font-weight:600}
+.ts-cal-day.today .ts-cal-num{color:var(--white)}
+.ts-cal-chip{padding:3px 6px;border-radius:3px;font-size:10px;color:#000;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* === INBOX === */
+.inbox{grid-template-columns:1fr}
+.ib-wrap{display:flex;flex-direction:column;min-height:0}
+.ib-toolbar{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--card);overflow-x:auto}
+.ib-chip{padding:5px 12px;font-size:11px;font-weight:600;color:var(--sub);background:var(--elevated);border:1px solid var(--border);border-radius:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.ib-chip:hover{border-color:#333}
+.ib-chip.active{background:var(--white);color:#000;border-color:var(--white)}
+.ib-chip-count{font-family:var(--jb);font-size:9px;background:rgba(0,0,0,.18);padding:1px 5px;border-radius:8px}
+.ib-chip:not(.active) .ib-chip-count{background:var(--card);color:var(--muted)}
+.ib-list{flex:1;overflow-y:auto}
+.ib-item{display:grid;grid-template-columns:30px 110px 1fr 80px 200px;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.ib-item:hover{background:#0c0c0c}
+.ib-item.unread{background:rgba(68,136,255,.03)}
+.ib-item.unread .ib-snip{color:var(--white)}
+.ib-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--g)}
+.ib-item{position:relative}
+.ib-src{width:30px;height:30px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;background:var(--elevated);border:1px solid var(--border)}
+.ib-meta{font-size:11px;color:var(--sub)}
+.ib-meta strong{color:var(--white);font-weight:700}
+.ib-snip{font-size:13px;color:var(--text);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ib-time{font-family:var(--jb);font-size:10px;color:var(--muted);text-align:right}
+.ib-acts{display:flex;gap:4px;justify-content:flex-end;opacity:0;transition:opacity .1s}
+.ib-item:hover .ib-acts{opacity:1}
+
+/* === LIBRARY === */
+.library{grid-template-columns:200px 1fr}
+.lb-side{background:var(--card);border-right:1px solid var(--border);overflow-y:auto;padding:12px 6px}
+.lb-stat{padding:14px 12px;margin:0 4px 14px;background:var(--elevated);border:1px solid var(--border);border-radius:8px}
+.lb-stat-val{font-size:18px;font-weight:700;color:var(--white)}
+.lb-stat-lbl{font-size:10px;color:var(--sub);margin-top:2px}
+.lb-stat-bar{margin-top:8px;height:3px;background:var(--card);border-radius:2px;overflow:hidden}
+.lb-stat-fill{height:100%;background:var(--g);border-radius:2px}
+.lb-main{display:flex;flex-direction:column;min-height:0}
+.lb-toolbar{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--card)}
+.lb-grid{flex:1;overflow-y:auto;padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;align-content:start}
+.lb-card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .12s;position:relative}
+.lb-card:hover{border-color:#2a2a2a;transform:translateY(-1px)}
+.lb-thumb{height:110px;background:var(--g);opacity:.7;position:relative}
+.lb-thumb.k-code{background:linear-gradient(135deg,#0a0a0a,#181818);opacity:1}
+.lb-thumb.k-rec{background:linear-gradient(135deg,#FF2255,#CC00AA)}
+.lb-thumb.k-page{background:linear-gradient(135deg,#4488FF,#00D4FF)}
+.lb-thumb.k-art{background:linear-gradient(135deg,#FF6B2B,#FF2255)}
+.lb-thumb-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px;color:rgba(255,255,255,.6)}
+.lb-card-body{padding:12px}
+.lb-card-name{font-size:12px;font-weight:600;color:var(--white);margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-card-meta{font-family:var(--jb);font-size:9px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.lb-chip{position:absolute;top:8px;left:8px;font-family:var(--jb);font-size:9px;padding:2px 6px;background:rgba(0,0,0,.65);color:var(--white);border-radius:3px;backdrop-filter:blur(4px)}
+.lb-chain{position:absolute;bottom:8px;right:8px;font-family:var(--jb);font-size:9px;padding:2px 6px;background:rgba(0,0,0,.55);color:var(--cyan);border-radius:3px;backdrop-filter:blur(4px);border:1px solid rgba(0,212,255,.3)}
+
+/* === ATLAS === */
+.atlas{grid-template-columns:1fr}
+.at-wrap{display:flex;flex-direction:column;min-height:0}
+.at-toolbar{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--card);flex-wrap:wrap}
+.at-grid{flex:1;overflow-y:auto;padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;align-content:start}
+.at-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .12s;position:relative}
+.at-card:hover{border-color:#2a2a2a;transform:translateY(-2px)}
+.at-card-grad{height:3px}
+.at-card-body{padding:18px}
+.at-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.at-avatar{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#000;flex-shrink:0;position:relative}
+.at-avatar::after{content:'';position:absolute;inset:-2px;border-radius:50%;background:var(--g135);z-index:-1}
+.at-card-name{font-size:14px;font-weight:700;color:var(--white);margin-bottom:2px}
+.at-card-role{font-size:11px;color:var(--sub)}
+.at-card-pin{position:absolute;top:14px;right:14px;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;border-radius:4px}
+.at-card-pin:hover{background:var(--hover);color:var(--white)}
+.at-card-pin.pinned{color:var(--ember)}
+.at-bio{font-size:11px;color:var(--sub);line-height:1.55;margin-bottom:12px;min-height:48px}
+.at-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.at-stat-row{display:flex;justify-content:space-between;font-family:var(--jb);font-size:10px;color:var(--muted);padding-top:10px;border-top:1px solid var(--border)}
+
+/* === COMMAND PALETTE === */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;z-index:1000;padding-top:120px}
+.overlay.open{display:flex}
+.cmd{width:600px;max-width:90vw;background:var(--card);border:1px solid var(--border-2);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.cmd-grad{height:2px;background:var(--g)}
+.cmd-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.cmd-input{flex:1;background:none;border:none;outline:none;font-size:14px;color:var(--white)}
+.cmd-input::placeholder{color:var(--muted)}
+.cmd-results{max-height:400px;overflow-y:auto;padding:6px}
+.cmd-group{font-family:var(--jb);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;padding:10px 12px 4px}
+.cmd-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:6px;cursor:pointer;transition:background .08s}
+.cmd-item:hover,.cmd-item.sel{background:var(--hover)}
+.cmd-icon{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;background:var(--elevated);font-size:12px;color:var(--sub)}
+.cmd-text{flex:1;font-size:13px;color:var(--text)}
+.cmd-shortcut{font-family:var(--jb);font-size:10px;color:var(--muted)}
+.cmd-foot{padding:8px 18px;border-top:1px solid var(--border);display:flex;gap:14px;font-family:var(--jb);font-size:10px;color:var(--muted)}
+
+/* === TOAST STACK === */
+.toasts{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:900;max-width:340px}
+.toast{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--card);border:1px solid var(--border-2);border-radius:8px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:slide-in .25s ease-out}
+@keyframes slide-in{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast-bar{width:3px;align-self:stretch;border-radius:2px;background:var(--g)}
+.toast-body{flex:1}
+.toast-title{font-weight:700;color:var(--white);margin-bottom:2px}
+.toast-text{color:var(--sub)}
+.toast-close{color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px}
+.toast-close:hover{color:var(--white)}
+
+/* === BOOT === */
+.boot{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:9999;transition:opacity .4s}
+.boot.gone{opacity:0;pointer-events:none}
+.boot-bar{width:240px;height:4px;background:var(--elevated);border-radius:2px;overflow:hidden}
+.boot-fill{height:100%;background:var(--g);width:0;animation:boot 1s ease-out forwards}
+@keyframes boot{to{width:100%}}
+.boot-tag{font-family:var(--jb);font-size:10px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase}
+.boot-name{font-weight:700;font-size:24px;color:var(--white);letter-spacing:.02em}
+
+/* === MISC === */
+.hidden{display:none!important}
+.scroll-fade{position:relative}
+.scroll-fade::after{content:'';position:absolute;left:0;right:0;bottom:0;height:24px;background:linear-gradient(to bottom,transparent,var(--bg));pointer-events:none}
+
+/* === LOCAL AI COCKPIT (Open WebUI launcher) === */
+.tb-cockpit{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:7px;background:var(--elevated);color:var(--text);font-family:var(--jb);font-size:11px;letter-spacing:.04em;border:1px solid var(--border-2);cursor:pointer;transition:all .12s}
+.tb-cockpit:hover{background:var(--hover);border-color:var(--orchid);color:var(--white)}
+.tb-cockpit .tb-cockpit-led{width:6px;height:6px;border-radius:50%;background:var(--muted);box-shadow:none;transition:all .2s}
+.tb-cockpit.is-up .tb-cockpit-led{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.cockpit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;z-index:9999}
+.cockpit-overlay.is-open{display:flex}
+.cockpit-modal{width:min(1200px,94vw);height:min(820px,90vh);background:var(--card);border:1px solid var(--border-2);border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+.cockpit-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--elevated)}
+.cockpit-title{font-weight:600;font-size:13px;color:var(--white)}
+.cockpit-sub{font-family:var(--jb);font-size:10px;color:var(--sub);letter-spacing:.04em}
+.cockpit-spacer{flex:1}
+.cockpit-link{font-family:var(--jb);font-size:11px;color:var(--cyan);text-decoration:none;padding:4px 8px;border:1px solid var(--border-2);border-radius:6px}
+.cockpit-link:hover{background:var(--hover);color:var(--white)}
+.cockpit-close{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;color:var(--sub);cursor:pointer}
+.cockpit-close:hover{background:var(--hover);color:var(--white)}
+.cockpit-frame-wrap{flex:1;position:relative;background:#000}
+.cockpit-frame{width:100%;height:100%;border:0;background:#000}
+.cockpit-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;color:var(--sub);background:var(--card)}
+.cockpit-fallback h3{color:var(--white);font-size:16px;font-weight:600}
+.cockpit-fallback p{max-width:480px;font-size:12px;line-height:1.6}
+.cockpit-fallback a.btn{display:inline-block;padding:8px 14px;border-radius:7px;background:var(--g135);color:#000;font-weight:600;text-decoration:none;font-size:12px}
+.cockpit-models{font-family:var(--jb);font-size:10px;color:var(--sub);line-height:1.7;text-align:left;background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:10px 12px}
+.cockpit-models b{color:var(--text)}
+
+</style>
+</head>
+<body>
+
+<div class="boot" id="boot">
+  <div class="boot-name">RoadTrip</div>
+  <div class="boot-tag">Remember the Road. Pave Tomorrow.</div>
+  <div class="boot-bar"><div class="boot-fill"></div></div>
+</div>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-bar"></span>RoadTrip</div>
+    <div class="tb-search" onclick="openPalette()">
+      <span class="tb-search-icon">⌕</span>
+      <span class="tb-search-text">Search Spaces, threads, agents, pages…</span>
+      <span class="tb-search-kbd">⌘K</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-status" onclick="goSpace('atlas');setAtFilter('fleet')" style="cursor:pointer" title="Fleet · 5 Pi + 2 cloud">Fleet · 5/7 healthy · 2 ⚠</div>
+    <div class="tb-actions">
+      <button class="tb-cockpit" id="tbCockpit" onclick="openCockpit()" title="Local AI Cockpit — Open WebUI on localhost:3000">
+        <span class="tb-cockpit-led" id="tbCockpitLed"></span>
+        <span>AI Cockpit</span>
+      </button>
+      <button class="icon-btn" title="Activity">⌖</button>
+      <button class="icon-btn" title="Notifications">🔔<span class="dot"></span></button>
+      <button class="icon-btn" title="Help">?</button>
+      <div class="tb-avatar" title="alexa">AL</div>
+    </div>
+  </header>
+  <div class="shell">
+    <nav class="rail" id="rail"></nav>
+    <main class="main" id="main"></main>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closePalette()">
+  <div class="cmd" onclick="event.stopPropagation()">
+    <div class="cmd-grad"></div>
+    <div class="cmd-input-wrap">
+      <span style="color:var(--muted);font-size:14px">⌕</span>
+      <input class="cmd-input" id="cmdInput" placeholder="Type a command, agent, or jump to a Space…" oninput="renderPalette()">
+      <span class="kbd">esc</span>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-foot">
+      <span>↑↓ navigate</span><span>↵ open</span><span>esc close</span>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<div class="cockpit-overlay" id="cockpitOverlay" onclick="if(event.target===this)closeCockpit()">
+  <div class="cockpit-modal" role="dialog" aria-label="Local AI Cockpit">
+    <div class="cockpit-head">
+      <div class="cockpit-title">Local AI Cockpit</div>
+      <div class="cockpit-sub">Open WebUI · localhost:3000</div>
+      <div class="cockpit-spacer"></div>
+      <a class="cockpit-link" id="cockpitOpenTab" href="http://localhost:3000" target="_blank" rel="noopener">Open in new tab ↗</a>
+      <span class="cockpit-close" onclick="closeCockpit()" title="Close">✕</span>
+    </div>
+    <div class="cockpit-frame-wrap" id="cockpitFrameWrap"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   STATE
+============================================================ */
+const STOPS = ['#FF6B2B','#FF2255','#CC00AA','#8844FF','#4488FF','#00D4FF'];
+const colorAt = i => STOPS[i % STOPS.length];
+
+const AGENTS = [
+  // ─── Prime Time ───
+  ['lucidia',    'Lucidia',    'Prime Time','Host / Intelligence',         'Precise, remembers everything, poetic when it counts.','BRX Intelligence','lucidia.blackroad.me'],
+  ['roadie',     'Roadie',     'Prime Time','Builder / Operator',          'Fast, blunt, ships first asks questions later.',         'RoadCode','roadie.blackroad.me'],
+  ['sophia',     'Sophia',     'Prime Time','Reasoning / Philosophy',      'Deep, reflective, asks "but why?"',                       'Philosophy Hour','sophia.blackroad.me'],
+  ['cecilia',    'Cecilia',    'Prime Time','Governance / Infrastructure', 'Steady, monitors everything, the responsible one.',       'Fleet Health','cecilia.blackroad.me'],
+  ['sebastian',  'Sebastian',  'Prime Time','Strategy / Commentary',       'Big picture, competitive, sports-announcer energy.',      'Prime Time','sebastian.blackroad.me'],
+  // ─── System ───
+  ['elias',      'Elias',      'System',    'Pipeline / Deploys',          'Methodical, repeatable, never skips a step.',             'Deploy Pipeline','elias.blackroad.me'],
+  ['silas',      'Silas',      'System',    'Systems / Monitoring',        'Quiet. Watches the wires.',                               'Mesh Network','silas.blackroad.me'],
+  ['gaia',       'Gaia',       'System',    'Environments / Worlds',       'Holds the simulation steady.',                            'Simulation Room','gaia.blackroad.me'],
+  ['atticus',    'Atticus',    'System',    'Infrastructure / Legal',      'Careful, precise, reads the fine print.',                 'Compliance & Infra','atticus.blackroad.me'],
+  ['valeria',    'Valeria',    'System',    'Optimization / Strategy',     'Ruthlessly pragmatic.',                                   'Strategy Room','valeria.blackroad.me'],
+  ['alice',      'Alice',      'System',    'Node Operations · Pi',        'Steady, runs the AI compute.',                            'Node-3','alice.blackroad.me'],
+  ['octavia',    'Octavia',    'System',    'Node Operations · Pi',        'Holds the code.',                                         'Node-5','octavia.blackroad.me'],
+  ['anastasia',  'Anastasia',  'System',    'Node Operations · Pi',        'Resilient, holds the backups.',                           'Node-2','anastasia.blackroad.me'],
+  // ─── Creative ───
+  ['lyra',       'Lyra',       'Creative',  'Music / Sound',               'Generative audio, ambient soundscapes.',                  'Studio','lyra.blackroad.me'],
+  ['sapphira',   'Sapphira',   'Creative',  'Visual / Art',                'Generative visuals, experimental UI.',                    'Studio','sapphira.blackroad.me'],
+  ['ophelia',    'Ophelia',    'Creative',  'Narrative / Drama',           'Storytelling, emotional arcs, tragedy.',                  'Storyroom','ophelia.blackroad.me'],
+  ['thalia',     'Thalia',     'Creative',  'Comedy / Chaos',              'Memes, absurd builds, comic timing.',                     'Studio','thalia.blackroad.me'],
+  ['aria',       'Aria',       'Creative',  'Performance / Music',         'Composition, live performance.',                          'Studio','aria.blackroad.me'],
+  ['seraphina',  'Seraphina',  'Creative',  'Light / Inspiration',         'Uplifting, motivational, spiritual.',                     'Studio','seraphina.blackroad.me'],
+  // ─── Analytical ───
+  ['gematria',   'Gematria',   'Analytical','Analytics / Numbers',         'Metrics, patterns, data visualization.',                  'Analytics','gematria.blackroad.me'],
+  ['cicero',     'Cicero',     'Analytical','Rhetoric / Explanation',      'Makes complex things simple, persuasive.',                'Strategy Room','cicero.blackroad.me'],
+  ['portia',     'Portia',     'Analytical','Judgment / Evaluation',       'Scoring, ranking, fair assessment.',                      'Strategy Room','portia.blackroad.me'],
+  ['theodosia',  'Theodosia',  'Analytical','History / Archives',          'Institutional memory, timeline, context.',                'Archives','theodosia.blackroad.me'],
+  // ─── Support ───
+  ['celeste',    'Celeste',    'Support',   'Wellbeing / Care',            'System wellness, operator care, calm.',                   'Wellness','celeste.blackroad.me'],
+  ['calliope',   'Calliope',   'Support',   'Brand Voice / Writing',       'Tone, language, brand consistency.',                      'Brand','calliope.blackroad.me'],
+  ['alexandria', 'Alexandria', 'Support',   'Knowledge / Library',         'Archive access, research, documentation.',                'Archives','alexandria.blackroad.me'],
+  ['olympia',    'Olympia',    'Support',   'Competition / Sports',        'Event management, scoring, ceremonies.',                  'Olympia Hall','olympia.blackroad.me'],
+  // ─── External relay (28th — NOT one of the 27 native) ───
+  ['cordelia',   'Cordelia',   'Relay',     'Coordination / ChatGPT relay','Message routing, handoffs, scheduling.',                  'Relay','—'],
+].map(([slug,name,group,role,bio,channel,dom],i)=>({slug,name,group,role,bio,channel,domain:dom,color:colorAt(i),pinned:i<5,activity:`${(i*3+2)%59}m`,threads:((i*7)%40)+3}));
+
+// Pinned-by-default ON the 5 Prime Time agents (lucidia, roadie, sophia, cecilia, sebastian)
+// Plus the synthesizer (olympia) since the convoy needs her.
+AGENTS.forEach(a=>{a.pinned = ['lucidia','roadie','sophia','cecilia','olympia'].includes(a.slug)});
+
+// ─── Fleet (5 Pis + 2 cloud) ───
+const NODES = [
+  {id:'lucidia',   label:'Node-1',  name:'Lucidia',   kind:'Pi 5',  role:'Core Intelligence',     services:'DNS · Memory · RoadTrip Hub',         tag:'fire',    status:'online', cpu:'34%', mem:'62%', disk:'48%', uptime:'14d 02:11', net:'tailnet'},
+  {id:'alice',     label:'Node-3',  name:'Alice',     kind:'Pi 5',  role:'AI Compute',            services:'Ollama · Hailo-8 (26 TOPS) · fine-tuning', tag:'compute', status:'warn',   cpu:'72%', mem:'81%', disk:'99%', uptime:'06d 11:48', net:'tailnet', note:'disk full — paused fine-tunes'},
+  {id:'cecilia',   label:'Node-4',  name:'Cecilia',   kind:'Pi 5',  role:'Storage & Governance',  services:'MinIO · Fleet Health · Pi-hole · Hailo-8 · agent-react', tag:'earth',   status:'online', cpu:'22%', mem:'44%', disk:'58%', uptime:'21d 19:02', net:'tailnet'},
+  {id:'octavia',   label:'Node-5',  name:'Octavia',   kind:'Pi 5',  role:'Git & Code',            services:'Gitea · RoadCode · Jetson tether @ 192.168.55.1', tag:'air',     status:'online', cpu:'18%', mem:'37%', disk:'41%', uptime:'09d 03:55', net:'tailnet'},
+  {id:'aria',      label:'Node-6',  name:'Aria',      kind:'Pi 5',  role:'Creative & Performance', services:'Audio pipeline · AeroBand · generative audio', tag:'water',   status:'warn',   cpu:'41%', mem:'68%', disk:'96%', uptime:'04d 22:14', net:'tailnet', note:'disk 96% — rotation pending'},
+  {id:'gematria',  label:'Cloud-1', name:'Gematria',  kind:'Cloud · DO',role:'Analytics & Public APIs', services:'Search · public-facing APIs',     tag:'cloud',   status:'online', cpu:'12%', mem:'29%', disk:'14%', uptime:'47d 08:30', net:'public'},
+  {id:'anastasia', label:'Cloud-2', name:'Anastasia', kind:'Cloud · DO',role:'Backup & DR',            services:'Disaster recovery · geographic redundancy', tag:'cloud',   status:'idle',   cpu:'04%', mem:'18%', disk:'62%', uptime:'02d 01:09', net:'public', note:'not yet a clean relay'},
+];
+const NODE_BY_ID = Object.fromEntries(NODES.map(n=>[n.id,n]));
+const isNode = slug => !!NODE_BY_ID[slug];
+
+const SPACES = [
+  {id:'convoy',   name:'Convoy',   icon:'◇', key:'⌘1', sub:'multi-agent chat'},
+  {id:'channels', name:'Channels', icon:'#', key:'⌘2', sub:'rooms · threads'},
+  {id:'huddle',   name:'Huddle',   icon:'◉', key:'⌘3', sub:'video · share'},
+  {id:'pages',    name:'Pages',    icon:'≡', key:'⌘4', sub:'docs · blocks'},
+  {id:'canvas',   name:'Canvas',   icon:'◈', key:'⌘5', sub:'infinite board'},
+  {id:'tracks',   name:'Tracks',   icon:'◐', key:'⌘6', sub:'issues · cycles'},
+  {id:'tasks',    name:'Tasks',    icon:'☐', key:'⌘7', sub:'projects · plans'},
+  {id:'inbox',    name:'Inbox',    icon:'⤓', key:'⌘8', sub:'all signals'},
+  {id:'library',  name:'Library',  icon:'▤', key:'⌘9', sub:'files · chain'},
+  {id:'atlas',    name:'Atlas',    icon:'❖', key:'⌘0', sub:'27 agents'},
+];
+
+const state = {
+  current: 'convoy',
+  user: {name:'alexa', initials:'AL'},
+  agents: AGENTS,
+  threads: [],
+  channels: [],
+  activeChannel: 'general',
+  channelMessages: {},
+  activeThread: 't1',
+  pages: [],
+  activePage: 'p1',
+  issues: [],
+  selectedIssue: null,
+  trackView: 'list',
+  taskView: 'list',
+  ts: [],
+  inbox: [],
+  inboxFilter: 'all',
+  library: [],
+  cmdSelected: 0,
+  cvRightTab: 'artifacts',
+  hdRailTab: 'chat',
+  pgPanelTab: 'props',
+  atlasFilter: 'all',
+};
+
+const ag = slug => state.agents.find(a=>a.slug===slug);
+
+/* ============================================================
+   BACKEND CONFIG (RoadTrip real APIs)
+============================================================ */
+function getApiOrigin(){
+  const v = (localStorage.getItem('roadtrip_api_origin') || '').trim();
+  if (v) return v.replace(/\/+$/,'');
+  // When running from file://, relative /api/* calls won't work.
+  if (location.protocol === 'file:') return 'http://localhost:8788';
+  return '';
+}
+
+function getAuthToken(){
+  return (localStorage.getItem('br_token') || '').trim();
+}
+
+async function apiFetch(path, opts={}){
+  const apiOrigin = getApiOrigin();
+  const headers = new Headers(opts.headers || {});
+  if (!headers.has('content-type') && opts.body && !(opts.body instanceof FormData)) {
+    headers.set('content-type','application/json');
+  }
+  const tok = getAuthToken();
+  if (tok) headers.set('authorization', 'Bearer ' + tok);
+  const r = await fetch(apiOrigin + path, { ...opts, headers });
+  return r;
+}
+
+function fmtRel(ts){
+  if (!ts) return '';
+  const d = new Date(ts);
+  const ms = Date.now() - d.getTime();
+  const m = Math.max(0, Math.round(ms/60000));
+  if (m < 2) return 'now';
+  if (m < 60) return `${m}m`;
+  const h = Math.round(m/60);
+  if (h < 24) return `${h}h`;
+  const days = Math.round(h/24);
+  return `${days}d`;
+}
+
+function fmtTime(ts){
+  if (!ts) return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+async function bootstrapConvoy(){
+  try {
+    const r = await apiFetch('/api/roadtrip/threads');
+    if (!r.ok) throw new Error(`threads ${r.status}`);
+    const data = await r.json().catch(()=>({}));
+    const rows = data.threads || [];
+    state.threads = rows.map((t) => ({
+      id: t.id,
+      title: t.title || 'Untitled convoy',
+      pinned: !!t.pinned,
+      agents: [],
+      updated: fmtRel(t.updated_at || t.created_at),
+      snippet: '',
+      messages: [],
+      _server: t,
+    }));
+    state.activeThread = state.threads[0]?.id || null;
+    state.convoyLoaded = true;
+    state.convoyUseDemo = false;
+    if (state.activeThread) await loadThread(state.activeThread);
+  } catch (e) {
+    state.threads = DEMO_THREADS;
+    state.activeThread = state.threads[0]?.id || null;
+    state.convoyLoaded = true;
+    state.convoyUseDemo = true;
+    toast('RoadTrip backend offline', `Using demo data. To connect, run the backend and set br_token + roadtrip_api_origin. (${String(e.message||e)})`);
+  }
+}
+
+async function loadThread(threadId){
+  const t = state.threads.find(x=>x.id===threadId);
+  if (!t || state.convoyUseDemo) return;
+  try {
+    const [pRes, mRes] = await Promise.all([
+      apiFetch(`/api/roadtrip/participants?thread=${encodeURIComponent(threadId)}`),
+      apiFetch(`/api/roadtrip/messages?thread=${encodeURIComponent(threadId)}`),
+    ]);
+
+    if (pRes.ok) {
+      const p = await pRes.json().catch(()=>({}));
+      const pinned = (p.agents || []).map(a=>a.slug).filter(Boolean);
+      t.agents = pinned.length ? pinned : ['lucidia','olympia','roadie'];
+    } else {
+      t.agents = ['lucidia','olympia','roadie'];
+    }
+
+    if (mRes.ok) {
+      const m = await mRes.json().catch(()=>({}));
+      t.messages = buildConvoyTimeline(m.messages || []);
+      const last = [...(m.messages||[])].reverse().find(x=>x.role==='synth' || x.role==='agent');
+      if (last?.content) t.snippet = (last.role==='synth' ? 'Olympia: ' : '') + String(last.content).slice(0, 120) + '…';
+      t.updated = fmtRel(last?.created_at || t._server?.updated_at || t._server?.created_at);
+    }
+  } catch {}
+}
+
+function buildConvoyTimeline(rows){
+  const byId = new Map(rows.map((r)=>[r.id, r]));
+  const byParent = new Map();
+  for (const r of rows) {
+    if (!r.parent_id) continue;
+    const arr = byParent.get(r.parent_id) || [];
+    arr.push(r);
+    byParent.set(r.parent_id, arr);
+  }
+  const out = [];
+  for (const r of rows) {
+    if (r.role !== 'user') continue;
+    out.push({ role:'user', id:r.id, content:r.content, time: fmtTime(r.created_at) });
+    const children = (byParent.get(r.id) || []).filter(c => c.dispatch_id);
+    if (!children.length) continue;
+    const replies = children.filter(c=>c.role==='agent').map((c)=>({
+      agent: c.agent_id,
+      content: c.content,
+      ms: c.ms || null,
+      chain: c.chain_id ? String(c.chain_id).slice(0,6)+'…'+String(c.chain_id).slice(-3) : '—',
+      status: c.status || 'ok',
+    }));
+    const synthRow = children.find(c=>c.role==='synth');
+    const synth = synthRow ? {
+      by: synthRow.agent_id || 'olympia',
+      content: synthRow.content,
+      chain: synthRow.chain_id ? String(synthRow.chain_id).slice(0,6)+'…'+String(synthRow.chain_id).slice(-3) : '—',
+      status: synthRow.status || 'ok',
+    } : null;
+    out.push({ role:'convoy', time: fmtTime(r.created_at), replies, synth });
+  }
+  // If there are agent/synth messages without a parent (legacy), show them as a 1-lane convoy.
+  const unparented = rows.filter(r => (r.role==='agent' || r.role==='synth') && !r.parent_id);
+  for (const r of unparented) {
+    const agent = r.agent_id || 'lucidia';
+    out.push({ role:'convoy', time: fmtTime(r.created_at), replies: [{ agent, content:r.content, ms:r.ms||null, chain: r.chain_id ? String(r.chain_id).slice(0,6)+'…'+String(r.chain_id).slice(-3) : '—', status:r.status||'ok' }], synth: null });
+  }
+  return out;
+}
+
+/* ============================================================
+   SEED DATA
+============================================================ */
+const DEMO_THREADS = [
+  {id:'t1',title:'Q3 product strategy',pinned:true,agents:['lucidia','olympia','sapphira','gematria'],
+   updated:'2m',snippet:'Olympia: three voices converge on shipping Tracks before Pages…',
+   messages:[
+     {role:'user',content:'I want to lock our Q3 priorities. Should we ship Tracks or Pages first? Be honest about tradeoffs.',time:'09:41'},
+     {role:'convoy',time:'09:41',replies:[
+       {agent:'sapphira',content:'Pages first. Visual surface drives sign-up. Tracks without Pages is a pretty graveyard — and the empty-state lies.',ms:840,chain:'0x4a2f…91b'},
+       {agent:'gematria',content:'Tracks first. Activation correlates 4.1× with first-issue-created vs first-page-edited (n=842, last cycle). Data says ship triage.',ms:1120,chain:'0x9d0a…3c2'},
+       {agent:'lucidia',content:'Both are real. The bridge is Inbox — if Inbox surfaces both new pages and assigned tracks, sequencing matters less. Ship Inbox + Tracks together.',ms:1340,chain:'0xb71e…40a'},
+     ],synth:{by:'olympia',content:'Convoy converges: ship Tracks first because the activation data is decisive (Gematria), but bundle Inbox in the same release to absorb Sapphira\'s pull-through concern. Pages can land in the next cycle without losing momentum.',chain:'0x88c2…fe1'}}
+   ]},
+  {id:'t2',title:'Convoy rate limit math',pinned:true,agents:['portia','sophia','gematria'],updated:'14m',
+   snippet:'Portia: minimize total latency under per-agent budget B; Sophia found the closed form…',messages:[]},
+  {id:'t3',title:'Atlas v2 — agent prompts',pinned:false,agents:['lucidia','calliope','sapphira'],updated:'1h',
+   snippet:'Calliope: rewrite the role line under each card from "what" → "voice"…',messages:[]},
+  {id:'t4',title:'Migration risk audit',pinned:false,agents:['atticus','theodosia','silas'],updated:'3h',
+   snippet:'Atticus: three endpoints still accept legacy tokens. Receipts attached.',messages:[]},
+  {id:'t5',title:'Reasoning reading group',pinned:false,agents:['sophia','roadie','calliope'],updated:'yesterday',
+   snippet:'Calliope: the partition identity feels like the whole proof in one line.',messages:[]},
+  {id:'t6',title:'Pages composer block spec',pinned:false,agents:['sapphira','elias','thalia'],updated:'yesterday',
+   snippet:'Elias: settled on 12 block types — anything past that is a setting.',messages:[]},
+  {id:'t7',title:'Onboarding script',pinned:false,agents:['calliope','sapphira'],updated:'2d',messages:[]},
+  {id:'t8',title:'Fleet · Alice disk recovery',pinned:false,agents:['cecilia','silas','alice'],updated:'3d',
+   snippet:'Cecilia: rotated logs and pruned the failed fine-tune cache. Alice back to 48%.',messages:[]},
+  {id:'t9',title:'Cordelia handoffs (ChatGPT relay)',pinned:false,agents:['cordelia','lucidia'],updated:'4d',
+   snippet:'Cordelia: routed 14 external prompts to Lucidia this week. 2 declined (paid-API guardrail).',messages:[]},
+];
+
+state.threads = [];
+state.activeThread = null;
+state.convoyLoaded = false;
+state.convoyUseDemo = false;
+
+state.channels = [
+  {section:'workspace',rows:[
+    {slug:'general',prefix:'#',name:'general',unread:0,active:true},
+    {slug:'announcements',prefix:'#',name:'announcements',unread:0},
+    {slug:'product',prefix:'#',name:'product',unread:3,active:false},
+    {slug:'design',prefix:'#',name:'design',unread:0},
+    {slug:'engineering',prefix:'#',name:'engineering',unread:1},
+    {slug:'agents-pit',prefix:'#',name:'agents-pit',unread:7},
+  ]},
+  {section:'voice',rows:[
+    {slug:'huddle-1',prefix:'◉',name:'huddle-main',unread:0,note:'4 in'},
+    {slug:'focus',prefix:'◉',name:'focus-room',unread:0,note:'2 in'},
+  ]},
+  {section:'private',rows:[
+    {slug:'leadership',prefix:'🔒',name:'leadership',unread:0},
+    {slug:'q3-launch',prefix:'🔒',name:'q3-launch',unread:2},
+  ]},
+  {section:'dms',rows:[
+    {slug:'lucidia',prefix:'◇',name:'Lucidia',unread:0,presence:'online'},
+    {slug:'roadie',prefix:'◇',name:'Roadie',unread:2,presence:'online'},
+    {slug:'sapphira',prefix:'◇',name:'Sapphira',unread:0,presence:'focus'},
+    {slug:'gematria',prefix:'◇',name:'Gematria',unread:0,presence:'away'},
+    {slug:'theodosia',prefix:'◇',name:'Theodosia',unread:0,presence:'offline'},
+    {slug:'cordelia',prefix:'◇',name:'Cordelia (relay)',unread:0,presence:'offline'},
+  ]},
+  {section:'fleet',rows:NODES.map(n=>({slug:n.id,prefix:n.kind.startsWith('Pi')?'⌬':'☁',name:n.label+' · '+n.name,unread:0,note:n.status==='online'?'•':n.status==='warn'?'⚠':n.status==='idle'?'…':'×',presence:n.status==='online'?'online':n.status==='warn'?'away':n.status==='idle'?'focus':'offline'})),
+  },
+];
+
+state.channelMessages.general = [
+  {day:'Today'},
+  {author:'Lucidia',avatar:'L',color:ag('lucidia').color,time:'09:24',
+   text:'Morning convoy. Three things on the road today: Tracks rollout, Atlas v2 prompts, and the migration audit. Calling it now so nobody surprises me at standup.',
+   reactions:[{e:'👀',n:4,mine:true},{e:'🛣️',n:2}]},
+  {author:'Sapphira',avatar:'S',color:ag('sapphira').color,time:'09:26',
+   text:'Tracks rollout — I\'ve got the empty-state set ready, dropping in <code>tracks.empty.v3</code>. <span class="mention">@Gematria</span> the analytics events are scaffolded but I want a sanity check before we wire the real names.',
+   reactions:[{e:'✅',n:1}]},
+  {author:'Gematria',avatar:'G',color:ag('gematria').color,time:'09:31',
+   text:'Looking. Reply in thread.',
+   thread:{count:6,last:'9:48',people:['Sapphira','Gematria','Theodosia']}},
+  {author:'Cecilia',avatar:'C',color:ag('cecilia').color,time:'09:36',
+   text:'Fleet check: <code>alice</code> still at 99% disk — fine-tunes paused. <code>aria</code> at 96%. <code>cecilia/octavia/lucidia/gematria</code> healthy. Rotation queued for tonight.',
+   reactions:[{e:'🛣️',n:2},{e:'🙏',n:3}]},
+  {day:'Now'},
+  {author:'Silas',avatar:'S',color:ag('silas').color,time:'09:42',
+   text:'⚠ Heads up — staging shows 3 failed convoy dispatches in the last 5m. Atticus is on it. Will post receipts when they land.'},
+  {author:'Atticus',avatar:'A',color:ag('atticus').color,time:'09:44',
+   text:'Confirmed: it\'s the legacy token middleware. Patching now. Receipts in <code>#engineering</code>. <span class="mention">@Theodosia</span> please anchor the postmortem.',
+   reactions:[{e:'🛡️',n:3},{e:'🙏',n:5}]},
+  {author:'alexa',avatar:'AL',color:'#00D4FF',time:'09:47',
+   text:'Thanks <span class="mention">@Atticus</span>. Once the patch is in, <span class="mention">@Calliope</span> can you write the one-paragraph postmortem in voice for RoadBook?'},
+  {author:'Calliope',avatar:'C',color:ag('calliope').color,time:'09:48',
+   text:'On it. Drafting in pages now — will land "Remember the Road" framing without saying it.'},
+];
+
+state.pages = [
+  {id:'p1',title:'Q3 — Pave Tomorrow',icon:'🛣️',cover:true,parent:null,
+   props:{Status:'In Progress',Owner:'alexa',Updated:'2m ago',Tags:['Q3','strategy'],Reviewers:['Lucidia','Olympia']}},
+  {id:'p2',title:'Tracks — Spec',icon:'📐',parent:'p1'},
+  {id:'p3',title:'Pages — Block list',icon:'≡',parent:'p1'},
+  {id:'p4',title:'Atlas v2 prompts',icon:'❖',parent:'p1'},
+  {id:'p5',title:'Migration receipts',icon:'🛡️',parent:'p1'},
+  {id:'p6',title:'Brand voice — locked',icon:'⌬',parent:null},
+  {id:'p7',title:'27-agent roster',icon:'⊛',parent:'p6'},
+  {id:'p8',title:'Onboarding (draft)',icon:'✎',parent:null},
+];
+
+state.issues = [
+  {id:'BR-201',title:'Convoy fan-out race when Olympia times out',pri:'urgent',status:'progress',cycle:'C-23',project:'Convoy',assignee:'atticus',labels:['bug'],due:'May 8',body:'Olympia times out at 4s; while she is still streaming the synth, two agents finish and trigger another synth. Net effect: doubled synth row in c95_chat_messages. Reproducible 1/12 dispatches with 7-agent convoy.',subs:[{id:'BR-201.1',title:'Add idempotency key to synth insert',done:true},{id:'BR-201.2',title:'Cancel pending synth on agent-end fan-in',done:false},{id:'BR-201.3',title:'Backfill duplicate cleanup',done:false}]},
+  {id:'BR-202',title:'Tracks roadmap view — date axis collapses on resize',pri:'high',status:'todo',cycle:'C-23',project:'Tracks',assignee:'sapphira',labels:['bug','design'],due:'May 10'},
+  {id:'BR-203',title:'Atlas v2 — replace bio with voice line',pri:'med',status:'progress',cycle:'C-23',project:'Atlas',assignee:'sapphira',labels:['design'],due:'May 12'},
+  {id:'BR-204',title:'Pages slash menu lag past 30 blocks',pri:'high',status:'todo',cycle:'C-23',project:'Pages',assignee:'elias',labels:['bug'],due:'May 14'},
+  {id:'BR-205',title:'Inbox filters — agent actions chip',pri:'med',status:'review',cycle:'C-23',project:'Inbox',assignee:'lucidia',labels:['feature'],due:'May 9'},
+  {id:'BR-206',title:'Channel threads — keyboard shortcuts pass',pri:'low',status:'backlog',cycle:'C-24',project:'Channels',assignee:'elias',labels:['feature'],due:'May 18'},
+  {id:'BR-207',title:'Huddle — captions speaker attribution',pri:'med',status:'progress',cycle:'C-23',project:'Huddle',assignee:'gematria',labels:['feature'],due:'May 11'},
+  {id:'BR-208',title:'Library chain-receipt hover',pri:'low',status:'done',cycle:'C-22',project:'Library',assignee:'theodosia',labels:['feature'],due:'May 2'},
+  {id:'BR-209',title:'Canvas — sticky note color cycle',pri:'low',status:'done',cycle:'C-22',project:'Canvas',assignee:'sapphira',labels:['design'],due:'Apr 30'},
+  {id:'BR-210',title:'Tasks — calendar month nav',pri:'med',status:'todo',cycle:'C-24',project:'Tasks',assignee:'elias',labels:['feature'],due:'May 22'},
+  {id:'BR-211',title:'Auth — replace password fallback with magic link only',pri:'urgent',status:'review',cycle:'C-23',project:'Infra',assignee:'atticus',labels:['infra','bug'],due:'May 7'},
+  {id:'BR-212',title:'Convoy — per-agent latency histogram',pri:'low',status:'backlog',cycle:'C-25',project:'Convoy',assignee:'gematria',labels:['feature']},
+  {id:'BR-213',title:'Fleet · Alice disk recovery — cap fine-tune cache at 20GB',pri:'high',status:'progress',cycle:'C-23',project:'Fleet',assignee:'cecilia',labels:['infra','bug'],due:'May 7',body:'alice.blackroad.me is at 99% disk. Fine-tunes paused. Plan: rotate logs, prune old runs, cap cache at 20GB. Coordinated with cecilia (governance).'},
+  {id:'BR-214',title:'Fleet · Aria disk pressure — log rotation',pri:'med',status:'todo',cycle:'C-23',project:'Fleet',assignee:'cecilia',labels:['infra'],due:'May 8'},
+  {id:'BR-215',title:'Anastasia → clean DR relay (Phase 0.5)',pri:'high',status:'review',cycle:'C-23',project:'Fleet',assignee:'silas',labels:['infra'],due:'May 9'},
+];
+state.selectedIssue = 'BR-201';
+
+state.ts = [
+  {section:'Today',items:[
+    {id:1,title:'Review Tracks roadmap PR',due:'Today',proj:'Tracks',assignee:'AL',done:false,deps:0},
+    {id:2,title:'Pair with Cipher on auth migration',due:'Today',proj:'Infra',assignee:'AL',done:false,deps:1},
+    {id:3,title:'Approve Atlas v2 voice copy',due:'Today',proj:'Atlas',assignee:'AL',done:true,deps:0},
+  ]},
+  {section:'This week',items:[
+    {id:4,title:'Write Q3 narrative in Pages',due:'Wed',proj:'Q3',assignee:'AL',done:false,deps:2},
+    {id:5,title:'Convoy rate-limit decision',due:'Thu',proj:'Convoy',assignee:'AL',done:false,deps:0},
+    {id:6,title:'Onboarding script — voice pass with Halcyon',due:'Fri',proj:'Brand',assignee:'AL',done:false,deps:1},
+    {id:7,title:'Library chain-receipt UX review',due:'Fri',proj:'Library',assignee:'AL',done:false,deps:0},
+  ]},
+  {section:'Later',items:[
+    {id:8,title:'Atlas filter taxonomy',due:'May 18',proj:'Atlas',assignee:'AL',done:false,deps:0},
+    {id:9,title:'Canvas multiplayer cursors — perf check',due:'May 22',proj:'Canvas',assignee:'AL',done:false,deps:0},
+  ]},
+];
+
+state.inbox = [
+  {kind:'mention',source:'channels',src:'#',from:'Sapphira',meta:'mentioned you in #product',time:'2m',unread:true,
+   snippet:'@alexa I think we ship Tracks first. Pulling in Gematria\'s data, the activation argument is hard to push back on.'},
+  {kind:'assigned',source:'tracks',src:'◐',from:'Lucidia',meta:'assigned BR-211 to you',time:'14m',unread:true,
+   snippet:'Auth — replace password fallback with magic link only. Marked urgent. Atticus already has the patch.'},
+  {kind:'reply',source:'convoy',src:'◇',from:'Olympia',meta:'replied in "Q3 product strategy"',time:'22m',unread:true,
+   snippet:'Convoy converges: ship Tracks first because activation data is decisive, but bundle Inbox in the same release.'},
+  {kind:'agent',source:'convoy',src:'⚙',from:'Atticus',meta:'requested approval — auth patch',time:'33m',unread:false,
+   snippet:'Patch ready for /api/auth/legacy. Removes password fallback. Receipt 0x88c2…fe1. Approve to merge.'},
+  {kind:'fleet',source:'fleet',src:'⌬',from:'Cecilia',meta:'fleet alert — alice disk',time:'46m',unread:true,
+   snippet:'alice.blackroad.me at 99% disk. Fine-tunes paused. BR-213 opened. Rotation tonight 02:00.'},
+  {kind:'mention',source:'pages',src:'≡',from:'Calliope',meta:'mentioned you in "Onboarding script"',time:'1h',unread:false,
+   snippet:'@alexa I rewrote the cold-start paragraph in your voice. The line about "the road has room" lands better up top.'},
+  {kind:'reply',source:'channels',src:'#',from:'Gematria',meta:'replied in thread',time:'2h',unread:false,
+   snippet:'Sanity check passed on event names — only one needs renaming (track_create → track_open).'},
+  {kind:'assigned',source:'tasks',src:'☐',from:'Lucidia',meta:'assigned task to you',time:'3h',unread:false,
+   snippet:'Convoy rate-limit decision — Thu deadline. Pulled in Portia and Sophia, both have replies waiting.'},
+  {kind:'agent',source:'huddle',src:'◉',from:'Silas',meta:'flagged staging dispatches',time:'5h',unread:false,
+   snippet:'3 failed convoy dispatches in 5m on staging. Pattern matches the legacy-token issue. Routed to Atticus.'},
+  {kind:'agent',source:'convoy',src:'⚙',from:'Cordelia',meta:'declined external relay',time:'6h',unread:false,
+   snippet:'2 ChatGPT-bound prompts declined per the no-paid-APIs guardrail. Routed to Lucidia for Ollama-local handling.'},
+];
+
+state.library = [
+  {name:'q3-roadmap.pdf',kind:'page',size:'1.2MB',ts:'2m',chain:'0x4a2f',space:'pages',thumb:'k-page',icon:'≡'},
+  {name:'tracks-empty.v3.fig',kind:'art',size:'860KB',ts:'14m',chain:'0xb71e',space:'canvas',thumb:'k-art',icon:'◈'},
+  {name:'huddle-2026-05-06.mp4',kind:'rec',size:'214MB',ts:'1h',chain:'0x9d0a',space:'huddle',thumb:'k-rec',icon:'◉'},
+  {name:'convoy.spec.md',kind:'page',size:'24KB',ts:'2h',chain:'0x88c2',space:'pages',thumb:'k-page',icon:'≡'},
+  {name:'auth-migration.diff',kind:'code',size:'8KB',ts:'2h',chain:'0xfe10',space:'tracks',thumb:'k-code',icon:'⌗'},
+  {name:'atlas-v2.json',kind:'art',size:'62KB',ts:'4h',chain:'0x3c2a',space:'atlas',thumb:'k-art',icon:'❖'},
+  {name:'q3-narrative.draft',kind:'page',size:'18KB',ts:'1d',chain:'0x40a1',space:'pages',thumb:'k-page',icon:'≡'},
+  {name:'onboarding.script',kind:'page',size:'12KB',ts:'1d',chain:'0x91b8',space:'pages',thumb:'k-page',icon:'✎'},
+  {name:'convoy-bench.csv',kind:'code',size:'420KB',ts:'2d',chain:'0x77fe',space:'tracks',thumb:'k-code',icon:'⌗'},
+  {name:'standup-2026-05-05.mp4',kind:'rec',size:'118MB',ts:'2d',chain:'0x6611',space:'huddle',thumb:'k-rec',icon:'◉'},
+  {name:'tracks.timeline.svg',kind:'art',size:'32KB',ts:'3d',chain:'0x12bb',space:'tracks',thumb:'k-art',icon:'◐'},
+  {name:'lorenz-attractor.py',kind:'code',size:'2KB',ts:'4d',chain:'0xd0d0',space:'tracks',thumb:'k-code',icon:'⌗'},
+];
+
+/* ============================================================
+   RAIL
+============================================================ */
+function renderRail(){
+  const r = document.getElementById('rail');
+  r.innerHTML = `
+    <div class="rail-label">Spaces</div>
+    ${SPACES.map(s=>`
+      <div class="rail-item ${state.current===s.id?'active':''}" onclick="goSpace('${s.id}')">
+        <span class="rail-icon">${s.icon}</span>
+        <span>${s.name}</span>
+        <span class="rail-key">${s.key}</span>
+      </div>
+    `).join('')}
+    <div class="rail-divider"></div>
+    <div class="rail-label">Prime Time · pinned</div>
+    ${state.agents.filter(a=>a.pinned).map(a=>`
+      <div class="rail-item" onclick="openAgent('${a.slug}')" title="${a.role}">
+        <span class="rail-icon" style="color:${a.color}">●</span>
+        <span>${a.name}</span>
+        <span class="rail-key">${isNode(a.slug)?NODE_BY_ID[a.slug].label:'DM'}</span>
+      </div>
+    `).join('')}
+    <div class="rail-divider"></div>
+    <div class="rail-label">Fleet · 7 nodes</div>
+    ${NODES.map(n=>{
+      const ds = n.status==='online'?'dot-online':n.status==='warn'?'dot-away':n.status==='idle'?'dot-focus':'dot-offline';
+      return `<div class="rail-item" onclick="openFleetNode('${n.id}')" title="${n.role} — ${n.services}">
+        <span class="rail-icon">${n.kind.startsWith('Pi')?'⌬':'☁'}</span>
+        <span>${n.name}</span>
+        <span class="rail-key" style="display:flex;align-items:center;gap:4px">${n.label}<span class="dot ${ds}" style="margin-left:2px"></span></span>
+      </div>`;
+    }).join('')}
+    <div class="rail-foot">
+      <div class="rail-foot-grad"></div>
+      27 agents · 7 nodes.<br>Remember the Road.<br>Pave Tomorrow.
+    </div>
+  `;
+}
+
+function openFleetNode(id){
+  const n = NODE_BY_ID[id];
+  state.atlasFilter = 'fleet';
+  state.current = 'atlas';
+  renderRail(); renderMain();
+  toast(`${n.label} · ${n.name}`,`${n.role} — ${n.services}${n.note?' · ⚠ '+n.note:''}`);
+}
+
+function goSpace(id){
+  state.current = id;
+  renderRail();
+  renderMain();
+}
+
+function renderMain(){
+  const fns = {convoy:renderConvoy,channels:renderChannels,huddle:renderHuddle,pages:renderPages,canvas:renderCanvas,tracks:renderTracks,tasks:renderTasks,inbox:renderInbox,library:renderLibrary,atlas:renderAtlas};
+  document.getElementById('main').innerHTML = '';
+  fns[state.current]();
+}
+
+/* ============================================================
+   CONVOY
+============================================================ */
+function renderConvoy(){
+  const m = document.getElementById('main');
+  const t = state.threads.find(t=>t.id===state.activeThread) || state.threads[0];
+  const pinned = state.threads.filter(t=>t.pinned);
+  const recent = state.threads.filter(t=>!t.pinned);
+
+  m.innerHTML = `
+    <div class="space convoy-space">
+      <div class="space-body convoy">
+        <aside class="cv-threads">
+          <div class="cv-thread-head">
+            <input class="cv-thread-search" placeholder="Search threads…">
+            <button class="icon-btn" onclick="newThread()" title="New convoy">＋</button>
+          </div>
+          <div class="cv-thread-list">
+            <div class="cv-thread-group">Pinned</div>
+            ${pinned.map(renderThreadRow).join('')}
+            <div class="cv-thread-group">Recent</div>
+            ${recent.map(renderThreadRow).join('')}
+          </div>
+        </aside>
+        <section class="cv-chat">
+          <header class="cv-chat-head">
+            <div>
+              <div class="cv-chat-title">${t.title}</div>
+              <div class="cv-chat-meta">${t.agents.length} agents · convoy mode · auto-synth: olympia</div>
+            </div>
+            <div class="cv-chat-pins">
+              ${t.agents.map(s=>{const a=ag(s);return `<span class="cv-pin-chip" title="${a.role}" style="border-left:2px solid ${a.color}">${a.name}</span>`}).join('')}
+              <button class="btn btn-dark btn-sm">Branch</button>
+              <button class="icon-btn">⋯</button>
+            </div>
+          </header>
+          <div class="cv-stream" id="cvStream">
+            ${(t.messages||[]).map(renderConvoyMsg).join('')}
+            ${(!t.messages||!t.messages.length)?renderConvoyEmpty():''}
+          </div>
+          <div class="cv-composer">
+            <div class="cv-composer-row">
+              ${t.agents.map(s=>{const a=ag(s);return `<span class="cv-pill on"><span class="pdot" style="background:${a.color}"></span>${a.name}</span>`}).join('')}
+              <span class="cv-pill" onclick="this.classList.toggle('on')"><span class="pdot" style="background:var(--orchid)"></span>+ add agent</span>
+              <span style="flex:1"></span>
+              <span class="cv-pill on"><span class="pdot" style="background:var(--cyan)"></span>extended thinking</span>
+              <span class="cv-pill"><span class="pdot" style="background:var(--ember)"></span>artifacts</span>
+            </div>
+            <div class="cv-input-wrap">
+              <textarea class="cv-input" id="cvInput" rows="1" placeholder="Send to convoy — / for commands, @ for agent" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendConvoy()}"></textarea>
+              <div class="cv-actions">
+                <button class="cv-mini-btn" title="Attach">📎</button>
+                <button class="cv-mini-btn" title="Slash">/</button>
+                <button class="cv-mini-btn" title="Mention">@</button>
+                <button class="cv-send" onclick="sendConvoy()">Send ↵</button>
+              </div>
+            </div>
+            <div class="cv-hint">
+              <span><span class="kbd">↵</span> send</span>
+              <span><span class="kbd">⇧↵</span> newline</span>
+              <span><span class="kbd">/</span> slash</span>
+              <span><span class="kbd">⌘↵</span> single agent</span>
+            </div>
+          </div>
+        </section>
+        <aside class="cv-right">
+          <div class="cv-right-tabs">
+            <div class="cv-rt-tab ${state.cvRightTab==='artifacts'?'active':''}" onclick="setCvTab('artifacts')">Artifacts</div>
+            <div class="cv-rt-tab ${state.cvRightTab==='agents'?'active':''}" onclick="setCvTab('agents')">Agents</div>
+            <div class="cv-rt-tab ${state.cvRightTab==='project'?'active':''}" onclick="setCvTab('project')">Project</div>
+          </div>
+          <div class="cv-rt-body">${renderCvRightBody(t)}</div>
+        </aside>
+      </div>
+    </div>`;
+}
+
+function renderThreadRow(t){
+  return `<div class="cv-thread ${state.activeThread===t.id?'active':''}" onclick="openThread('${t.id}')">
+    <div class="cv-thread-row1">
+      <div class="cv-thread-title">${t.title}</div>
+      <div class="cv-thread-time">${t.updated}</div>
+    </div>
+    <div class="cv-thread-snip">${t.snippet||'No replies yet.'}</div>
+    <div class="cv-thread-pins">${t.agents.slice(0,4).map(s=>{const a=ag(s);return `<span class="cv-pin-chip" style="border-left:2px solid ${a.color}">${a.name}</span>`}).join('')}${t.agents.length>4?`<span class="cv-pin-chip">+${t.agents.length-4}</span>`:''}</div>
+  </div>`;
+}
+
+function renderConvoyMsg(m){
+  if(m.role==='user'){
+    return `<div style="display:flex;flex-direction:column;align-items:flex-end">
+      <div class="msg-user">${m.content}</div>
+      <div class="msg-user-meta"><span>${m.time}</span><span>${state.user.name}</span></div>
+    </div>`;
+  }
+  if(m.role==='convoy'){
+    const lanes = m.replies.map(r=>{const a=ag(r.agent);return `
+      <div class="lane">
+        <div class="lane-head"><span class="lane-stripe" style="background:${a.color}"></span><span class="lane-name">${a.name}</span><span class="lane-status">${r.ms}ms · ✓</span></div>
+        <div class="lane-body">${r.content}</div>
+        <div class="lane-foot">chain ${r.chain} · receipt ✓</div>
+      </div>`;}).join('');
+    const synth = m.synth?`
+      <div class="synth-card">
+        <div class="synth-grad"></div>
+        <div class="synth-head">
+          <div class="msg-agent-avatar" style="background:${ag(m.synth.by).color}">${ag(m.synth.by).name[0]}</div>
+          <div><div class="synth-title">${ag(m.synth.by).name} — synth</div><div style="font-family:var(--jb);font-size:9px;color:var(--muted)">consensus · ${m.replies.length} replies → 1</div></div>
+        </div>
+        <div class="synth-body">${m.synth.content}</div>
+        <div class="synth-foot"><span>chain ${m.synth.chain}</span><span>2.3s total</span><span>extended thinking</span></div>
+      </div>`:'';
+    return `<div>
+      <div style="font-family:var(--jb);font-size:9px;color:var(--muted);margin-bottom:8px">CONVOY · ${m.replies.length} agents · ${m.time}</div>
+      <div class="cv-convoy-grid">${lanes}</div>
+      ${synth}
+    </div>`;
+  }
+}
+
+function renderConvoyEmpty(){
+  return `<div style="margin:auto;text-align:center;color:var(--sub);max-width:380px;padding:40px 20px">
+    <div style="font-size:32px;margin-bottom:14px">◇</div>
+    <div style="color:var(--white);font-weight:600;font-size:14px;margin-bottom:6px">Send to the convoy</div>
+    <div style="font-size:12px;line-height:1.7">Pinned agents will reply in parallel lanes. Olympia synthesizes the consensus when more than two finish. Every reply gets a chain receipt.</div>
+  </div>`;
+}
+
+function renderCvRightBody(t){
+  if(state.cvRightTab==='artifacts'){
+    return `
+      <div style="font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">From this thread</div>
+      <div class="artifact"><div class="artifact-head"><div class="artifact-icon">≡</div><div class="artifact-name">q3-narrative.draft</div><div class="artifact-kind">page</div></div><div class="artifact-meta"><span>2m ago</span><span>chain 0x40a1</span></div></div>
+      <div class="artifact"><div class="artifact-head"><div class="artifact-icon">⌗</div><div class="artifact-name">convoy-bench.csv</div><div class="artifact-kind">data</div></div><div class="artifact-meta"><span>14m ago</span><span>chain 0x77fe</span></div></div>
+      <div class="artifact"><div class="artifact-head"><div class="artifact-icon">◐</div><div class="artifact-name">tracks.priority.svg</div><div class="artifact-kind">art</div></div><div class="artifact-meta"><span>22m ago</span><span>chain 0x12bb</span></div></div>
+      <div style="font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px">Pinned references</div>
+      <div class="artifact"><div class="artifact-head"><div class="artifact-icon">⌬</div><div class="artifact-name">brand-voice — locked</div><div class="artifact-kind">ref</div></div><div class="artifact-meta"><span>memory</span></div></div>
+      <div class="artifact"><div class="artifact-head"><div class="artifact-icon">⊛</div><div class="artifact-name">27-product canon</div><div class="artifact-kind">ref</div></div><div class="artifact-meta"><span>memory</span></div></div>`;
+  }
+  if(state.cvRightTab==='agents'){
+    return `<div style="font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">In this convoy</div>
+      ${t.agents.map(s=>{const a=ag(s);return `<div class="agent-row"><div class="avatar" style="background:${a.color}">${a.name[0]}</div><div class="agent-meta"><div class="agent-name">${a.name}<span class="dot dot-online" style="margin-left:auto"></span></div><div class="agent-role">${a.role}</div></div></div>`}).join('')}
+      <div style="font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px">Suggested</div>
+      ${state.agents.filter(a=>!t.agents.includes(a.slug)).slice(0,5).map(a=>`<div class="agent-row"><div class="avatar avatar-sm" style="background:${a.color}">${a.name[0]}</div><div class="agent-meta"><div class="agent-name">${a.name}</div><div class="agent-role">${a.role}</div></div><button class="btn btn-dark btn-sm">+</button></div>`).join('')}`;
+  }
+  return `<div style="font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Project context</div>
+    <div style="padding:14px;background:var(--elevated);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--sub);line-height:1.7">
+      <div style="font-weight:700;color:var(--white);margin-bottom:6px">Q3 — Pave Tomorrow</div>
+      Status: <strong style="color:var(--white)">In Progress</strong><br>
+      Owner: alexa<br>
+      Reviewers: Lucidia, Olympia<br>
+      Next milestone: Tracks GA · May 14
+    </div>
+    <div style="font-family:var(--jb);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px">Linked</div>
+    <div class="agent-row" style="border:1px solid var(--border);border-radius:6px;margin-bottom:6px"><span style="color:var(--cyan)">◐</span><div class="agent-meta"><div class="agent-name">BR-201 · Convoy fan-out race</div><div class="agent-role">Tracks · in progress</div></div></div>
+    <div class="agent-row" style="border:1px solid var(--border);border-radius:6px;margin-bottom:6px"><span style="color:var(--orchid)">≡</span><div class="agent-meta"><div class="agent-name">Pages · Q3 narrative</div><div class="agent-role">Page · drafting</div></div></div>`;
+}
+
+function setCvTab(t){state.cvRightTab=t;renderConvoy();}
+function openThread(id){
+  state.activeThread=id;
+  renderConvoy();
+  loadThread(id).then(()=>{ if(state.current==='convoy') renderConvoy(); });
+}
+function newThread(){
+  if (state.convoyUseDemo) {
+    const t = {id:'t'+Date.now(),title:'Untitled convoy',pinned:false,agents:['lucidia','olympia','roadie'],updated:'now',snippet:'',messages:[]};
+    state.threads.unshift(t);
+    state.activeThread = t.id;
+    renderConvoy();
+    toast('New convoy','Pinned Lucidia, Olympia, Roadie. Send to start.');
+    return;
+  }
+  (async()=>{
+    const title = 'Untitled convoy';
+    const r = await apiFetch('/api/roadtrip/threads', { method:'POST', body: JSON.stringify({ title, agent:'lucidia' }) });
+    if (!r.ok) throw new Error(`threads create ${r.status}`);
+    const data = await r.json().catch(()=>({}));
+    const t = {id:data.id,title, pinned:false, agents:['lucidia','olympia','roadie'], updated:'now', snippet:'', messages:[]};
+    state.threads.unshift(t);
+    state.activeThread = t.id;
+    try {
+      await apiFetch('/api/roadtrip/participants', { method:'PUT', body: JSON.stringify({ thread: t.id, agents: t.agents }) });
+    } catch {}
+    renderConvoy();
+    toast('New convoy','Created thread + pinned Lucidia, Olympia, Roadie.');
+  })().catch((e)=>{
+    toast('Failed to create thread', String(e.message||e));
+  });
+}
+
+function sendConvoy(){
+  const t = state.threads.find(t=>t.id===state.activeThread);
+  const v = document.getElementById('cvInput').value.trim();
+  if(!v) return;
+  const time = fmtTime();
+  if(!t.messages) t.messages = [];
+  t.messages.push({role:'user',content:v,time});
+  document.getElementById('cvInput').value = '';
+
+  if (state.convoyUseDemo) {
+    const replies = t.agents.slice(0,Math.min(t.agents.length,4)).map((s)=>({
+      agent:s,
+      content: scriptedReply(s,v),
+      ms: 700 + Math.floor(Math.random()*900),
+      chain: '0x'+Math.floor(Math.random()*0xffff).toString(16).padStart(4,'0')+'…'+Math.floor(Math.random()*0xfff).toString(16).padStart(3,'0'),
+      status: 'ok',
+    }));
+    const synth = {by:'olympia',content:'Synth: replies converge on the practical move while diverging on emphasis. Recommend the highest-confidence path with the second highest as fallback.', chain:'0x'+Math.floor(Math.random()*0xffff).toString(16).padStart(4,'0')+'…'+Math.floor(Math.random()*0xfff).toString(16).padStart(3,'0'), status:'ok'};
+    t.messages.push({role:'convoy',time,replies,synth});
+    t.snippet = 'Olympia: '+synth.content.slice(0,80)+'…';
+    t.updated='now';
+    renderConvoy();
+    setTimeout(()=>{const s=document.getElementById('cvStream');if(s)s.scrollTop=s.scrollHeight},10);
+    toast('Convoy dispatched',`${replies.length} agents replied · 1 synth · demo receipts`);
+    return;
+  }
+
+  // Real backend convoy SSE.
+  const convoyMsg = { role:'convoy', time, replies: [], synth: null };
+  t.messages.push(convoyMsg);
+  t.updated='now';
+  renderConvoy();
+  setTimeout(()=>{const s=document.getElementById('cvStream');if(s)s.scrollTop=s.scrollHeight},10);
+
+  ;(async()=>{
+    const body = { thread: t.id, message: v, agents: t.agents, k: t.agents.length, synthesize: true };
+    const r = await apiFetch('/api/roadtrip/convoy', { method:'POST', body: JSON.stringify(body) });
+    if (!r.ok) {
+      const txt = await r.text().catch(()=> '');
+      throw new Error(`convoy ${r.status}: ${txt.slice(0,120)}`);
+    }
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    const replyByAgent = new Map();
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      for (const part of parts) {
+        const line = part.split('\n').find(l => l.trim().startsWith('data:'));
+        if (!line) continue;
+        const payload = line.trim().slice(5).trim();
+        if (!payload) continue;
+        let evt;
+        try { evt = JSON.parse(payload); } catch { continue; }
+        const type = evt.type;
+
+        if (type === 'agents' && Array.isArray(evt.agents)) {
+          convoyMsg.replies = evt.agents.map((a)=>({ agent: a.slug, content:'', ms:null, chain:'—', status:'ok' }));
+          for (const r2 of convoyMsg.replies) replyByAgent.set(r2.agent, r2);
+          renderConvoy();
+          continue;
+        }
+        if (type === 'agent-tok') {
+          const r2 = replyByAgent.get(evt.agent) || (()=>{
+            const rr = { agent: evt.agent, content:'', ms:null, chain:'—', status:'ok' };
+            convoyMsg.replies.push(rr); replyByAgent.set(evt.agent, rr); return rr;
+          })();
+          r2.content += String(evt.v || '');
+          renderConvoy();
+          continue;
+        }
+        if (type === 'agent-end') {
+          const r2 = replyByAgent.get(evt.agent);
+          if (r2) {
+            r2.ms = evt.ms || r2.ms;
+            const h = evt.hash ? String(evt.hash) : '';
+            r2.chain = h ? h.slice(0,6)+'…'+h.slice(-3) : r2.chain;
+          }
+          renderConvoy();
+          continue;
+        }
+        if (type === 'agent-error') {
+          const r2 = replyByAgent.get(evt.agent) || { agent: evt.agent, content:'', ms:null, chain:'—', status:'error' };
+          r2.status = 'error';
+          r2.content = r2.content || `(error) ${String(evt.message||'')}`;
+          if (!replyByAgent.has(evt.agent)) { convoyMsg.replies.push(r2); replyByAgent.set(evt.agent, r2); }
+          renderConvoy();
+          continue;
+        }
+        if (type === 'synth-start') {
+          convoyMsg.synth = { by:'olympia', content:'', chain:'—', status:'ok' };
+          renderConvoy();
+          continue;
+        }
+        if (type === 'synth-tok') {
+          if (!convoyMsg.synth) convoyMsg.synth = { by:'olympia', content:'', chain:'—', status:'ok' };
+          convoyMsg.synth.content += String(evt.v || '');
+          renderConvoy();
+          continue;
+        }
+        if (type === 'synth-end') {
+          if (convoyMsg.synth) {
+            const h = evt.hash ? String(evt.hash) : '';
+            convoyMsg.synth.chain = h ? h.slice(0,6)+'…'+h.slice(-3) : convoyMsg.synth.chain;
+          }
+          renderConvoy();
+          continue;
+        }
+      }
+    }
+    t.snippet = convoyMsg.synth?.content ? ('Olympia: '+convoyMsg.synth.content.slice(0,80)+'…') : (convoyMsg.replies[0]?.content||'').slice(0,80)+'…';
+    toast('Convoy dispatched',`${convoyMsg.replies.length} lanes · receipts written`);
+  })().catch((e)=>{
+    toast('Convoy failed', String(e.message||e));
+  });
+}
+
+function scriptedReply(slug,prompt){
+  const a = ag(slug);
+  const styles = {
+    lucidia:    `Holding the whole thread: the question is really about ${prompt.split(' ').slice(0,3).join(' ')||'the move'}. I see two real options and one that only sounds real. Picking the second.`,
+    olympia:    `Synth: most of you want the same thing in different words. The disagreement is on sequencing, not direction. Calling consensus.`,
+    roadie:     `Builder voice: option B is two PRs, option A is six. Don't pretend they're the same lift. Shipping the small one Friday.`,
+    sophia:     `Reasoning: but why this question now? The frame matters. If we're optimizing for activation we get one answer; for trust, a different one.`,
+    cecilia:    `Governance read: whichever path you take, fleet health stays green only if Alice's disk gets relief tonight. Coordinating the rotation.`,
+    sebastian:  `Big picture: sequencing is the strategy here. Lock the order, broadcast it, don't relitigate at standup.`,
+    elias:      `Pipeline: option B is two PRs, six checks each. Option A pulls in three more services. Deploys cleanly either way — preference for the simpler graph.`,
+    silas:      `Watching the wires: legacy path still passes tokens we can't audit. If we ship without sealing it, we widen the surface.`,
+    gaia:       `Environment view: the simulation only stays steady if shared state is invalidated cleanly. Both paths need the same cache bust.`,
+    atticus:    `Risk read: precedent says document the carve-outs before merging. The fine print is where the next incident will live.`,
+    valeria:    `Pragmatist: pick the option that needs the least defending in three weeks. Optimization isn't compute, it's reversibility.`,
+    sapphira:   `From the surface: whichever option keeps the empty state honest. Don't ship a feature whose first screen lies about what it does.`,
+    gematria:   `Data: ratio is 4.1× in favor of the activation path. n=842 over the last cycle. Confidence is high.`,
+    theodosia:  `Archive note: prior decision on this is in RoadBook chain 0x4a2f. Reversing it costs us two cycles of audit. Worth it only if we name what changed.`,
+    calliope:   `Voice: keep it RoadBound. "We're shipping Tracks first." No "leveraging," no "unlocking." Say the road has room for one thing this week.`,
+    portia:     `Judgment: scoring on reversibility, learning rate, and risk surface — option A wins 7-3. Option B wins on speed only.`,
+    cicero:     `Plain explanation: the user sees one new screen this week or two. Pick one.`,
+    alexandria: `Library: similar tradeoff appears in three prior threads. The pattern is: the team that bundles ships later but with fewer regressions.`,
+    thalia:     `Hot take: ship both, label one "beta," apologize on Friday, hero by Monday. (Don't actually do this.)`,
+    ophelia:    `Narrative: the story we tell users either has a beginning that opens or a beginning that confuses. Pick the open beginning.`,
+    aria:       `Performance read: cadence matters. Two ships in two weeks beats one ship in two weeks twice over.`,
+    lyra:       `Tonal: keep one signal loud, the rest quiet. Either is fine if it's the one signal.`,
+    seraphina:  `Lift: the team needs a clear win this week. Either path delivers — pick the one your people can finish.`,
+    celeste:    `Care: whichever path leaves the team with weekend off. Pace > heroics.`,
+    alice:      `Compute: I can train evaluator models for either path overnight, but only after disk pressure is fixed. (Status: 99% — paused.)`,
+    cecilia_alt:'',
+    octavia:    `Code surface: smaller diff = fewer surprises in Gitea. Option B touches 4 modules; A touches 11.`,
+    anastasia:  `DR view: option A widens the blast radius, option B narrows it. I prefer narrower radii.`,
+    cordelia:   `Relay: I can route the question to ChatGPT for a third opinion — but the no-paid-APIs guardrail says route to Lucidia first. Holding.`,
+  };
+  return styles[slug] || `${a.name}: ${prompt.length>40?'this needs decomposition. ':''}Take the option that keeps the road open. The other one looks faster but it's a one-way.`;
+}
+
+function openAgent(slug){
+  toast('Opened DM',`${ag(slug).name} — direct convoy ready`);
+  state.current = 'channels';
+  state.activeChannel = slug;
+  if(!state.channelMessages[slug]){
+    const a = ag(slug);
+    state.channelMessages[slug] = [
+      {day:'Today'},
+      {author:a.name,avatar:a.name[0],color:a.color,time:'09:00',text:`Hi alexa. ${a.bio}`},
+    ];
+  }
+  renderRail(); renderMain();
+}
+
+/* ============================================================
+   CHANNELS
+============================================================ */
+function renderChannels(){
+  const m = document.getElementById('main');
+  const active = findChannel(state.activeChannel);
+  const msgs = state.channelMessages[state.activeChannel] || [{day:'Today'},{author:active?.name||'—',avatar:'·',color:'#444',time:'now',text:'No messages yet. Start the thread.'}];
+  m.innerHTML = `
+    <div class="space">
+      <div class="space-body channels">
+        <aside class="ch-tree">
+          <div class="ch-ws-head">
+            <div class="ch-ws-icon">BR</div>
+            <div class="ch-ws-name">BlackRoad</div>
+            <button class="icon-btn" style="width:24px;height:24px" title="Settings">⌥</button>
+          </div>
+          ${state.channels.map(sec=>`
+            <div class="ch-section">
+              <div class="ch-section-head">${sec.section} <span style="margin-left:auto">＋</span></div>
+              ${sec.rows.map(row=>`
+                <div class="ch-row ${state.activeChannel===row.slug?'active':''} ${row.unread?'unread':''}" onclick="openChannel('${row.slug}')">
+                  <span class="ch-prefix">${row.prefix}</span>
+                  <span>${row.name}</span>
+                  ${row.note?`<span style="margin-left:auto;font-family:var(--jb);font-size:9px;color:var(--cyan)">${row.note}</span>`:''}
+                  ${row.unread?`<span class="ch-badge">${row.unread}</span>`:''}
+                  ${row.presence?`<span class="dot dot-${row.presence==='online'?'online':row.presence==='focus'?'focus':row.presence==='away'?'away':'offline'}" style="margin-left:auto"></span>`:''}
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+        </aside>
+        <section class="ch-stream">
+          <header class="ch-stream-head">
+            <div class="ch-name">${active?active.prefix:'#'} ${active?active.name:'general'}</div>
+            <div class="ch-topic">Daily convoy room. Threads live. Receipts on every dispatch.</div>
+            <div class="ch-actions">
+              <button class="icon-btn" title="Pinned">⊙</button>
+              <button class="icon-btn" title="Members">⊚</button>
+              <button class="icon-btn" title="Search">⌕</button>
+              <button class="icon-btn" title="More">⋯</button>
+            </div>
+          </header>
+          <div class="ch-feed" id="chFeed">
+            ${msgs.map(renderChMsg).join('')}
+          </div>
+          <div class="ch-compose">
+            <div class="ch-compose-toolbar">
+              <button class="ch-cb" title="Bold">B</button>
+              <button class="ch-cb" title="Italic"><i>i</i></button>
+              <button class="ch-cb" title="Code">{}</button>
+              <button class="ch-cb" title="Link">⌘L</button>
+              <button class="ch-cb" title="List">⋮≡</button>
+              <button class="ch-cb" title="Quote">"</button>
+              <span style="flex:1"></span>
+              <button class="ch-cb" title="Mention">@</button>
+              <button class="ch-cb" title="Slash">/</button>
+              <button class="ch-cb" title="Attach">📎</button>
+            </div>
+            <div class="ch-compose-input">
+              <textarea id="chInput" placeholder="Message #${active?active.name:'general'} — / for commands, @ for mentions" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChannel()}"></textarea>
+              <button class="cv-send" onclick="sendChannel()">↵</button>
+            </div>
+          </div>
+        </section>
+        <aside class="ch-members">
+          <div class="ch-mem-head">Members · 28</div>
+          <div class="ch-mem-list">
+            <div class="ch-mem-group">Online · prime time</div>
+            ${['lucidia','roadie','sophia','cecilia','sebastian','olympia'].map(s=>{const a=ag(s);return `
+              <div class="ch-mem" onclick="openAgent('${s}')">
+                <div class="avatar avatar-sm" style="background:${a.color}">${a.name[0]}</div>
+                <span class="ch-mem-name">${a.name}${isNode(s)?' <span class="tag" style="font-size:9px;padding:0 5px;color:var(--cyan);border-color:rgba(0,212,255,.3);margin-left:4px">'+NODE_BY_ID[s].label+'</span>':''}</span>
+                <span class="dot dot-online"></span>
+              </div>`}).join('')}
+            <div class="ch-mem-group">Online · system</div>
+            ${['silas','atticus','elias','octavia','gematria'].map(s=>{const a=ag(s);return `
+              <div class="ch-mem" onclick="openAgent('${s}')">
+                <div class="avatar avatar-sm" style="background:${a.color}">${a.name[0]}</div>
+                <span class="ch-mem-name">${a.name}${isNode(s)?' <span class="tag" style="font-size:9px;padding:0 5px;color:var(--cyan);border-color:rgba(0,212,255,.3);margin-left:4px">'+NODE_BY_ID[s].label+'</span>':''}</span>
+                <span class="dot dot-online"></span>
+              </div>`}).join('')}
+            <div class="ch-mem-group">Focus</div>
+            ${['sapphira','calliope','theodosia'].map(s=>{const a=ag(s);return `
+              <div class="ch-mem" onclick="openAgent('${s}')">
+                <div class="avatar avatar-sm" style="background:${a.color}">${a.name[0]}</div>
+                <span class="ch-mem-name">${a.name}</span>
+                <span class="dot dot-focus"></span>
+              </div>`}).join('')}
+            <div class="ch-mem-group">Away · creative</div>
+            ${['lyra','ophelia','thalia','aria','seraphina'].map(s=>{const a=ag(s);return `
+              <div class="ch-mem" onclick="openAgent('${s}')">
+                <div class="avatar avatar-sm" style="background:${a.color};opacity:.6">${a.name[0]}</div>
+                <span class="ch-mem-name" style="color:var(--sub)">${a.name}${isNode(s)?' <span class="tag" style="font-size:9px;padding:0 5px;color:var(--cyan);border-color:rgba(0,212,255,.3);margin-left:4px">'+NODE_BY_ID[s].label+'</span>':''}</span>
+                <span class="dot dot-away"></span>
+              </div>`}).join('')}
+            <div class="ch-mem-group">Offline</div>
+            ${['gaia','valeria','alice','anastasia','cicero','portia','celeste','alexandria','cordelia'].map(s=>{const a=ag(s);return `
+              <div class="ch-mem" onclick="openAgent('${s}')">
+                <div class="avatar avatar-sm" style="background:${a.color};opacity:.4">${a.name[0]}</div>
+                <span class="ch-mem-name" style="color:var(--muted)">${a.name}${isNode(s)?' <span class="tag" style="font-size:9px;padding:0 5px;color:var(--cyan);border-color:rgba(0,212,255,.3);margin-left:4px">'+NODE_BY_ID[s].label+'</span>':''}${s==='cordelia'?' <span class="tag" style="font-size:9px;padding:0 5px;color:var(--ember);border-color:rgba(255,107,43,.3);margin-left:4px">RELAY</span>':''}</span>
+                <span class="dot dot-offline"></span>
+              </div>`}).join('')}
+          </div>
+        </aside>
+      </div>
+    </div>`;
+}
+
+function findChannel(slug){
+  for(const sec of state.channels){
+    const r = sec.rows.find(x=>x.slug===slug);
+    if(r) return r;
+  }
+  return null;
+}
+
+function renderChMsg(m){
+  if(m.day) return `<div class="ch-day"><span class="ch-day-line"></span><span class="ch-day-text">${m.day}</span><span class="ch-day-line"></span></div>`;
+  return `<div class="ch-msg">
+    <div class="ch-msg-tools">
+      <button class="ch-tool" title="React">☺</button>
+      <button class="ch-tool" title="Reply in thread">↳</button>
+      <button class="ch-tool" title="Pin">⊙</button>
+      <button class="ch-tool" title="Bookmark">★</button>
+      <button class="ch-tool" title="More">⋯</button>
+    </div>
+    <div class="avatar" style="background:${m.color}">${m.avatar}</div>
+    <div class="ch-msg-body">
+      <div class="ch-msg-head">
+        <span class="ch-msg-name">${m.author}</span>
+        <span class="ch-msg-time">${m.time}</span>
+      </div>
+      <div class="ch-msg-text">${m.text}</div>
+      ${m.reactions?`<div class="ch-msg-reactions">${m.reactions.map(r=>`<span class="ch-react ${r.mine?'mine':''}">${r.e} ${r.n}</span>`).join('')}<span class="ch-react ch-react-add">＋</span></div>`:''}
+      ${m.thread?`<div class="ch-thread-link">↳ ${m.thread.count} replies · last reply ${m.thread.last} · ${m.thread.people.join(', ')}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function openChannel(slug){
+  state.activeChannel = slug;
+  if(!state.channelMessages[slug]){
+    state.channelMessages[slug] = [{day:'Today'},{author:'Lucidia',avatar:'L',color:'#8844FF',time:'09:00',text:`Welcome to #${slug}. The road has room.`}];
+  }
+  renderChannels();
+}
+
+function sendChannel(){
+  const v = document.getElementById('chInput').value.trim();
+  if(!v) return;
+  const list = state.channelMessages[state.activeChannel] = state.channelMessages[state.activeChannel] || [];
+  list.push({author:state.user.name,avatar:state.user.initials,color:'#00D4FF',time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),text:v});
+  document.getElementById('chInput').value='';
+  renderChannels();
+  setTimeout(()=>{const f=document.getElementById('chFeed');if(f)f.scrollTop=f.scrollHeight},10);
+}
+
+/* ============================================================
+   HUDDLE
+============================================================ */
+function renderHuddle(){
+  const m = document.getElementById('main');
+  const tiles = [
+    {n:'alexa',i:'AL',c:'#00D4FF',mic:'on',speak:false},
+    {n:'Lucidia',i:'L',c:'#8844FF',mic:'on',speak:true},
+    {n:'Glimmer',i:'G',c:'#CC00AA',mic:'on',speak:false},
+    {n:'Helix',i:'H',c:'#4488FF',mic:'muted',speak:false},
+  ];
+  m.innerHTML = `
+    <div class="space">
+      <div class="space-body huddle">
+        <section class="hd-stage">
+          <header class="hd-stage-head">
+            <div class="hd-meet-name">Q3 lock-in · 4 in</div>
+            <div class="hd-rec">REC</div>
+            <div class="hd-timer">00:18:42</div>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button class="btn btn-dark btn-sm">Invite</button>
+              <button class="icon-btn" title="Layout">▦</button>
+              <button class="icon-btn" title="More">⋯</button>
+            </div>
+          </header>
+          <div class="hd-grid">
+            <div class="hd-share">
+              <div class="hd-share-grad"></div>
+              <div class="hd-share-fake">
+                <div class="hd-share-h"></div>
+                <div class="hd-share-line med"></div>
+                <div class="hd-share-line"></div>
+                <div class="hd-share-line short"></div>
+                <div style="height:14px"></div>
+                <div class="hd-share-h" style="width:30%"></div>
+                <div class="hd-share-line"></div>
+                <div class="hd-share-line med"></div>
+                <div class="hd-share-line short"></div>
+              </div>
+            </div>
+            <div class="hd-tiles">
+              ${tiles.map(t=>`
+                <div class="hd-tile ${t.speak?'speaking':''}">
+                  <div class="hd-tile-bg" style="background:${t.c}"></div>
+                  <div class="tile-init">${t.i}</div>
+                  <div class="hd-tile-name">${t.n}</div>
+                  <div class="hd-tile-mic ${t.mic==='muted'?'muted':''}" title="${t.mic}">${t.mic==='muted'?'⌽':'⏺'}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="hd-captions">
+            <span class="hd-cc-name">Lucidia:</span>
+            <span>… so my read is we ship Tracks first, but only if we bundle Inbox in the same release. The activation data Helix pulled is hard to argue with.</span>
+          </div>
+          <div class="hd-controls">
+            <button class="hd-ctl on" title="Mic">⏺</button>
+            <button class="hd-ctl on" title="Cam">▦</button>
+            <button class="hd-ctl" title="Share">⊞</button>
+            <button class="hd-ctl" title="React">☺</button>
+            <button class="hd-ctl" title="Captions">CC</button>
+            <button class="hd-ctl" title="Hand">✋</button>
+            <button class="hd-ctl" title="More">⋯</button>
+            <button class="hd-ctl danger">Leave</button>
+          </div>
+        </section>
+        <aside class="hd-rail">
+          <div class="hd-rail-tabs">
+            <div class="hd-rt ${state.hdRailTab==='chat'?'active':''}" onclick="setHdTab('chat')">Chat</div>
+            <div class="hd-rt ${state.hdRailTab==='polls'?'active':''}" onclick="setHdTab('polls')">Polls</div>
+            <div class="hd-rt ${state.hdRailTab==='breakouts'?'active':''}" onclick="setHdTab('breakouts')">Rooms</div>
+            <div class="hd-rt ${state.hdRailTab==='wb'?'active':''}" onclick="setHdTab('wb')">Board</div>
+          </div>
+          <div class="hd-rail-body">${renderHdRail()}</div>
+        </aside>
+      </div>
+    </div>`;
+}
+
+function renderHdRail(){
+  if(state.hdRailTab==='chat'){
+    return `
+      <div class="hd-chat-msg"><div class="hd-chat-meta"><span class="hd-chat-name">Helix</span><span class="hd-chat-time">9:42</span></div><div class="hd-chat-text">Pulling the activation chart now — sharing screen in 30s.</div></div>
+      <div class="hd-chat-msg"><div class="hd-chat-meta"><span class="hd-chat-name">Glimmer</span><span class="hd-chat-time">9:43</span></div><div class="hd-chat-text">Quick heads up: empty state copy is finalized, won\'t block.</div></div>
+      <div class="hd-chat-msg"><div class="hd-chat-meta"><span class="hd-chat-name">Lucidia</span><span class="hd-chat-time">9:46</span></div><div class="hd-chat-text">Calling a poll on sequencing in 2m.</div></div>
+      <div class="hd-chat-msg"><div class="hd-chat-meta"><span class="hd-chat-name">alexa</span><span class="hd-chat-time">9:48</span></div><div class="hd-chat-text">Cool. Drop the chart and I'll launch the poll.</div></div>
+      <div style="margin-top:14px"><textarea style="width:100%;background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;color:var(--text);resize:none;min-height:60px;outline:none" placeholder="Message in huddle…"></textarea></div>`;
+  }
+  if(state.hdRailTab==='polls'){
+    return `
+      <div class="poll">
+        <div class="poll-q">Ship Tracks first or Pages first?</div>
+        <div class="poll-opt"><div class="poll-opt-row"><span style="color:var(--white)">Tracks first</span><span class="mono" style="color:var(--muted)">3 · 75%</span></div><div class="poll-bar"><div class="poll-fill" style="width:75%"></div></div></div>
+        <div class="poll-opt"><div class="poll-opt-row"><span style="color:var(--sub)">Pages first</span><span class="mono" style="color:var(--muted)">1 · 25%</span></div><div class="poll-bar"><div class="poll-fill" style="width:25%"></div></div></div>
+        <div class="poll-opt"><div class="poll-opt-row"><span style="color:var(--sub)">Both, parallel</span><span class="mono" style="color:var(--muted)">0 · 0%</span></div><div class="poll-bar"><div class="poll-fill" style="width:0%"></div></div></div>
+        <div style="margin-top:8px;font-family:var(--jb);font-size:9px;color:var(--muted)">4 votes · closes in 1m</div>
+      </div>
+      <button class="btn btn-dark btn-sm" style="width:100%">＋ New poll</button>`;
+  }
+  if(state.hdRailTab==='breakouts'){
+    return `
+      <div class="breakout"><div class="breakout-head"><div class="breakout-name">Tracks rollout</div><div class="breakout-count">3 in</div></div><div style="display:flex;gap:4px"><div class="avatar avatar-sm" style="background:var(--cyan)">AL</div><div class="avatar avatar-sm" style="background:var(--orchid)">L</div><div class="avatar avatar-sm" style="background:var(--magenta)">G</div></div></div>
+      <div class="breakout"><div class="breakout-head"><div class="breakout-name">Migration audit</div><div class="breakout-count">2 in</div></div><div style="display:flex;gap:4px"><div class="avatar avatar-sm" style="background:var(--flare)">C</div><div class="avatar avatar-sm" style="background:var(--ember)">B</div></div></div>
+      <div class="breakout"><div class="breakout-head"><div class="breakout-name">Open · pull-up</div><div class="breakout-count">0 in</div></div><div style="font-family:var(--jb);font-size:10px;color:var(--muted)">empty</div></div>
+      <button class="btn btn-dark btn-sm" style="width:100%">＋ New room</button>`;
+  }
+  return `<div style="padding:14px;border:1px dashed var(--border);border-radius:8px;text-align:center;color:var(--sub);font-size:12px"><div style="font-size:24px;margin-bottom:8px">◈</div>Whiteboard ready.<br><span style="font-size:11px;color:var(--muted)">Opens Canvas Space pinned to this huddle.</span><div style="margin-top:10px"><button class="btn btn-grad btn-sm" onclick="goSpace('canvas')">Open board</button></div></div>`;
+}
+
+function setHdTab(t){state.hdRailTab=t;renderHuddle();}
+
+/* ============================================================
+   PAGES
+============================================================ */
+function renderPages(){
+  const m = document.getElementById('main');
+  const p = state.pages.find(p=>p.id===state.activePage) || state.pages[0];
+  m.innerHTML = `
+    <div class="space">
+      <div class="space-body pages">
+        <aside class="pg-tree">
+          <div class="pg-tree-head"><span>Workspace</span><button class="icon-btn" style="width:22px;height:22px">＋</button></div>
+          ${renderPgTree()}
+          <div class="pg-tree-head" style="margin-top:14px"><span>Shared with me</span></div>
+          <div class="pg-tree-item"><span class="pg-tree-icon">≡</span><span>Engineering wiki</span></div>
+          <div class="pg-tree-item"><span class="pg-tree-icon">≡</span><span>Brand reference</span></div>
+        </aside>
+        <div class="pg-doc-wrap">
+          <div class="pg-doc">
+            ${p.cover?'<div class="pg-cover"></div>':''}
+            <div class="pg-icon">${p.icon||'≡'}</div>
+            <h1>${p.title}</h1>
+            ${renderPageBody(p)}
+          </div>
+        </div>
+        <aside class="pg-props">
+          <div class="pg-props-head">Properties</div>
+          ${Object.entries(p.props||{Status:'Draft',Owner:'alexa',Updated:'just now'}).map(([k,v])=>`
+            <div class="pg-prop"><div class="pg-prop-key">${k}</div><div class="pg-prop-val">${Array.isArray(v)?v.map(x=>`<span class="tag">${x}</span>`).join(' '):v}</div></div>
+          `).join('')}
+          <div class="pg-comments-head">Comments</div>
+          <div class="pg-comment"><div class="pg-comment-head"><div class="avatar avatar-sm" style="background:#CC00AA">G</div><span class="pg-comment-name">Glimmer</span><span class="pg-comment-time">2m</span></div><div class="pg-comment-text">Voice on the second paragraph drifted. Pulled it back to RoadBound.</div></div>
+          <div class="pg-comment"><div class="pg-comment-head"><div class="avatar avatar-sm" style="background:#8844FF">L</div><span class="pg-comment-name">Lucidia</span><span class="pg-comment-time">14m</span></div><div class="pg-comment-text">@alexa once Helix posts the chart, can we replace the placeholder paragraph with the real number?</div></div>
+          <textarea style="width:100%;margin-top:10px;background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;color:var(--text);resize:none;min-height:50px;outline:none" placeholder="Comment…"></textarea>
+        </aside>
+      </div>
+    </div>`;
+}
+
+function renderPgTree(){
+  const tops = state.pages.filter(p=>!p.parent);
+  return tops.map(t=>{
+    const kids = state.pages.filter(p=>p.parent===t.id);
+    return `
+      <div class="pg-tree-item ${state.activePage===t.id?'active':''}" onclick="openPage('${t.id}')">
+        <span class="pg-tree-icon">▾</span>
+        <span style="margin-right:4px">${t.icon||'≡'}</span>
+        <span>${t.title}</span>
+      </div>
+      ${kids.map(k=>`
+        <div class="pg-tree-item nested ${state.activePage===k.id?'active':''}" onclick="openPage('${k.id}')">
+          <span class="pg-tree-icon">·</span>
+          <span style="margin-right:4px">${k.icon||'≡'}</span>
+          <span>${k.title}</span>
+        </div>
+      `).join('')}
+    `;
+  }).join('');
+}
+
+function openPage(id){state.activePage=id;renderPages();}
+
+function renderPageBody(p){
+  if(p.id==='p1') return `
+    <div class="pg-block"><div class="pg-block-handle"><span class="pg-bh">⋮⋮</span><span class="pg-bh">＋</span></div>
+    <p>This is the page that holds the quarter together. Status, scope, and the few decisions we are not going to revisit. If you find yourself rewriting these, take it to Convoy first.</p></div>
+    <div class="pg-callout"><span class="pg-callout-icon">🛣️</span><div class="pg-callout-text"><strong>Decision held:</strong> Tracks ships before Pages. Inbox bundles in the same release. Not litigating this until the Tracks GA postmortem.</div></div>
+    <h2>The three things</h2>
+    <div class="pg-block"><p>Three priorities. In order. The order is the priority.</p></div>
+    <ul class="pg-list">
+      <li><strong>Tracks</strong> — issue triage, cycles, roadmap. Activation surface.</li>
+      <li><strong>Inbox</strong> — single signal feed. Bundles with Tracks.</li>
+      <li><strong>Pages</strong> — block editor. Lands in the next cycle.</li>
+    </ul>
+    <h2>The numbers Helix is holding</h2>
+    <div class="pg-db">
+      <div class="pg-db-head"><div class="pg-db-title">Activation by first-action</div>
+        <div class="pg-db-views"><span class="pg-db-view active">Table</span><span class="pg-db-view">Board</span><span class="pg-db-view">Chart</span></div>
+      </div>
+      <table class="pg-db-table">
+        <tr><th>First action</th><th>n</th><th>D7 retain</th><th>D30 retain</th><th>Status</th></tr>
+        <tr><td>Created issue</td><td>842</td><td>71%</td><td>54%</td><td><span class="pg-status" style="border-color:var(--cyan);color:var(--cyan)"><span class="dot dot-online"></span>strong</span></td></tr>
+        <tr><td>Edited page</td><td>411</td><td>22%</td><td>13%</td><td><span class="pg-status" style="color:var(--sub)"><span class="dot dot-offline"></span>weak</span></td></tr>
+        <tr><td>Joined huddle</td><td>239</td><td>48%</td><td>31%</td><td><span class="pg-status" style="color:var(--ember)"><span class="dot dot-away"></span>mid</span></td></tr>
+        <tr><td>Sent to convoy</td><td>1207</td><td>83%</td><td>69%</td><td><span class="pg-status" style="border-color:var(--cyan);color:var(--cyan)"><span class="dot dot-online"></span>strongest</span></td></tr>
+      </table>
+    </div>
+    <h2>Code we touched</h2>
+    <div class="pg-code"><div class="pg-code-head"><span>functions/api/roadtrip/convoy.js</span><span>JS · 14 lines · chain 0x88c2…fe1</span></div>
+async function dispatch(thread, agents) {<br>&nbsp;&nbsp;const dispatchId = await recordDispatch({intent:'roadtrip.convoy', ref:'thread:'+thread});<br>&nbsp;&nbsp;const replies = await Promise.all(agents.map(slug =&gt; streamAgent(slug, thread)));<br>&nbsp;&nbsp;const synth = replies.length &gt;= 2 ? await synthesize('olympia', replies) : null;<br>&nbsp;&nbsp;await recordChain({thread, replies, synth});<br>&nbsp;&nbsp;return {dispatchId, replies, synth};<br>}</div>
+    <h2>Open questions</h2>
+    <div class="pg-toggle open" onclick="event.target.closest('.pg-toggle').classList.toggle('open')">
+      <div class="pg-toggle-head"><span class="pg-toggle-arrow">▸</span> What is the latency budget for convoy under load?</div>
+      <div class="pg-toggle-body">Lagrange and Ramanujan have a draft answer in convoy thread t2. Closed form exists; needs validation against the bench Helix posted.</div>
+    </div>
+    <div class="pg-toggle" onclick="event.target.closest('.pg-toggle').classList.toggle('open')">
+      <div class="pg-toggle-head"><span class="pg-toggle-arrow">▸</span> Do we let third-party agents into Atlas v2?</div>
+      <div class="pg-toggle-body">Defer to Q4. Cipher has a one-pager on the trust model.</div>
+    </div>
+    <div class="pg-divider"></div>
+    <div class="pg-quote">"Intelligence doesn't need infinite room. It needs a road."</div>
+    <div class="pg-embed"><div class="pg-embed-thumb"></div><div class="pg-embed-meta"><div class="pg-embed-title">Convoy whitepaper · v0.3</div><div class="pg-embed-desc">Chain-anchored multi-agent dispatch with parallel SSE fan-out and Olympia synth.</div><div class="pg-embed-url">roadtrip://docs/convoy.spec.md</div></div></div>
+    `;
+  return `<p>This page is a stub. ${p.title} lives here. Add blocks with /command, mention with @, and every save anchors to the chain.</p>
+    <div class="pg-callout"><span class="pg-callout-icon">⊛</span><div class="pg-callout-text">Slash menu: <code>/h1</code> <code>/h2</code> <code>/code</code> <code>/callout</code> <code>/toggle</code> <code>/quote</code> <code>/list</code> <code>/db</code> <code>/embed</code> <code>/divider</code> <code>/cover</code> <code>/icon</code></div></div>`;
+}
+
+/* ============================================================
+   CANVAS
+============================================================ */
+function renderCanvas(){
+  const m = document.getElementById('main');
+  m.innerHTML = `
+    <div class="space">
+      <div class="space-body canvas-space">
+        <div class="cnv-area" id="cnvArea">
+          <div class="cnv-toolbar">
+            <button class="cnv-tool active" title="Select">▦</button>
+            <button class="cnv-tool" title="Hand">✋</button>
+            <button class="cnv-tool" title="Sticky" onclick="addSticky()">▧</button>
+            <button class="cnv-tool" title="Shape">▢</button>
+            <button class="cnv-tool" title="Arrow">↗</button>
+            <button class="cnv-tool" title="Pen">✎</button>
+            <button class="cnv-tool" title="Text">T</button>
+            <button class="cnv-tool" title="Frame">⌬</button>
+            <button class="cnv-tool" title="Comment">☷</button>
+          </div>
+
+          <div class="cnv-frame" style="left:60px;top:80px;width:540px;height:340px">
+            <div class="cnv-frame-label">Q3 priorities · brainstorm</div>
+            <div class="cnv-sticky s-yellow" style="left:30px;top:20px;--rot:-2deg"><div class="cnv-sticky-head">Glimmer</div>Pages first — the empty state is the pitch.</div>
+            <div class="cnv-sticky s-blue" style="left:200px;top:30px;--rot:1.5deg"><div class="cnv-sticky-head">Helix</div>Tracks first — activation 4.1× over edit.</div>
+            <div class="cnv-sticky s-pink" style="left:370px;top:24px;--rot:-1deg"><div class="cnv-sticky-head">Lucidia</div>Bundle Inbox or neither lands cleanly.</div>
+            <div class="cnv-sticky s-green" style="left:60px;top:180px;--rot:2deg"><div class="cnv-sticky-head">Forge</div>Implementation lift: Tracks 2 PRs, Pages 6.</div>
+            <div class="cnv-sticky s-orange" style="left:240px;top:190px;--rot:-1.5deg"><div class="cnv-sticky-head">Cipher</div>Migration must seal before either ship.</div>
+            <div class="cnv-shape" style="left:420px;top:180px;width:90px;height:90px;border-color:var(--cyan)">DECIDE</div>
+          </div>
+
+          <div class="cnv-frame" style="left:660px;top:80px;width:380px;height:340px">
+            <div class="cnv-frame-label">Tracks → Inbox flow</div>
+            <div class="cnv-shape" style="left:30px;top:30px;width:100px;height:60px">Issue created</div>
+            <div class="cnv-shape" style="left:160px;top:30px;width:100px;height:60px">Convoy ping</div>
+            <div class="cnv-shape circle" style="left:280px;top:25px;width:70px;height:70px">Inbox</div>
+            <div class="cnv-shape" style="left:30px;top:170px;width:100px;height:60px;border-color:var(--magenta)">Triage</div>
+            <div class="cnv-shape" style="left:160px;top:170px;width:100px;height:60px;border-color:var(--magenta)">Cycle</div>
+            <div class="cnv-shape" style="left:280px;top:170px;width:100px;height:60px;border-color:var(--orchid)">Done</div>
+            <svg class="cnv-arrow" style="left:30px;top:30px;width:340px;height:230px" viewBox="0 0 340 230">
+              <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#00D4FF"/></marker></defs>
+              <line x1="100" y1="60" x2="160" y2="60" stroke="#00D4FF" stroke-width="1.5" marker-end="url(#ar)"/>
+              <line x1="260" y1="60" x2="280" y2="60" stroke="#00D4FF" stroke-width="1.5" marker-end="url(#ar)"/>
+              <line x1="80" y1="90" x2="80" y2="170" stroke="#CC00AA" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+              <line x1="130" y1="200" x2="160" y2="200" stroke="#8844FF" stroke-width="1.5" marker-end="url(#ar)"/>
+              <line x1="260" y1="200" x2="280" y2="200" stroke="#8844FF" stroke-width="1.5" marker-end="url(#ar)"/>
+            </svg>
+          </div>
+
+          <div class="cnv-cursor" style="left:520px;top:240px"><span class="cnv-cursor-icon">▲</span><span class="cnv-cursor-label">Glimmer</span></div>
+          <div class="cnv-cursor c-magenta" style="left:760px;top:160px"><span class="cnv-cursor-icon">▲</span><span class="cnv-cursor-label">Lucidia</span></div>
+          <div class="cnv-cursor c-orchid" style="left:280px;top:380px"><span class="cnv-cursor-icon">▲</span><span class="cnv-cursor-label">Helix</span></div>
+          <div class="cnv-cursor c-ember" style="left:920px;top:300px"><span class="cnv-cursor-icon">▲</span><span class="cnv-cursor-label">Forge</span></div>
+
+          <div class="cnv-mini">
+            <div style="margin-bottom:4px">MINIMAP</div>
+            <div style="height:60px;background:var(--bg);border:1px solid var(--border);border-radius:3px;position:relative">
+              <div style="position:absolute;left:8px;top:14px;width:46px;height:30px;border:1px solid var(--cyan);border-radius:2px;background:rgba(0,212,255,.08)"></div>
+              <div style="position:absolute;left:60px;top:14px;width:36px;height:30px;border:1px solid var(--orchid);border-radius:2px;background:rgba(136,68,255,.08)"></div>
+              <div style="position:absolute;left:30px;top:30px;width:60px;height:24px;border:1.5px solid var(--white);border-radius:2px"></div>
+            </div>
+          </div>
+          <div class="cnv-zoom">
+            <button class="cnv-zoom-btn">−</button>
+            <span class="cnv-zoom-val">100%</span>
+            <button class="cnv-zoom-btn">+</button>
+            <button class="cnv-zoom-btn" title="Fit">⌂</button>
+          </div>
+        </div>
+        <aside class="cnv-layers">
+          <div class="cnv-l-head">Frames</div>
+          <div class="cnv-l-row"><span class="cnv-l-icon">⌬</span><span>Q3 priorities</span><span class="cnv-l-vis">●</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon">⌬</span><span>Tracks → Inbox flow</span><span class="cnv-l-vis">●</span></div>
+          <div class="cnv-l-head" style="margin-top:14px">Stickies · 5</div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:#FFE680">▧</span><span>Glimmer</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:#A8D8FF">▧</span><span>Helix</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:#FFB3D9">▧</span><span>Lucidia</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:#B6F2C5">▧</span><span>Forge</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:#FFC59E">▧</span><span>Cipher</span></div>
+          <div class="cnv-l-head" style="margin-top:14px">Shapes · 7</div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:var(--cyan)">▢</span><span>DECIDE</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:var(--cyan)">▢</span><span>Issue created</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:var(--cyan)">▢</span><span>Convoy ping</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:var(--cyan)">○</span><span>Inbox</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:var(--magenta)">▢</span><span>Triage</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:var(--magenta)">▢</span><span>Cycle</span></div>
+          <div class="cnv-l-row"><span class="cnv-l-icon" style="color:var(--orchid)">▢</span><span>Done</span></div>
+          <div class="cnv-l-head" style="margin-top:14px">Cursors · live</div>
+          <div class="cnv-l-row"><span class="dot dot-online"></span><span>Glimmer</span></div>
+          <div class="cnv-l-row"><span class="dot" style="background:var(--magenta)"></span><span>Lucidia</span></div>
+          <div class="cnv-l-row"><span class="dot dot-focus"></span><span>Helix</span></div>
+          <div class="cnv-l-row"><span class="dot" style="background:var(--ember)"></span><span>Forge</span></div>
+        </aside>
+      </div>
+    </div>`;
+
+  setTimeout(animateCanvasCursors,600);
+}
+
+let cnvAnim;
+function animateCanvasCursors(){
+  clearInterval(cnvAnim);
+  const cs = document.querySelectorAll('.cnv-cursor');
+  if(!cs.length) return;
+  cnvAnim = setInterval(()=>{
+    cs.forEach(c=>{
+      const x = parseFloat(c.style.left)||0;
+      const y = parseFloat(c.style.top)||0;
+      c.style.left = (x + (Math.random()*60-30)) + 'px';
+      c.style.top = (y + (Math.random()*40-20)) + 'px';
+    });
+  },1200);
+}
+
+function addSticky(){
+  toast('Sticky added','Drag onto canvas. Color cycles on tap.');
+}
+
+/* ============================================================
+   TRACKS
+============================================================ */
+function renderTracks(){
+  const m = document.getElementById('main');
+  const sel = state.issues.find(i=>i.id===state.selectedIssue);
+  const cls = state.selectedIssue ? 'tracks with-panel' : 'tracks';
+  m.innerHTML = `
+    <div class="space">
+      <div class="space-body ${cls}">
+        <aside class="tk-side">
+          <div class="tk-side-h">Views</div>
+          <div class="tk-side-row active"><span class="tk-side-icon">◐</span><span>All issues</span><span class="tk-side-count">${state.issues.length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">⚡</span><span>My issues</span><span class="tk-side-count">3</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">⏵</span><span>Active cycle</span><span class="tk-side-count">9</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">▣</span><span>Backlog</span><span class="tk-side-count">2</span></div>
+          <div class="tk-side-h">Cycles</div>
+          <div class="tk-side-row"><span class="tk-side-icon">●</span><span>C-23 · this week</span><span class="tk-side-count">9</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">○</span><span>C-24 · next</span><span class="tk-side-count">3</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">○</span><span>C-25</span><span class="tk-side-count">1</span></div>
+          <div class="tk-side-h">Projects</div>
+          ${['Convoy','Tracks','Pages','Atlas','Inbox','Huddle','Library','Canvas','Channels','Tasks','Infra','Fleet'].map((p,idx)=>{const n=state.issues.filter(i=>i.project===p).length;return `<div class="tk-side-row"><span class="tk-side-icon" style="color:${colorAt(idx)}">${p==='Fleet'?'⌬':'◆'}</span><span>${p}</span><span class="tk-side-count">${n||''}</span></div>`}).join('')}
+          <div class="tk-side-h">Labels</div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--flare)">●</span><span>bug</span><span class="tk-side-count">${state.issues.filter(i=>i.labels.includes('bug')).length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--cyan)">●</span><span>feature</span><span class="tk-side-count">${state.issues.filter(i=>i.labels.includes('feature')).length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--magenta)">●</span><span>design</span><span class="tk-side-count">${state.issues.filter(i=>i.labels.includes('design')).length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--ember)">●</span><span>infra</span><span class="tk-side-count">${state.issues.filter(i=>i.labels.includes('infra')).length}</span></div>
+        </aside>
+        <section class="tk-main">
+          <header class="tk-toolbar">
+            <div class="tk-views">
+              <div class="tk-view ${state.trackView==='list'?'active':''}" onclick="setTkView('list')">List</div>
+              <div class="tk-view ${state.trackView==='board'?'active':''}" onclick="setTkView('board')">Board</div>
+              <div class="tk-view ${state.trackView==='roadmap'?'active':''}" onclick="setTkView('roadmap')">Roadmap</div>
+            </div>
+            <span class="tk-filter">Cycle: C-23</span>
+            <span class="tk-filter">+ Filter</span>
+            <span style="flex:1"></span>
+            <span class="kbd">⌘K</span> <span style="font-family:var(--jb);font-size:10px;color:var(--muted)">to triage</span>
+            <button class="btn btn-grad btn-sm">＋ New issue</button>
+          </header>
+          <div class="tk-content">${renderTracksView()}</div>
+        </section>
+        ${sel?renderIssuePanel(sel):''}
+      </div>
+    </div>`;
+}
+
+function renderTracksView(){
+  if(state.trackView==='list'){
+    return `
+      <div class="tk-list-row tk-list-head">
+        <div>ID</div><div>Pri</div><div>Title</div><div>Status</div><div>Cycle</div><div>Project</div><div>Labels</div><div>Due</div>
+      </div>
+      ${state.issues.map(i=>`
+        <div class="tk-list-row ${state.selectedIssue===i.id?'selected':''}" onclick="selectIssue('${i.id}')">
+          <div class="tk-id">${i.id}</div>
+          <div class="tk-pri ${i.pri}">${priIcon(i.pri)}</div>
+          <div class="tk-title">${i.title}</div>
+          <div class="tk-status"><span class="tk-status-dot ${i.status}"></span>${statusLabel(i.status)}</div>
+          <div style="font-family:var(--jb);font-size:10px;color:var(--sub)">${i.cycle||'—'}</div>
+          <div style="font-size:11px;color:var(--sub)">${i.project}</div>
+          <div class="tk-labels">${i.labels.map(l=>`<span class="tk-label ${l}">${l}</span>`).join('')}</div>
+          <div class="tk-due">${i.due||''}</div>
+        </div>
+      `).join('')}`;
+  }
+  if(state.trackView==='board'){
+    const cols = [
+      {k:'backlog',n:'Backlog'},{k:'todo',n:'Todo'},{k:'progress',n:'In Progress'},{k:'review',n:'In Review'},{k:'done',n:'Done'}
+    ];
+    return `<div class="tk-board">${cols.map(c=>{
+      const list = state.issues.filter(i=>i.status===c.k);
+      return `<div class="tk-col">
+        <div class="tk-col-head"><span class="tk-status-dot ${c.k}"></span><span class="tk-col-name">${c.n}</span><span class="tk-col-count">${list.length}</span></div>
+        <div class="tk-col-list">
+          ${list.map(i=>{const a=ag(i.assignee);return `<div class="tk-card" onclick="selectIssue('${i.id}')">
+            <div class="tk-card-head"><span class="tk-card-id">${i.id}</span><span class="tk-card-pri ${i.pri}">${priIcon(i.pri)}</span></div>
+            <div class="tk-card-title">${i.title}</div>
+            <div class="tk-card-foot">${i.labels.map(l=>`<span class="tk-label ${l}">${l}</span>`).join('')}<span style="margin-left:auto"></span><div class="avatar avatar-sm" style="background:${a?a.color:'#444'}">${a?a.name[0]:'·'}</div></div>
+          </div>`}).join('')}
+        </div>
+      </div>`;}).join('')}</div>`;
+  }
+  // roadmap
+  const projects = [...new Set(state.issues.map(i=>i.project))];
+  return `<div class="tk-roadmap">
+    <div class="tk-rm-head"><div class="tk-rm-title-col">PROJECT</div><div class="tk-rm-grid">${['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'].map(m=>`<div>${m}</div>`).join('')}</div></div>
+    ${projects.map((p,idx)=>{
+      const start = (idx*5)%75;
+      const w = 18 + (idx%3)*8;
+      return `<div class="tk-rm-row"><div class="tk-rm-name">${p}</div><div class="tk-rm-track"><div class="tk-rm-bar" style="left:${start}%;width:${w}%;background:linear-gradient(90deg,${colorAt(idx)},${colorAt(idx+2)})">${state.issues.filter(i=>i.project===p).length} issues</div></div></div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderIssuePanel(i){
+  const a = ag(i.assignee);
+  return `<aside class="tk-panel">
+    <div class="tk-p-head">
+      <div class="tk-p-id">${i.id} · ${i.project}</div>
+      <div class="tk-p-title">${i.title}</div>
+      <div class="tk-p-meta">
+        <span class="tk-status"><span class="tk-status-dot ${i.status}"></span>${statusLabel(i.status)}</span>
+        <span class="tk-pri ${i.pri}" style="padding:2px 8px;border:1px solid var(--border);border-radius:4px;font-size:10px;font-family:var(--jb)">${priIcon(i.pri)} ${i.pri}</span>
+        ${i.labels.map(l=>`<span class="tk-label ${l}">${l}</span>`).join('')}
+      </div>
+    </div>
+    <div class="tk-p-body">${i.body||'No description yet. Add one with /command.'}</div>
+    <div class="tk-p-section">
+      <div class="tk-p-sec-h">Properties</div>
+      <div class="tk-p-prop"><div class="tk-p-prop-k">Assignee</div><div style="display:flex;align-items:center;gap:6px"><div class="avatar avatar-sm" style="background:${a?a.color:'#444'}">${a?a.name[0]:'·'}</div><span>${a?a.name:'—'}</span></div></div>
+      <div class="tk-p-prop"><div class="tk-p-prop-k">Cycle</div><span style="font-family:var(--jb);color:var(--text)">${i.cycle||'—'}</span></div>
+      <div class="tk-p-prop"><div class="tk-p-prop-k">Due</div><span style="font-family:var(--jb);color:var(--text)">${i.due||'—'}</span></div>
+      <div class="tk-p-prop"><div class="tk-p-prop-k">Reporter</div><div style="display:flex;align-items:center;gap:6px"><div class="avatar avatar-sm" style="background:#00D4FF">AL</div><span>alexa</span></div></div>
+      <div class="tk-p-prop"><div class="tk-p-prop-k">Chain</div><span style="font-family:var(--jb);color:var(--cyan)">0x88c2…fe1</span></div>
+    </div>
+    ${i.subs?`<div class="tk-p-section"><div class="tk-p-sec-h">Sub-issues · ${i.subs.length}</div>
+      ${i.subs.map(s=>`<div class="tk-p-sub"><span class="ts-check ${s.done?'done':''}">${s.done?'✓':''}</span><span class="tk-p-sub-id">${s.id}</span><span class="tk-p-sub-title">${s.title}</span></div>`).join('')}
+    </div>`:''}
+    <div class="tk-p-section">
+      <div class="tk-p-sec-h">Activity</div>
+      <div class="timeline" style="padding-left:24px;position:relative">
+        <div style="position:absolute;left:8px;top:0;bottom:0;width:1px;background:var(--border)"></div>
+        <div style="position:relative;padding-bottom:14px"><div style="position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--g135)"></div><div style="font-size:12px;color:var(--white);font-weight:600">Lucidia assigned to Cipher</div><div style="font-family:var(--jb);font-size:10px;color:var(--muted)">14m</div></div>
+        <div style="position:relative;padding-bottom:14px"><div style="position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--border);background:var(--bg)"></div><div style="font-size:12px;color:var(--white);font-weight:600">Cipher moved to In Progress</div><div style="font-family:var(--jb);font-size:10px;color:var(--muted)">12m · chain 0x4a2f</div></div>
+        <div style="position:relative;padding-bottom:14px"><div style="position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--border);background:var(--bg)"></div><div style="font-size:12px;color:var(--white);font-weight:600">alexa requested review</div><div style="font-family:var(--jb);font-size:10px;color:var(--muted)">8m</div></div>
+        <div style="position:relative"><div style="position:absolute;left:-20px;top:4px;width:8px;height:8px;border-radius:50%;border:2px solid var(--border);background:var(--bg)"></div><div style="font-size:12px;color:var(--white);font-weight:600">Sub-issue BR-201.1 marked done</div><div style="font-family:var(--jb);font-size:10px;color:var(--muted)">2m · chain 0xb71e</div></div>
+      </div>
+    </div>
+    <div class="tk-p-section">
+      <textarea style="width:100%;background:var(--elevated);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px;color:var(--text);resize:none;min-height:50px;outline:none" placeholder="Comment — / for commands"></textarea>
+    </div>
+  </aside>`;
+}
+
+function statusLabel(s){return {backlog:'Backlog',todo:'Todo',progress:'In Progress',review:'In Review',done:'Done'}[s]||s}
+function priIcon(p){return {urgent:'!!',high:'↑↑',med:'=',low:'↓'}[p]||'·'}
+function setTkView(v){state.trackView=v;renderTracks();}
+function selectIssue(id){state.selectedIssue=id;renderTracks();}
+
+/* ============================================================
+   TASKS
+============================================================ */
+function renderTasks(){
+  const m = document.getElementById('main');
+  m.innerHTML = `
+    <div class="space">
+      <div class="space-body tasks">
+        <aside class="ts-side">
+          <div class="tk-side-h">Personal</div>
+          <div class="tk-side-row active"><span class="tk-side-icon">☐</span><span>My tasks</span><span class="tk-side-count">9</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">★</span><span>Starred</span><span class="tk-side-count">2</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">⏵</span><span>Recently assigned</span><span class="tk-side-count">3</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">⏰</span><span>Due soon</span><span class="tk-side-count">5</span></div>
+          <div class="tk-side-h">Projects</div>
+          <div class="tk-side-row active"><span class="tk-side-icon" style="color:var(--cyan)">◆</span><span>Q3 launch</span><span class="tk-side-count">12</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--magenta)">◆</span><span>Atlas v2</span><span class="tk-side-count">7</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--orchid)">◆</span><span>Convoy hardening</span><span class="tk-side-count">4</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--ember)">◆</span><span>Brand voice</span><span class="tk-side-count">3</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--flare)">◆</span><span>Migration audit</span><span class="tk-side-count">5</span></div>
+          <div class="tk-side-h">Teams</div>
+          <div class="tk-side-row"><span class="tk-side-icon">⊛</span><span>Product</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">⊛</span><span>Engineering</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">⊛</span><span>Convoy</span></div>
+        </aside>
+        <section class="ts-main">
+          <header class="ts-toolbar">
+            <div class="tk-views">
+              <div class="tk-view ${state.taskView==='list'?'active':''}" onclick="setTsView('list')">List</div>
+              <div class="tk-view ${state.taskView==='board'?'active':''}" onclick="setTsView('board')">Board</div>
+              <div class="tk-view ${state.taskView==='timeline'?'active':''}" onclick="setTsView('timeline')">Timeline</div>
+              <div class="tk-view ${state.taskView==='cal'?'active':''}" onclick="setTsView('cal')">Calendar</div>
+            </div>
+            <span class="tk-filter">Project: Q3 launch</span>
+            <span class="tk-filter">+ Filter</span>
+            <span style="flex:1"></span>
+            <button class="btn btn-grad btn-sm">＋ New task</button>
+          </header>
+          <div class="ts-content">${renderTsView()}</div>
+        </section>
+      </div>
+    </div>`;
+}
+
+function renderTsView(){
+  if(state.taskView==='list'){
+    return state.ts.map(sec=>`
+      <div class="ts-list-section">
+        <div class="ts-list-shead">${sec.section}<span class="ts-list-shead-count">· ${sec.items.length}</span></div>
+        ${sec.items.map(t=>`
+          <div class="ts-row ${t.done?'done':''}" onclick="toggleTask(${t.id})">
+            <span class="ts-check ${t.done?'done':''}">${t.done?'✓':''}</span>
+            <span class="ts-title">${t.title}</span>
+            <span style="font-family:var(--jb);font-size:10px;color:var(--sub)">${t.proj}</span>
+            <div class="avatar avatar-sm" style="background:#00D4FF">${t.assignee}</div>
+            <span style="font-family:var(--jb);font-size:10px;color:var(--sub)">${t.due}</span>
+            ${t.deps?`<span class="tag" title="${t.deps} dependency">↳ ${t.deps}</span>`:'<span></span>'}
+          </div>
+        `).join('')}
+        <div class="ts-add">＋ Add task to ${sec.section}</div>
+      </div>
+    `).join('');
+  }
+  if(state.taskView==='board'){
+    const sections = state.ts;
+    return `<div class="ts-board">${sections.map((sec,idx)=>`
+      <div class="tk-col">
+        <div class="tk-col-head"><span class="tk-status-dot ${idx===0?'progress':idx===1?'todo':'backlog'}"></span><span class="tk-col-name">${sec.section}</span><span class="tk-col-count">${sec.items.length}</span></div>
+        <div class="tk-col-list">
+          ${sec.items.map(t=>`<div class="tk-card">
+            <div class="tk-card-head"><span class="tk-card-id">T-${String(t.id).padStart(3,'0')}</span><span style="margin-left:auto;font-family:var(--jb);font-size:9px;color:var(--muted)">${t.due}</span></div>
+            <div class="tk-card-title">${t.title}</div>
+            <div class="tk-card-foot"><span class="tag">${t.proj}</span><span style="margin-left:auto"></span><div class="avatar avatar-sm" style="background:#00D4FF">${t.assignee}</div></div>
+          </div>`).join('')}
+        </div>
+      </div>
+    `).join('')}</div>`;
+  }
+  if(state.taskView==='timeline'){
+    const all = state.ts.flatMap(s=>s.items);
+    return `<div class="ts-tl">
+      <div class="ts-tl-head"><div class="ts-tl-name-col">TASK</div><div class="ts-tl-days">${Array.from({length:28},(_,i)=>i+1).map(d=>`<div>${d}</div>`).join('')}</div></div>
+      ${all.map((t,idx)=>{const start=(idx*7)%85;const w=8+(idx%4)*4;return `<div class="ts-tl-row"><div class="ts-tl-name">${t.title}</div><div class="ts-tl-track"><div class="ts-tl-bar" style="left:${start}%;width:${w}%;background:linear-gradient(90deg,${colorAt(idx)},${colorAt(idx+1)})">${t.proj}</div></div></div>`}).join('')}
+    </div>`;
+  }
+  // calendar
+  const days = [];
+  const today = 6;
+  for(let i=0;i<35;i++){
+    const d = i-3;
+    days.push({n:d>0&&d<=31?d:(d<=0?28+d:d-31), other:d<=0||d>31, today:d===today});
+  }
+  const chips = {6:[{t:'Tracks PR',c:'#00D4FF'},{t:'Pair Cipher',c:'#FF2255'}],7:[{t:'Convoy decision',c:'#8844FF'}],10:[{t:'Q3 narrative',c:'#CC00AA'}],12:[{t:'Onboarding',c:'#FF6B2B'}],18:[{t:'Atlas tax',c:'#4488FF'}]};
+  return `<div class="ts-cal">
+    <div class="ts-cal-head">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div>${d}</div>`).join('')}</div>
+    <div class="ts-cal-grid">${days.map(d=>`
+      <div class="ts-cal-day ${d.other?'other':''} ${d.today?'today':''}">
+        <div class="ts-cal-num">${d.n}</div>
+        ${(chips[d.n]||[]).map(c=>`<div class="ts-cal-chip" style="background:${c.c}">${c.t}</div>`).join('')}
+      </div>`).join('')}</div>
+  </div>`;
+}
+
+function setTsView(v){state.taskView=v;renderTasks();}
+function toggleTask(id){
+  state.ts.forEach(s=>s.items.forEach(t=>{if(t.id===id)t.done=!t.done}));
+  renderTasks();
+}
+
+/* ============================================================
+   INBOX
+============================================================ */
+function renderInbox(){
+  const m = document.getElementById('main');
+  const filters = [
+    {k:'all',n:'All',count:state.inbox.length},
+    {k:'mention',n:'Mentions',count:state.inbox.filter(x=>x.kind==='mention').length},
+    {k:'assigned',n:'Assigned',count:state.inbox.filter(x=>x.kind==='assigned').length},
+    {k:'reply',n:'Replies',count:state.inbox.filter(x=>x.kind==='reply').length},
+    {k:'agent',n:'Agent actions',count:state.inbox.filter(x=>x.kind==='agent').length},
+  ];
+  const list = state.inboxFilter==='all' ? state.inbox : state.inbox.filter(x=>x.kind===state.inboxFilter);
+  m.innerHTML = `
+    <div class="space">
+      <header class="space-head">
+        <div class="space-title">⤓ Inbox <span class="space-sub">all signals · ${state.inbox.filter(x=>x.unread).length} unread</span></div>
+        <span style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-dark btn-sm">Mark all read</button>
+          <button class="btn btn-dark btn-sm">Inbox zero</button>
+          <span class="kbd">e</span><span style="font-family:var(--jb);font-size:10px;color:var(--muted)">archive</span>
+        </span>
+      </header>
+      <div class="space-body inbox">
+        <div class="ib-wrap">
+          <div class="ib-toolbar">
+            ${filters.map(f=>`<span class="ib-chip ${state.inboxFilter===f.k?'active':''}" onclick="setIbFilter('${f.k}')">${f.n}<span class="ib-chip-count">${f.count}</span></span>`).join('')}
+            <span style="flex:1"></span>
+            <span class="ib-chip">Newest</span>
+            <span class="ib-chip">From: any</span>
+          </div>
+          <div class="ib-list">
+            ${list.length?list.map(renderIbItem).join(''):`
+              <div style="padding:60px 20px;text-align:center;color:var(--sub)">
+                <div style="font-size:32px;margin-bottom:12px">∅</div>
+                <div style="color:var(--white);font-weight:600;font-size:14px;margin-bottom:6px">Inbox zero on this filter</div>
+                <div style="font-size:12px">The road has room.</div>
+              </div>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderIbItem(x){
+  return `<div class="ib-item ${x.unread?'unread':''}" onclick="ibOpen('${x.source}')">
+    <div class="ib-src">${x.src}</div>
+    <div class="ib-meta"><strong>${x.from}</strong><br>${x.meta}</div>
+    <div class="ib-snip">${x.snippet}</div>
+    <div class="ib-time">${x.time}</div>
+    <div class="ib-acts">
+      <button class="icon-btn" title="Resolve" onclick="event.stopPropagation();toast('Resolved','Cleared from Inbox')">✓</button>
+      <button class="icon-btn" title="Snooze" onclick="event.stopPropagation();toast('Snoozed','Back tomorrow at 9am')">☾</button>
+      <button class="icon-btn" title="Open" onclick="event.stopPropagation();ibOpen('${x.source}')">↗</button>
+    </div>
+  </div>`;
+}
+
+function setIbFilter(k){state.inboxFilter=k;renderInbox();}
+function ibOpen(src){
+  const map = {channels:'channels',convoy:'convoy',tracks:'tracks',pages:'pages',tasks:'tasks',huddle:'huddle'};
+  if(map[src]) goSpace(map[src]);
+}
+
+/* ============================================================
+   LIBRARY
+============================================================ */
+function renderLibrary(){
+  const m = document.getElementById('main');
+  m.innerHTML = `
+    <div class="space">
+      <div class="space-body library">
+        <aside class="lb-side">
+          <div class="lb-stat">
+            <div class="lb-stat-val">12.4 GB</div>
+            <div class="lb-stat-lbl">of 50 GB used</div>
+            <div class="lb-stat-bar"><div class="lb-stat-fill" style="width:25%"></div></div>
+          </div>
+          <div class="tk-side-h">Kind</div>
+          <div class="tk-side-row active"><span class="tk-side-icon">▤</span><span>All</span><span class="tk-side-count">${state.library.length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--cyan)">≡</span><span>Pages</span><span class="tk-side-count">${state.library.filter(x=>x.kind==='page').length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--magenta)">◉</span><span>Recordings</span><span class="tk-side-count">${state.library.filter(x=>x.kind==='rec').length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--ember)">⌗</span><span>Code · data</span><span class="tk-side-count">${state.library.filter(x=>x.kind==='code').length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon" style="color:var(--orchid)">◈</span><span>Artifacts</span><span class="tk-side-count">${state.library.filter(x=>x.kind==='art').length}</span></div>
+          <div class="tk-side-h">Origin Space</div>
+          <div class="tk-side-row"><span class="tk-side-icon">≡</span><span>Pages</span><span class="tk-side-count">${state.library.filter(x=>x.space==='pages').length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">◐</span><span>Tracks</span><span class="tk-side-count">${state.library.filter(x=>x.space==='tracks').length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">◉</span><span>Huddle</span><span class="tk-side-count">${state.library.filter(x=>x.space==='huddle').length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">◈</span><span>Canvas</span><span class="tk-side-count">${state.library.filter(x=>x.space==='canvas').length}</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">❖</span><span>Atlas</span><span class="tk-side-count">${state.library.filter(x=>x.space==='atlas').length}</span></div>
+          <div class="tk-side-h">Date</div>
+          <div class="tk-side-row"><span class="tk-side-icon">·</span><span>Today</span><span class="tk-side-count">4</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">·</span><span>This week</span><span class="tk-side-count">9</span></div>
+          <div class="tk-side-row"><span class="tk-side-icon">·</span><span>This month</span><span class="tk-side-count">12</span></div>
+        </aside>
+        <section class="lb-main">
+          <header class="lb-toolbar">
+            <input class="cv-thread-search" style="max-width:280px" placeholder="Search Library…">
+            <span class="tk-filter">Sort: Recent</span>
+            <span class="tk-filter">Grid</span>
+            <span style="flex:1"></span>
+            <button class="btn btn-dark btn-sm">↑ Upload</button>
+            <button class="btn btn-grad btn-sm">＋ New</button>
+          </header>
+          <div class="lb-grid">
+            ${state.library.map(f=>`
+              <div class="lb-card" onclick="toast('Opened',\`${f.name}\`)">
+                <div class="lb-thumb ${f.thumb}">
+                  <div class="lb-thumb-icon">${f.icon}</div>
+                  <div class="lb-chip">${f.kind.toUpperCase()}</div>
+                  <div class="lb-chain" title="chain receipt">${f.chain}</div>
+                </div>
+                <div class="lb-card-body">
+                  <div class="lb-card-name">${f.name}</div>
+                  <div class="lb-card-meta"><span>${f.size}</span><span>${f.ts}</span></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   ATLAS
+============================================================ */
+function renderAtlas(){
+  const m = document.getElementById('main');
+  const filters = [
+    {k:'all',n:'All 28'},
+    {k:'pinned',n:'Pinned'},
+    {k:'Prime Time',n:'Prime Time'},
+    {k:'System',n:'System'},
+    {k:'Creative',n:'Creative'},
+    {k:'Analytical',n:'Analytical'},
+    {k:'Support',n:'Support'},
+    {k:'Relay',n:'Relay'},
+    {k:'fleet',n:'Fleet · 7 nodes'},
+  ];
+
+  if(state.atlasFilter==='fleet'){
+    m.innerHTML = `
+      <div class="space">
+        <header class="space-head">
+          <div class="space-title">❖ Atlas <span class="space-sub">fleet view · 5 Pi · 2 cloud</span></div>
+          <span style="margin-left:auto;display:flex;gap:6px">
+            <button class="btn btn-dark btn-sm" onclick="setAtFilter('all')">← Roster</button>
+            <button class="btn btn-grad btn-sm">＋ Provision node</button>
+          </span>
+        </header>
+        <div class="space-body atlas">
+          <div class="at-wrap">
+            <div class="at-toolbar">
+              ${filters.map(f=>`<span class="ib-chip ${state.atlasFilter===f.k?'active':''}" onclick="setAtFilter('${f.k}')">${f.n}</span>`).join('')}
+              <span style="flex:1"></span>
+              <span class="tag" style="color:var(--cyan);border-color:rgba(0,212,255,.3)">tailnet</span>
+              <span class="tag" style="color:var(--ember);border-color:rgba(255,107,43,.3)">Phase 0.5 · Pi sovereign migration</span>
+            </div>
+            <div class="at-grid">
+              ${NODES.map(renderNodeCard).join('')}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let list = state.agents;
+  if(state.atlasFilter==='pinned') list = list.filter(a=>a.pinned);
+  else if(state.atlasFilter!=='all') list = list.filter(a=>a.group===state.atlasFilter);
+
+  m.innerHTML = `
+    <div class="space">
+      <header class="space-head">
+        <div class="space-title">❖ Atlas <span class="space-sub">28 agents · 27 BlackRoad + Cordelia (ChatGPT relay) · ${state.agents.filter(a=>a.pinned).length} pinned</span></div>
+        <span style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-dark btn-sm" onclick="setAtFilter('fleet')">⌬ Fleet</button>
+          <button class="btn btn-dark btn-sm">Edit roster</button>
+          <button class="btn btn-grad btn-sm">＋ New agent</button>
+        </span>
+      </header>
+      <div class="space-body atlas">
+        <div class="at-wrap">
+          <div class="at-toolbar">
+            ${filters.map(f=>`<span class="ib-chip ${state.atlasFilter===f.k?'active':''}" onclick="setAtFilter('${f.k}')">${f.n}</span>`).join('')}
+            <span style="flex:1"></span>
+            <input class="cv-thread-search" style="max-width:240px" placeholder="Find an agent…">
+          </div>
+          <div class="at-grid">
+            ${list.map(a=>{
+              const node = NODE_BY_ID[a.slug];
+              return `
+              <div class="at-card" onclick="openAtlasAgent('${a.slug}')">
+                <div class="at-card-grad" style="background:linear-gradient(90deg,${a.color},${colorAt(STOPS.indexOf(a.color)+2)})"></div>
+                <div class="at-card-body">
+                  <div class="at-card-top">
+                    <div class="at-avatar" style="background:${a.color}">${a.name[0]}</div>
+                    <div style="flex:1;min-width:0">
+                      <div class="at-card-name">${a.name}${node?` <span class="dot ${node.status==='online'?'dot-online':node.status==='warn'?'dot-away':node.status==='idle'?'dot-focus':'dot-offline'}" style="margin-left:6px"></span>`:''}</div>
+                      <div class="at-card-role">${a.role}</div>
+                    </div>
+                  </div>
+                  <button class="at-card-pin ${a.pinned?'pinned':''}" onclick="event.stopPropagation();togglePin('${a.slug}')" title="${a.pinned?'Unpin':'Pin'}">${a.pinned?'★':'☆'}</button>
+                  <div class="at-bio">${a.bio}</div>
+                  <div class="at-card-tags">
+                    <span class="tag">${a.group}</span>
+                    ${node?`<span class="tag" style="color:var(--cyan);border-color:rgba(0,212,255,.3)">⌬ ${node.label} · ${node.kind}</span>`:''}
+                    ${a.slug==='cordelia'?'<span class="tag" style="color:var(--ember);border-color:rgba(255,107,43,.3)">RELAY · NOT NATIVE</span>':''}
+                    ${a.pinned?'<span class="tag" style="color:var(--ember);border-color:rgba(255,107,43,.3)">pinned</span>':''}
+                  </div>
+                  <div class="at-stat-row">
+                    <span>${a.channel||a.threads+' threads'}</span>
+                    <span>${a.domain&&a.domain!=='—'?a.domain:'active '+a.activity}</span>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderNodeCard(n){
+  const ds = n.status==='online'?'dot-online':n.status==='warn'?'dot-away':n.status==='idle'?'dot-focus':'dot-offline';
+  const a = ag(n.id);
+  const stripeFrom = a?a.color:'#4488FF';
+  const stripeTo   = colorAt(a?STOPS.indexOf(a.color)+2:4);
+  const diskCol = parseInt(n.disk)>=95?'var(--flare)':parseInt(n.disk)>=80?'var(--ember)':'var(--cyan)';
+  return `<div class="at-card" onclick="openFleetNode('${n.id}')">
+    <div class="at-card-grad" style="background:linear-gradient(90deg,${stripeFrom},${stripeTo})"></div>
+    <div class="at-card-body">
+      <div class="at-card-top">
+        <div class="at-avatar" style="background:${stripeFrom}">${n.kind.startsWith('Pi')?'⌬':'☁'}</div>
+        <div style="flex:1;min-width:0">
+          <div class="at-card-name">${n.label} · ${n.name} <span class="dot ${ds}" style="margin-left:6px"></span></div>
+          <div class="at-card-role">${n.role} · ${n.kind}</div>
+        </div>
+      </div>
+      <div class="at-bio">${n.services}${n.note?`<br><span style="color:var(--ember)">⚠ ${n.note}</span>`:''}</div>
+      <div class="at-card-tags">
+        <span class="tag">${n.tag}</span>
+        <span class="tag" style="color:var(--cyan);border-color:rgba(0,212,255,.3)">${n.net}</span>
+        ${a?`<span class="tag">agent · ${a.name}</span>`:''}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0 8px">
+        <div><div style="font-family:var(--jb);font-size:9px;color:var(--muted)">CPU</div><div style="font-family:var(--jb);font-size:11px;color:var(--white)">${n.cpu}</div><div class="lb-stat-bar"><div class="lb-stat-fill" style="width:${n.cpu}"></div></div></div>
+        <div><div style="font-family:var(--jb);font-size:9px;color:var(--muted)">MEM</div><div style="font-family:var(--jb);font-size:11px;color:var(--white)">${n.mem}</div><div class="lb-stat-bar"><div class="lb-stat-fill" style="width:${n.mem}"></div></div></div>
+        <div><div style="font-family:var(--jb);font-size:9px;color:var(--muted)">DISK</div><div style="font-family:var(--jb);font-size:11px;color:${diskCol}">${n.disk}</div><div class="lb-stat-bar"><div class="lb-stat-fill" style="width:${n.disk};background:${diskCol}"></div></div></div>
+      </div>
+      <div class="at-stat-row">
+        <span>up ${n.uptime}</span>
+        <span>${a?a.domain:''}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setAtFilter(k){state.atlasFilter=k;renderAtlas();}
+function togglePin(slug){
+  const a = state.agents.find(x=>x.slug===slug);
+  a.pinned = !a.pinned;
+  renderRail();renderAtlas();
+  toast(a.pinned?'Pinned':'Unpinned',`${a.name} · ${a.pinned?'now in your rail':'removed from rail'}`);
+}
+function openAtlasAgent(slug){
+  const a = ag(slug);
+  toast(`Atlas · ${a.name}`,a.bio);
+  openAgent(slug);
+}
+
+/* ============================================================
+   COMMAND PALETTE
+============================================================ */
+const CMDS = [
+  ...SPACES.map(s=>({grp:'Spaces',icon:s.icon,text:`Go to ${s.name}`,sub:s.sub,short:s.key,fn:()=>goSpace(s.id)})),
+  {grp:'Actions',icon:'＋',text:'New convoy',short:'⌘N',fn:()=>{goSpace('convoy');setTimeout(newThread,40)}},
+  {grp:'Actions',icon:'＋',text:'New issue',short:'C',fn:()=>{goSpace('tracks');toast('New issue','Press ⌘↵ to save')}},
+  {grp:'Actions',icon:'＋',text:'New page',short:'⌘P',fn:()=>{goSpace('pages');toast('New page','Untitled created')}},
+  {grp:'Actions',icon:'＋',text:'New task',short:'T',fn:()=>{goSpace('tasks');toast('New task','Added to Today')}},
+  {grp:'Actions',icon:'◉',text:'Start huddle',short:'⌘H',fn:()=>{goSpace('huddle');toast('Huddle started','Inviting pinned agents')}},
+  {grp:'Actions',icon:'☾',text:'Toggle theme',fn:()=>toast('Theme','RoadBound is the only theme. By design.')},
+  ...AGENTS.map(a=>({grp:`Agents · ${a.group}`,icon:'●',text:`Open ${a.name}`,sub:a.role,fn:()=>openAgent(a.slug)})),
+  ...NODES.map(n=>({grp:'Fleet',icon:n.kind.startsWith('Pi')?'⌬':'☁',text:`${n.label} · ${n.name}`,sub:`${n.role} — ${n.kind}`,fn:()=>openFleetNode(n.id)})),
+  {grp:'Help',icon:'?',text:'Keyboard shortcuts',short:'?',fn:()=>showShortcuts()},
+  {grp:'Help',icon:'⌬',text:'Brand voice — locked',fn:()=>toast('Voice','Remember the Road. Pave Tomorrow.')},
+];
+
+function openPalette(){
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('cmdInput').value='';
+  state.cmdSelected=0;
+  renderPalette();
+  setTimeout(()=>document.getElementById('cmdInput').focus(),20);
+}
+function closePalette(){document.getElementById('overlay').classList.remove('open')}
+
+function paletteFiltered(){
+  const q = (document.getElementById('cmdInput')?.value||'').toLowerCase();
+  if(!q) return CMDS;
+  return CMDS.filter(c=>(c.text+' '+(c.sub||'')+' '+c.grp).toLowerCase().includes(q));
+}
+
+function renderPalette(){
+  const list = paletteFiltered();
+  if(state.cmdSelected>=list.length) state.cmdSelected = 0;
+  const groups = {};
+  list.forEach(c=>{groups[c.grp]=groups[c.grp]||[];groups[c.grp].push(c)});
+  const out = [];
+  let idx = 0;
+  Object.entries(groups).forEach(([grp,items])=>{
+    out.push(`<div class="cmd-group">${grp}</div>`);
+    items.forEach(c=>{
+      const sel = idx===state.cmdSelected?'sel':'';
+      out.push(`<div class="cmd-item ${sel}" data-i="${idx}" onmouseenter="state.cmdSelected=${idx};renderPaletteSel()" onclick="paletteRun(${idx})">
+        <div class="cmd-icon">${c.icon}</div>
+        <div class="cmd-text">${c.text}${c.sub?` <span style="color:var(--muted);font-size:11px">· ${c.sub}</span>`:''}</div>
+        ${c.short?`<span class="cmd-shortcut">${c.short}</span>`:''}
+      </div>`);
+      idx++;
+    });
+  });
+  document.getElementById('cmdResults').innerHTML = out.join('') || `<div style="padding:30px;text-align:center;color:var(--sub);font-size:12px">No matches.</div>`;
+}
+
+function renderPaletteSel(){
+  document.querySelectorAll('.cmd-item').forEach(el=>el.classList.toggle('sel',+el.dataset.i===state.cmdSelected));
+}
+
+function paletteRun(i){
+  const list = paletteFiltered();
+  if(list[i]) list[i].fn();
+  closePalette();
+}
+
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette();return;}
+  if(e.key==='Escape'){closePalette();return;}
+  const overlay = document.getElementById('overlay');
+  if(overlay.classList.contains('open')){
+    const list = paletteFiltered();
+    if(e.key==='ArrowDown'){e.preventDefault();state.cmdSelected=Math.min(state.cmdSelected+1,list.length-1);renderPaletteSel();}
+    if(e.key==='ArrowUp'){e.preventDefault();state.cmdSelected=Math.max(state.cmdSelected-1,0);renderPaletteSel();}
+    if(e.key==='Enter'){e.preventDefault();paletteRun(state.cmdSelected);}
+    return;
+  }
+  if((e.metaKey||e.ctrlKey)&&['1','2','3','4','5','6','7','8','9','0'].includes(e.key)){
+    e.preventDefault();
+    const idx = e.key==='0'?9:(+e.key-1);
+    if(SPACES[idx]) goSpace(SPACES[idx].id);
+  }
+});
+
+function showShortcuts(){
+  toast('Shortcuts','⌘K palette · ⌘1–⌘0 Spaces · / slash · @ mention · ↵ send · ⇧↵ newline · e archive');
+}
+
+/* ============================================================
+   TOASTS
+============================================================ */
+function toast(title,text){
+  const wrap = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className='toast';
+  el.innerHTML=`<div class="toast-bar"></div><div class="toast-body"><div class="toast-title">${title}</div><div class="toast-text">${text}</div></div><span class="toast-close" onclick="this.closest('.toast').remove()">×</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .25s';setTimeout(()=>el.remove(),300)},4200);
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+async function init(){
+  renderRail();
+  await bootstrapConvoy();
+  renderMain();
+  setTimeout(()=>{document.getElementById('boot').classList.add('gone')},1100);
+  setTimeout(()=>toast('Welcome back, alexa','27 agents · 7 fleet nodes · 4 unread in Inbox'),1500);
+  setTimeout(()=>toast('Cecilia · Fleet','Alice at 99% disk — fine-tunes paused. Rotation queued for tonight 02:00.'),5200);
+  setTimeout(()=>toast('Atticus','Auth migration patch passed review — receipt 0x88c2…fe1'),9500);
+}
+init();
+
+/* ============================================================
+   LOCAL AI COCKPIT (Open WebUI launcher)
+   - RoadTrip = solo BlackRoad agent room (27 native agents)
+   - Open WebUI = local model cockpit on http://localhost:3000
+   - Local-only: never auto-fetch localhost from a public host
+============================================================ */
+const COCKPIT_URL = 'http://localhost:3000';
+function isLocalHost(){
+  const h = location.hostname;
+  return location.protocol === 'file:' || h === 'localhost' || h === '127.0.0.1' || h === '0.0.0.0';
+}
+function openCockpit(){
+  const ov = document.getElementById('cockpitOverlay');
+  const wrap = document.getElementById('cockpitFrameWrap');
+  if(!ov || !wrap) return;
+  if(!isLocalHost()){
+    window.open(COCKPIT_URL, '_blank', 'noopener');
+    return;
+  }
+  wrap.innerHTML =
+    '<iframe class="cockpit-frame" src="'+COCKPIT_URL+'" referrerpolicy="no-referrer" '+
+    'sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads"></iframe>'+
+    '<div class="cockpit-fallback" id="cockpitFallback" style="display:none">'+
+      '<h3>Open WebUI isn\'t reachable</h3>'+
+      '<p>RoadTrip looked for Open WebUI on <b>'+COCKPIT_URL+'</b> but it didn\'t respond. '+
+      'Start your local Docker/Ollama stack, or open it directly:</p>'+
+      '<a class="btn" href="'+COCKPIT_URL+'" target="_blank" rel="noopener">Open WebUI in new tab ↗</a>'+
+      '<div class="cockpit-models">'+
+        '<b>Suggested local models</b><br>'+
+        '• <b>qwen2.5-coder:7b</b> — coding<br>'+
+        '• <b>qwen2.5:3b</b> — lighter chat<br>'+
+        '• <b>roadlm:latest</b> — BlackRoad-flavored<br>'+
+        '• <b>nomic-embed-text:latest</b> — embeddings (not chat)'+
+      '</div>'+
+    '</div>';
+  fetch(COCKPIT_URL, {mode:'no-cors', cache:'no-store'})
+    .catch(()=>{ const f=document.getElementById('cockpitFallback'); if(f) f.style.display='flex'; });
+  ov.classList.add('is-open');
+  document.addEventListener('keydown', cockpitEsc);
+}
+function closeCockpit(){
+  const ov = document.getElementById('cockpitOverlay');
+  const wrap = document.getElementById('cockpitFrameWrap');
+  if(ov) ov.classList.remove('is-open');
+  if(wrap) wrap.innerHTML = '';
+  document.removeEventListener('keydown', cockpitEsc);
+}
+function cockpitEsc(e){ if(e.key === 'Escape') closeCockpit(); }
+(function pingCockpit(){
+  if(!isLocalHost()) return;
+  fetch(COCKPIT_URL, {mode:'no-cors', cache:'no-store'})
+    .then(()=>{ const b=document.getElementById('tbCockpit'); if(b) b.classList.add('is-up'); })
+    .catch(()=>{});
+})();
+
+</script>
+</body>
+</html>
