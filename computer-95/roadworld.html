@@ -3575,5 +3575,17 @@ function boot() {
 }
 boot();
 </script>
+<script src="/static/br-auth.js" defer></script>
+<script src="/static/br-kv.js" defer></script>
+<aside id="br-kv-stash-mount" style="max-width:1500px;margin:14px auto;padding:0 18px"></aside>
+<script>
+window.addEventListener("DOMContentLoaded", function(){
+  var ready = function(fn){ if (window.brKVStash) fn(); else setTimeout(function(){ ready(fn); }, 50); };
+  ready(function(){
+    var mount = document.getElementById("br-kv-stash-mount");
+    if (mount) window.brKVStash("roadworld", mount, { label: "Your saved roadworld scratch — autosaves to your account" });
+  });
+});
+</script>
 </body>
 </html>

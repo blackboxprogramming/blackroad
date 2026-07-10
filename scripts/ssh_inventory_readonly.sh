@@ -1,199 +1,182 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# ssh_inventory_readonly.sh
+# Read-only SSH inventory using key-only auth (BatchMode=yes).
+# Tries users: alexa, pi
+# Writes JSONL to data/ssh_inventory.jsonl and a markdown report to reports/ssh_inventory_readonly.md
 
-# SSH inventory (readonly) for local devices
-# - Only scans 192.168.4.0/24
-# - Uses SSH key auth only (BatchMode=yes)
-# - Short timeouts
-# - Does not modify remote devices
-# - Writes results to reports/ssh_inventory_readonly.md and data/ssh_inventory.jsonl
+set -uo pipefail
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+repo_root=$(cd "$script_dir/.." && pwd)
+DATA_DIR="$repo_root/data"
+REPORT_DIR="$repo_root/reports"
+OUT_JSON="$DATA_DIR/ssh_inventory.jsonl"
+OUT_MD="$REPORT_DIR/ssh_inventory_readonly.md"
 
-TARGET_IPS=(
-  192.168.4.38
-  192.168.4.49
-  192.168.4.98
-  192.168.4.112
-  192.168.4.113
-)
+mkdir -p "$DATA_DIR" "$REPORT_DIR"
 
 USERS=(alexa pi)
-ALIASES=(lucidia aria alice octavia anastasia cecilia gematria calliope gaia olympia blackroad cadence)
+IPS=("$@")
+if [ ${#IPS[@]} -eq 0 ]; then
+  IPS=(192.168.4.38 192.168.4.49 192.168.4.98 192.168.4.112 192.168.4.113)
+fi
 
-OUT_MD="reports/ssh_inventory_readonly.md"
-OUT_JSONL="data/ssh_inventory.jsonl"
-
-mkdir -p reports data
-
-timestamp() { date -u +"%Y-%m-%dT%H:%M:%SZ"; }
-
-# utility: allowed subnet check (conservative string prefix check)
-ip_allowed() {
-  local ip="$1"
-  [[ "$ip" == 192.168.4.* ]]
+# Helper: safe json dump via python (reads env vars to avoid complex escaping)
+write_json_line() {
+  # expects env vars: IP,SSH_STATUS,SSH_USER,HOSTNAME_OUT,WHOAMI_OUT,UNAME_OUT,UPTIME_OUT,PWD_OUT,IFACES_OUT,LSUSB_OUT,SYSTEMCTL_OUT,PY_VER,NODE_VER,OLLAMA_VER,PM2_VER,DOCKER_VER,NOTE
+  python3 - <<'PY'
+import os,sys,json
+env=os.environ
+obj={
+  'ip': env.get('IP'),
+  'ssh_status': env.get('SSH_STATUS'),
+  'ssh_user': env.get('SSH_USER'),
+  'hostname': env.get('HOSTNAME_OUT'),
+  'whoami': env.get('WHOAMI_OUT'),
+  'uname': env.get('UNAME_OUT'),
+  'uptime': env.get('UPTIME_OUT'),
+  'pwd': env.get('PWD_OUT'),
+  'interfaces': env.get('IFACES_OUT'),
+  'lsusb': env.get('LSUSB_OUT'),
+  'systemctl': env.get('SYSTEMCTL_OUT'),
+  'python3_version': env.get('PY_VER'),
+  'node_version': env.get('NODE_VER'),
+  'ollama_version': env.get('OLLAMA_VER'),
+  'pm2_version': env.get('PM2_VER'),
+  'docker_version': env.get('DOCKER_VER'),
+  'note': env.get('NOTE')
 }
-
-# Append a human-readable summary to markdown
-append_md() {
-  local line="$1"
-  printf "%s %s\n" "- [$(timestamp)]" "$line" >> "$OUT_MD"
-}
-
-# Write a JSON object to JSONL using python (safe escaping)
-write_jsonl_from_tmpdir() {
-  local target="$1"
-  local type="$2"    # ip or alias
-  local tmpdir="$3"
-  python3 - "$OUT_JSONL" "$target" "$type" "$tmpdir" <<'PY'
-import json,sys,os
-out_jsonl, target, type_, tmpdir = sys.argv[1:4]
-obj = { 'timestamp': None, 'target': target, 'type': type_, 'port22': None, 'fingerprints': [], 'attempts': [] }
-obj['timestamp'] = __import__('datetime').datetime.utcnow().isoformat() + 'Z'
-# port status
-if os.path.exists(os.path.join(tmpdir,'port_status.txt')):
-    with open(os.path.join(tmpdir,'port_status.txt')) as f:
-        obj['port22'] = f.read().strip()
-# fingerprints
-fpfile = os.path.join(tmpdir,'fingerprint.txt')
-if os.path.exists(fpfile):
-    with open(fpfile) as f:
-        obj['fingerprints'] = [l.strip() for l in f if l.strip()]
-# attempts
-for fname in sorted(os.listdir(tmpdir)):
-    if not fname.startswith('attempt_') or not fname.endswith('.out'):
-        continue
-    user = fname[len('attempt_'):-len('.out')]
-    outpath = os.path.join(tmpdir,fname)
-    rcpath = os.path.join(tmpdir,f'attempt_{user}.rc')
-    with open(outpath,'r',errors='ignore') as f:
-        out = f.read()
-    rc = None
-    if os.path.exists(rcpath):
-        try:
-            rc = int(open(rcpath).read().strip())
-        except Exception:
-            rc = None
-    obj['attempts'].append({'user': user, 'rc': rc, 'output': out})
-# append JSON line
-with open(out_jsonl,'a') as f:
-    f.write(json.dumps(obj) + '\n')
-# also print a short summary to stdout for convenience
-print(json.dumps({'target':target,'type':type_,'port22':obj['port22'],'fingerprints':obj['fingerprints'],'attempts':[{'user':a['user'],'rc':a['rc']} for a in obj['attempts']]}))
+# remove None keys
+obj = {k:v for k,v in obj.items() if v is not None}
+print(json.dumps(obj))
 PY
 }
 
-# Helper: scan a single IP
-scan_ip() {
-  local ip="$1"
-  local tmpdir
-  tmpdir=$(mktemp -d)
-  printf "" > "$tmpdir/port_status.txt"
+# Overwrite output file
+: > "$OUT_JSON"
 
-  # Port check using nc if available
+for ip in "${IPS[@]}"; do
+  export IP="$ip"
+  ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  SSH_STATUS="unknown"
+  SSH_USER=""
+  HOSTNAME_OUT=""
+  WHOAMI_OUT=""
+  UNAME_OUT=""
+  UPTIME_OUT=""
+  PWD_OUT=""
+  IFACES_OUT=""
+  LSUSB_OUT=""
+  SYSTEMCTL_OUT=""
+  PY_VER=""
+  NODE_VER=""
+  OLLAMA_VER=""
+  PM2_VER=""
+  DOCKER_VER=""
+  NOTE=""
+
+  # First test port 22 using nc -vz -w 2 as requested
+  PORT22_OK=0
   if command -v nc >/dev/null 2>&1; then
-    if nc -z -w 2 "$ip" 22 >/dev/null 2>&1; then
-      echo "open" > "$tmpdir/port_status.txt"
+    if nc -vz -w 2 "$ip" 22 >/dev/null 2>&1; then
+      PORT22_OK=1
     else
-      echo "closed" > "$tmpdir/port_status.txt"
-      append_md "$ip: ssh_closed"
-      write_jsonl_from_tmpdir "$ip" ip "$tmpdir"
-      rm -rf "$tmpdir"
-      return
+      PORT22_OK=0
     fi
   else
-    # fallback: try ssh quick probe (BatchMode to avoid password prompts)
-    if ssh -o BatchMode=yes -o ConnectTimeout=2 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=publickey -o LogLevel=ERROR "${USERS[0]}@$ip" exit >/dev/null 2>&1; then
-      echo "open" > "$tmpdir/port_status.txt"
+    # fallback to /dev/tcp
+    if (exec 3>/dev/tcp/"$ip"/22) >/dev/null 2>&1; then
+      PORT22_OK=1
+      exec 3>&-
     else
-      echo "closed" > "$tmpdir/port_status.txt"
-      append_md "$ip: ssh_closed (nc not available)"
-      write_jsonl_from_tmpdir "$ip" ip "$tmpdir"
-      rm -rf "$tmpdir"
-      return
+      PORT22_OK=0
     fi
   fi
 
-  # gather host key fingerprint (ssh-keyscan -> ssh-keygen)
-  if command -v ssh-keyscan >/dev/null 2>&1 && command -v ssh-keygen >/dev/null 2>&1; then
-    ssh-keyscan -T 3 -p 22 "$ip" 2>/dev/null > "$tmpdir/hostkey.raw" || true
-    if [ -s "$tmpdir/hostkey.raw" ]; then
-      # produce human-readable fingerprints
-      ssh-keygen -lf "$tmpdir/hostkey.raw" 2>/dev/null | sed -E 's/^[0-9]+ //' > "$tmpdir/fingerprint.txt" || true
-    fi
-  fi
-
-  # Use a temporary known_hosts file so we don't modify user's real file
-  local tmp_known
-  tmp_known=$(mktemp)
-
-  # Attempt SSH with allowed users only
-  for u in "${USERS[@]}"; do
-    # Run only the identity commands required; BatchMode=yes prevents password prompts
-    ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$tmp_known" -o PreferredAuthentications=publickey -o LogLevel=ERROR "$u@$ip" "hostname; whoami; uname -a; uptime" > "$tmpdir/attempt_${u}.out" 2>&1 || true
-    echo $? > "$tmpdir/attempt_${u}.rc"
-    # if rc==0 then success — do not try other users
-    if [ "$(cat "$tmpdir/attempt_${u}.rc")" -eq 0 ]; then
-      append_md "$ip: ssh_ok as $u"
-      write_jsonl_from_tmpdir "$ip" ip "$tmpdir"
-      rm -rf "$tmpdir" "$tmp_known"
-      return
-    fi
-  done
-
-  # if we reach here, auth failed for allowed users
-  append_md "$ip: auth_failed_key_only (no allowed-user succeeded)"
-  write_jsonl_from_tmpdir "$ip" ip "$tmpdir"
-  rm -rf "$tmpdir" "$tmp_known"
-}
-
-# Helper: scan an alias present in user's SSH config if it maps to an IP in allowed subnet
-scan_alias() {
-  local alias="$1"
-  # get effective hostname from ssh -G (does not connect)
-  if ! command -v ssh >/dev/null 2>&1; then
-    return
-  fi
-  local cfg_host
-  cfg_host=$(ssh -G "$alias" 2>/dev/null | awk '/^hostname /{print $2; exit}') || true
-  if [ -z "$cfg_host" ]; then
-    return
-  fi
-  # only proceed if hostname is an IPv4 literal in allowed subnet
-  if [[ "$cfg_host" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] && ip_allowed "$cfg_host"; then
-    scan_ip "$cfg_host"
-  else
-    append_md "alias $alias skipped (hostname=$cfg_host not in 192.168.4.0/24 or not an IPv4 literal)"
-  fi
-}
-
-# Start report
-echo "# SSH inventory (readonly)" > "$OUT_MD"
-echo "Generated: $(timestamp)" >> "$OUT_MD"
-echo >> "$OUT_MD"
-
-# Scan explicit IP targets
-for ip in "${TARGET_IPS[@]}"; do
-  if ! ip_allowed "$ip"; then
-    append_md "$ip: skipped (not in 192.168.4.0/24)"
+  if [ "$PORT22_OK" -ne 1 ]; then
+    SSH_STATUS="ssh_closed"
+    export SSH_STATUS SSH_USER HOSTNAME_OUT WHOAMI_OUT UNAME_OUT UPTIME_OUT PWD_OUT IFACES_OUT LSUSB_OUT SYSTEMCTL_OUT PY_VER NODE_VER OLLAMA_VER PM2_VER DOCKER_VER NOTE
+    write_json_line >> "$OUT_JSON"
     continue
   fi
-  append_md "$ip: probing"
-  scan_ip "$ip"
-done
 
-# Scan aliases (only if they map to IPv4 in the allowed subnet)
-if [ -f "$HOME/.ssh/config" ]; then
-  for a in "${ALIASES[@]}"; do
-    # quick existence check in config
-    if grep -qE "^Host[[:space:]]+$a(\s|")?" "$HOME/.ssh/config" 2>/dev/null; then
-      append_md "alias $a: present in SSH config — evaluating"
-      scan_alias "$a"
+  # Port open — try users
+  AUTH_OK=0
+  for user in "${USERS[@]}"; do
+    KNOWN_FILE=$(mktemp /tmp/br_known.XXXX)
+    # ensure temp cleaned
+    trap 'rm -f "$KNOWN_FILE"' RETURN
+    SSH_OPTS=( -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$KNOWN_FILE" -o PreferredAuthentications=publickey -o PasswordAuthentication=no -o LogLevel=ERROR )
+    # attempt simple auth check
+    if ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'echo __BR_SSH_OK__' >/dev/null 2>&1; then
+      AUTH_OK=1
+      SSH_STATUS="auth_ok"
+      SSH_USER="$user"
+
+      # run allowed remote commands (each is safe, no file reads beyond those commands)
+      HOSTNAME_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'hostname' 2>/dev/null || true)
+      WHOAMI_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'whoami' 2>/dev/null || true)
+      UNAME_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'uname -a' 2>/dev/null || true)
+      UPTIME_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'uptime' 2>/dev/null || true)
+      PWD_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'pwd' 2>/dev/null || true)
+      IFACES_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'ip -br addr 2>/dev/null || ifconfig 2>/dev/null' 2>/dev/null || true)
+      LSUSB_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'command -v lsusb >/dev/null 2>&1 && lsusb 2>/dev/null || true' 2>/dev/null || true)
+      SYSTEMCTL_OUT=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'command -v systemctl >/dev/null 2>&1 && systemctl --version 2>/dev/null || true' 2>/dev/null || true)
+      PY_VER=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'command -v python3 >/dev/null 2>&1 && python3 --version 2>/dev/null || true' 2>/dev/null || true)
+      NODE_VER=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'command -v node >/dev/null 2>&1 && node --version 2>/dev/null || true' 2>/dev/null || true)
+      OLLAMA_VER=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'command -v ollama >/dev/null 2>&1 && ollama --version 2>/dev/null || true' 2>/dev/null || true)
+      PM2_VER=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'command -v pm2 >/dev/null 2>&1 && pm2 --version 2>/dev/null || true' 2>/dev/null || true)
+      DOCKER_VER=$(ssh "${SSH_OPTS[@]}" "${user}@${ip}" 'command -v docker >/dev/null 2>&1 && docker --version 2>/dev/null || true' 2>/dev/null || true)
+
+      # done with known file
+      rm -f "$KNOWN_FILE" 2>/dev/null || true
+      trap - RETURN
+
+      # export and write JSON
+      export SSH_STATUS SSH_USER HOSTNAME_OUT WHOAMI_OUT UNAME_OUT UPTIME_OUT PWD_OUT IFACES_OUT LSUSB_OUT SYSTEMCTL_OUT PY_VER NODE_VER OLLAMA_VER PM2_VER DOCKER_VER NOTE
+      write_json_line >> "$OUT_JSON"
+      break
+    else
+      # auth failed for this user, remove known file and try next
+      rm -f "$KNOWN_FILE" 2>/dev/null || true
+      trap - RETURN
+      continue
     fi
   done
-fi
 
-append_md "scan complete"
+  if [ "$AUTH_OK" -ne 1 ]; then
+    SSH_STATUS="auth_failed_key_only"
+    export SSH_STATUS SSH_USER HOSTNAME_OUT WHOAMI_OUT UNAME_OUT UPTIME_OUT PWD_OUT IFACES_OUT LSUSB_OUT SYSTEMCTL_OUT PY_VER NODE_VER OLLAMA_VER PM2_VER DOCKER_VER NOTE
+    write_json_line >> "$OUT_JSON"
+  fi
 
-echo "Wrote human report to $OUT_MD"
-echo "Wrote machine-readable JSONL to $OUT_JSONL"
+done
 
-exit 0
+# Generate a summary markdown
+python3 - <<'PY'
+import json,os
+infile='data/ssh_inventory.jsonl'
+out='reports/ssh_inventory_readonly.md'
+items=[]
+if os.path.exists(infile):
+    with open(infile) as f:
+        for l in f:
+            try:
+                items.append(json.loads(l))
+            except:
+                pass
+lines=[]
+lines.append('# SSH inventory (read-only)')
+lines.append('')
+for it in items:
+    ip=it.get('ip')
+    status=it.get('ssh_status')
+    user=it.get('ssh_user')
+    hostname=it.get('hostname')
+    uname=it.get('uname')
+    ports11434='11434' in ' '.join(it.get('interfaces','')) if it.get('interfaces') else False
+    lines.append(f'- {ip}: status={status}, user={user}, hostname={hostname}, uname={uname}, port11434={ports11434}')
+open(out,'w').write('\n'.join(lines))
+print('Wrote',out)
+PY
+
+# end script

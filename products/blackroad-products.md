@@ -8,7 +8,7 @@ A concise, human-friendly map of the 27 canonical BlackRoad products. Each entry
 4. PitStop — https://pitstop.blackroad.io — Learning, tutoring, and quick practice lessons. (Planning)
 5. RoadWork — https://roadwork.blackroad.io — Company operations, approvals, and workflows. (Planning)
 6. BackRoad — https://backroad.blackroad.io — Creator publishing and community with real comments. (Planning)
-7. CarKeys — https://carkeys.blackroad.io — Identity, device claims, and access keys. (Planning)
+7. CarKeys — https://carkeys.blackroad.io — Identity, device claims, and access keys. (Prototype — keys/grants/vaults/sessions/audit/stats live; shares is placeholder until WebCrypto AES-GCM lands)
 8. RoadBook — https://roadbook.blackroad.io — Publishing, notes, and peer review. (Planning)
 9. RoadWorld — https://roadworld.blackroad.io — Walkable worlds, rooms, and small maps. (Planning)
 10. RoadView — https://roadview.blackroad.io — Dashboards, search, and observability. (Planning)

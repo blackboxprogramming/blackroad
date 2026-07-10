@@ -1,10 +1,11 @@
 {
-  "build_hash": "bcdbe4e30c89a35b946de14e69164eba1ac39026ceb08bd6e1e05011247d9515",
+  "build_hash": "9be00319b18c70ce3e597865d4eb3151d98d941336ffeb6091e86a14c90f9c88",
   "algo": "sha256/v1",
-  "count": 740,
+  "count": 743,
   "files": {
     "_redirects": "331895c948c91320ae4c54468479883dca620a351c1ef7a7948e7d01894d1d91",
     "agent.html": "7de5f7d44e240969e9ccf2eac2b2e9993e93675e7457d45f3de8957a1362e845",
+    "arpanet.html": "0b9d07a468126fdbd4fcc99274b6114b79934b91c17a2b9eb241b1c9bc1cecbf",
     "audit.html": "77d9118895ab89cde51709d13953288b43c1f87acf639c09ad8f0e89e62fbd42",
     "b.html": "8ce58614fde2daf102b83e61608a45a5411356723c6ea93e9d35585d49cc0920",
     "backroad-classic.html": "78012ed014102e3aaa38f7ee33e9b115a437a5a3f0ad65cd519d0ec569bf56c3",
@@ -460,6 +461,8 @@
     "migrations/2026-05-05-roadchain-audit-events.sql": "fad17dd4dd99f89d05d32a35a564e6d60d1162b33570991369781b0baa5250ce",
     "migrations/2026-05-05-roadsport-playbook.sql": "c33f08ca33e46e9b186763da17927e3c8c635145a1754eb4ae1c91dddebdc6e4",
     "migrations/2026-05-09-app-kv.sql": "9989d0e4fd308152e9b29a4d3a83111f8b1e676d93a612269e8d1918e0a71a3e",
+    "mosaic.html": "1c0d7f6479d1791a3fdd088bbefa9fc27894b25ba8175a9defa0d1461756aeea",
+    "netscape.html": "bc20003d7a831d2d14e782c85852489aeb5f8b9bbc520dac5737fa7c04ceba8d",
     "officeroad.html": "d78dd6e49c90a4e04619f231c1d77c8c9c5e20ed659a44d38e497f4cfc2ebce4",
     "oneway.html": "a12f0c2dc0b64511fe154c40721b2515c192b87ad806064a467c02a7a9d96e0a",
     "p.html": "d94190cf74a7520f222781a051a51641bbdee8772320a18b8ee88704dd866ab9",
@@ -744,5 +747,5 @@
     "version2.html": "7de5f7d44e240969e9ccf2eac2b2e9993e93675e7457d45f3de8957a1362e845",
     "wrangler.toml": "0db9e3bd024aa36ec3a36b761de026274510bd581877e74e984a819d555be138"
   },
-  "built_at": "2026-05-10T05:10:16.532Z"
+  "built_at": "2026-05-10T05:48:19.638Z"
 }
