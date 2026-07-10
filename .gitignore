@@ -58,3 +58,23 @@ billing/stripe_price_map.json
 data/*.jsonl
 data/known_devices.json
 data/device_tags.json
+
+# --- bulk data / archives / nested clones — backed up on Cecilia, not versioned here (2026-07-09) ---
+forks/
+orgs/
+15000-BlackRoad-Universal/
+04-index/
+01-code/
+channels-pr/
+07-products/
+road-mind/
+podcasts-r2-pending/
+_corporate-inventory/
+_consolidation-2026-05-14/
+Design/
+.wrangler/
+computer-95/podcasts/
+computer-95/static/
+computer-95/products/
+computer-95/tmp/
+*.tgz
