@@ -1,6 +1,7 @@
+import './gesture-handler'
 import React, { useEffect, useState } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/stack'
+import { createStackNavigator } from '@react-navigation/stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Ionicons } from '@expo/vector-icons'
 import { StatusBar } from 'expo-status-bar'
@@ -12,7 +13,7 @@ import AnalyticsScreen from './src/screens/AnalyticsScreen'
 import BillingScreen from './src/screens/BillingScreen'
 import SettingsScreen from './src/screens/SettingsScreen'
 
-const Stack = createNativeStackNavigator()
+const Stack = createStackNavigator()
 const Tab = createBottomTabNavigator()
 
 function DashboardTabs() {
@@ -54,7 +55,7 @@ function DashboardTabs() {
 }
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoggedIn] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function App() {
 
   return (
     <>
-      <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+      <StatusBar style="light" backgroundColor="#667eea" />
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{
@@ -83,7 +84,7 @@ export default function App() {
             <Stack.Screen 
               name="Login" 
               component={LoginScreen}
-              listeners={({ navigation }) => ({
+              listeners={() => ({
                 tabPress: (e) => {
                   e.preventDefault()
                 },

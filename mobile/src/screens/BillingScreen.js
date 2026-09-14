@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
 
 export default function BillingScreen() {
   const [data, setData] = useState(null)

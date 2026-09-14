@@ -29,15 +29,50 @@ This suite does not contact APIs, databases, or external providers. The separate
 
 `tests/integration/test_complete_platform.py` expects eight services, PostgreSQL, and Redis. Its endpoint and database configuration does not match the current default Compose setup. Installing test dependencies makes the suite collectable; it does not provision that platform.
 
-The dashboard and mobile manifests lack committed lockfiles expected by `npm ci` and setup-node caching. The mobile manifest also lacks the lint script requested by CI. These frontend prerequisites still require repair.
+## Frontend repair
+
+Both frontends now include npm lockfiles and ESLint configurations. CI runs on Node 22 and fails if frontend lint fails. The dashboard builds through Vite with Tailwind/PostCSS processing; the unused import of the nonexistent Chart component is removed.
+
+The mobile manifest removes the unpublished, unused chart-wrapper and legacy navigation dependencies. React Native packages match Expo 49's published compatibility map. The stack navigator uses its actual `createStackNavigator` export, native gesture setup loads first, and the status bar uses Expo's `style` prop. The Expo entry point and Babel preset are explicit.
+
+From `dashboard/`:
+
+```bash
+npm ci
+npm run lint
+npm run build
+```
+
+From `mobile/`:
+
+```bash
+npm ci
+npm run lint
+CI=1 npm run check:dependencies
+CI=1 npm run export:check
+```
+
+CI retains the dashboard build and Android/iOS JavaScript bundles as artifacts. Mobile export checks module resolution and Hermes compilation; it does not build or run a native application.
+
+Remaining frontend limitations:
+
+- Dashboard and mobile screens still contain sample data and unfinished actions.
+- Mobile authentication state, logout, and device API routing remain incomplete. Successful bundling does not establish a working sign-in flow.
+- `mobile/app.json` references icon/splash assets absent from the repository. Native configuration, notification setup, device builds, and store submission still need verification.
+- Expo 49 and the existing frontend toolchains retain older dependencies. This repair establishes reproducible installation, not a completed SDK/security upgrade.
+- Browser interaction and native-device behavior have not been validated. The dashboard build reports a bundle-size warning.
+
+## Other CI limitations
 
 The Security-tab upload previously returned `Resource not accessible by integration`. This patch does not change token permissions or repository access controls. The report artifact is additional evidence, not a successful Security-tab upload.
 
 The load-test job still needs its k6 installation and application startup verified. Build, performance, staging, and production deployment behavior are not established by the offline regression suite.
 
-Existing advisory formatter, type-check, and frontend-lint steps still use `continue-on-error`; the strict regression job is a separate check. Passing an advisory step does not certify its underlying tool result.
+Existing advisory formatter and type-check steps still use `continue-on-error`; the strict regression job is a separate check. Passing an advisory step does not certify its underlying tool result. Frontend lint is now enforced.
 
 ## Upstream action references
 
 - [Upload-artifact migration guidance](https://github.com/actions/upload-artifact)
 - [Supported CodeQL Action versions](https://github.com/github/codeql-action#supported-versions-of-the-codeql-action)
+- [React Navigation 6 stack setup](https://reactnavigation.org/docs/6.x/stack-navigator/)
+- Expo compatibility versions were read from `expo@49.0.23/bundledNativeModules.json` and checked with `expo install --check`.

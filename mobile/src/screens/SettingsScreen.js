@@ -6,13 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  TextInput,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 
 export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true)
-  const [email, setEmail] = useState('user@example.com')
+  const [email] = useState('user@example.com')
 
   return (
     <ScrollView style={styles.container}>

@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint src --ext .js,.jsx --max-warnings 0",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -25,6 +25,8 @@
     "vite": "^4.3.0",
     "eslint": "^8.43.0",
     "eslint-plugin-react": "^7.32.2",
-    "@playwright/test": "^1.44.0"
+    "@playwright/test": "^1.44.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0"
   }
 }

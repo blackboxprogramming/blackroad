@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  NODE_VERSION: 18
+  NODE_VERSION: 22
   PYTHON_VERSION: 3.11
 
 jobs:
@@ -113,7 +113,6 @@ jobs:
       
       - name: Lint
         run: npm run lint
-        continue-on-error: true
       
       - name: Build
         run: npm run build
@@ -127,7 +126,7 @@ jobs:
 
   # Mobile App (React Native)
   mobile-lint:
-    name: Mobile App Lint
+    name: Mobile App Lint & Bundle
     runs-on: ubuntu-latest
     
     defaults:
@@ -149,7 +148,24 @@ jobs:
       
       - name: Check for errors
         run: npm run lint
-        continue-on-error: true
+
+      - name: Check Expo dependency compatibility
+        env:
+          CI: '1'
+        run: npm run check:dependencies
+
+      - name: Export Android and iOS JavaScript bundles
+        env:
+          CI: '1'
+        run: npm run export:check
+
+      - name: Upload mobile JavaScript bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-js-bundles
+          path: mobile/dist
+          if-no-files-found: error
+          retention-days: 5
 
   # Security & Quality
   security-scan:
@@ -209,4 +225,3 @@ jobs:
         env:
           CI_NEEDS: ${{ toJSON(needs) }}
         run: python3 scripts/check-ci-results.py
-
