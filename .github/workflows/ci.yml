@@ -243,7 +243,9 @@ jobs:
         run: python3 scripts/check-dashboard-http.py http://127.0.0.1:3002
       - name: Dashboard logs
         if: failure()
-        run: docker compose -f docker-compose.prod.yml logs react-web
+        run: |
+          docker compose -f docker-compose.prod.yml logs react-web
+          docker inspect --format '{{json .State.Health}}' blackroad-react-web
       - name: Stop dashboard container
         if: always()
         run: docker compose -f docker-compose.prod.yml down
