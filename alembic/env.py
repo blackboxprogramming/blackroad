@@ -19,11 +19,11 @@ sqlalchemy_url = os.getenv(
     'DATABASE_URL',
     'postgresql://blackroad:dev-password@localhost/blackroad_dev'
 )
-config.set_main_option('sqlalchemy.url', sqlalchemy_url)
+config.set_main_option('sqlalchemy.url', sqlalchemy_url.replace('%', '%%'))
 
-# Import models for autogenerate
-from app.models import Base
-target_metadata = Base.metadata
+# Committed migrations are standalone; ORM models are not present in this repo.
+# Alembic rejects --autogenerate without metadata instead of inferring table drops.
+target_metadata = None
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""

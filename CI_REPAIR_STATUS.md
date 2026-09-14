@@ -27,7 +27,7 @@ This suite does not contact APIs, databases, or external providers. The separate
 
 ## Integration prerequisites remain incomplete
 
-`tests/integration/test_complete_platform.py` expects eight services, PostgreSQL, and Redis. Its endpoint and database configuration does not match the current default Compose setup. Installing test dependencies makes the suite collectable; it does not provision that platform.
+`tests/integration/test_complete_platform.py` expects eight services, PostgreSQL, and Redis. Its service endpoints do not match the current default Compose setup. Both test jobs now provision disposable PostgreSQL and Redis, pass their URLs to the suite, and apply the committed Alembic migration. The production Compose service directories and the root Dockerfile entry point `app.main:app` are absent from this checkout; those application services are not provisioned.
 
 ## Frontend repair
 
@@ -76,3 +76,20 @@ Existing advisory formatter and type-check steps still use `continue-on-error`; 
 - [Supported CodeQL Action versions](https://github.com/github/codeql-action#supported-versions-of-the-codeql-action)
 - [React Navigation 6 stack setup](https://reactnavigation.org/docs/6.x/stack-navigator/)
 - Expo compatibility versions were read from `expo@49.0.23/bundledNativeModules.json` and checked with `expo install --check`.
+
+## Database and cache repair
+
+The Alembic environment no longer imports the absent `app.models`. Explicit migrations work without ORM metadata; autogeneration remains unavailable until real model metadata exists. Logging configuration includes the required root logger. Percent-encoded database URLs survive Alembic configuration interpolation.
+
+Integration tests read `DATABASE_URL` and `REDIS_URL`, with local development defaults. CI uses disposable service credentials. Redis write checks use a unique, expiring key and clean up in a finally block. No shared `test_key` is overwritten.
+
+Two additional integration checks verify the committed revision, all six monetization tables, and the customer-ID uniqueness constraint using a rolled-back transaction. The existing platform-table assertion (`users`, `customers`, `subscriptions`, `transactions`) remains: those tables have no committed migration, so that contract still fails. No dummy tables or health-only application services were added.
+
+Local migration SQL generation is available without a database:
+
+```bash
+pip install -r requirements-test.txt
+alembic upgrade head --sql
+```
+
+The service-backed checks run in the existing GitHub jobs against PostgreSQL and Redis. A passing migration does not establish that the missing application stack works.

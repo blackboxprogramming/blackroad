@@ -63,6 +63,20 @@ jobs:
         ports:
           - 5432:5432
 
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/blackroad_test
+      REDIS_URL: redis://localhost:6379/0
+
     steps:
       - uses: actions/checkout@v3
       
@@ -77,9 +91,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-test.txt
       
+      - name: Apply committed database migrations
+        run: alembic upgrade head
+
       - name: Run tests
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/blackroad_test
         run: pytest --cov=. --cov-report=xml
       
       - name: Upload coverage

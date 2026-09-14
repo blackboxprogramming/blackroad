@@ -7,12 +7,11 @@ Run with: pytest tests/integration/test_complete_platform.py -v
 
 import pytest
 import requests
-import json
-import time
-from datetime import datetime, timedelta
+import os
+from contextlib import closing
+from uuid import uuid4
 import psycopg2
 import redis
-from typing import Dict, Any
 
 # Configuration
 BASE_URL = "http://localhost"
@@ -28,20 +27,12 @@ SERVICES = {
     "monitoring": "http://localhost:8008",
 }
 
-DB_CONN = {
-    "host": "localhost",
-    "port": 5432,
-    "user": "blackroad",
-    "password": "prod_secure_pass_12345",
-    "database": "blackroad_prod",
-}
+# Explicit URLs let CI use its disposable services instead of production examples.
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL", "postgresql://blackroad:dev-password@localhost:5432/blackroad_dev"
+)
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
-REDIS_CONFIG = {
-    "host": "localhost",
-    "port": 6379,
-    "password": "cache_secure_pass_12345",
-    "db": 0,
-}
 
 
 class TestServiceHealth:
@@ -72,7 +63,7 @@ class TestDatabaseConnectivity:
     def test_database_connection(self):
         """Test connection to PostgreSQL"""
         try:
-            conn = psycopg2.connect(**DB_CONN)
+            conn = psycopg2.connect(DATABASE_URL, connect_timeout=5)
             cursor = conn.cursor()
             cursor.execute("SELECT 1")
             result = cursor.fetchone()
@@ -91,7 +82,7 @@ class TestDatabaseConnectivity:
             "transactions",
         ]
         
-        conn = psycopg2.connect(**DB_CONN)
+        conn = psycopg2.connect(DATABASE_URL, connect_timeout=5)
         cursor = conn.cursor()
         
         for table in required_tables:
@@ -106,24 +97,64 @@ class TestDatabaseConnectivity:
         conn.close()
 
 
+class TestCommittedMigration:
+    """Verify the real monetization schema separately from the platform contract."""
+
+    def test_revision_and_tables(self):
+        with closing(psycopg2.connect(DATABASE_URL, connect_timeout=5)) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT version_num FROM alembic_version")
+                assert cursor.fetchall() == [("001_initial_schema",)]
+                cursor.execute(
+                    "SELECT table_name FROM information_schema.tables "
+                    "WHERE table_schema = 'public'"
+                )
+                tables = {row[0] for row in cursor.fetchall()}
+                assert {
+                    "stripe_customers", "monthly_usage", "user_tiers",
+                    "charges", "invoices", "webhooks_log",
+                } <= tables
+
+    def test_customer_mapping_enforces_unique_customer_id(self):
+        # Transaction rollback keeps this check from retaining test records.
+        with closing(psycopg2.connect(DATABASE_URL, connect_timeout=5)) as conn:
+            try:
+                with conn.cursor() as cursor:
+                    customer_id = f"integration_{uuid4().hex}"
+                    cursor.execute(
+                        "INSERT INTO stripe_customers (customer_id, stripe_id) "
+                        "VALUES (%s, %s)", (customer_id, f"stripe_{uuid4().hex}")
+                    )
+                    with pytest.raises(psycopg2.errors.UniqueViolation):
+                        cursor.execute(
+                            "INSERT INTO stripe_customers (customer_id, stripe_id) "
+                            "VALUES (%s, %s)", (customer_id, f"stripe_{uuid4().hex}")
+                        )
+            finally:
+                conn.rollback()
+
+
 class TestCacheConnectivity:
     """Test Redis cache connectivity"""
 
     def test_redis_connection(self):
         """Test connection to Redis"""
         try:
-            r = redis.Redis(**REDIS_CONFIG)
+            r = redis.Redis.from_url(REDIS_URL, socket_connect_timeout=5, socket_timeout=5)
             r.ping()
         except redis.ConnectionError as e:
             pytest.fail(f"Redis connection failed: {e}")
 
     def test_redis_set_get(self):
         """Test Redis set/get operations"""
-        r = redis.Redis(**REDIS_CONFIG)
-        r.set("test_key", "test_value", ex=60)
-        value = r.get("test_key")
-        assert value.decode() == "test_value"
-        r.delete("test_key")
+        r = redis.Redis.from_url(REDIS_URL, socket_connect_timeout=5, socket_timeout=5)
+        key = f"blackroad:integration:{uuid4().hex}"
+        try:
+            r.set(key, "test_value", ex=60)
+            assert r.get(key) == b"test_value"
+        finally:
+            r.delete(key)
+            r.close()
 
 
 class TestBillingAPI:
