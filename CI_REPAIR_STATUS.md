@@ -93,3 +93,11 @@ alembic upgrade head --sql
 ```
 
 The service-backed checks run in the existing GitHub jobs against PostgreSQL and Redis. A passing migration does not establish that the missing application stack works.
+
+## Deployment reporting repair
+
+A source-readiness CI job resolves production Compose and checks local build paths, Dockerfiles, bind sources and published-port conflicts before any deployment action. Missing sources cause a failing check. The local deployment script uses the same validation, supports `--check`, propagates container-start failures, and fails on HTTP health errors.
+
+The Python deployment interface's simulated deployment/traffic/telemetry helpers now report unimplemented operations. It checks backend availability before invoking Git, Docker or AWS, records failed deployment attempts, and does not automatically stash changes. HTTP smoke checks reject error responses.
+
+Twelve offline regression tests cover these failure paths, including execution of the shell script with controlled command fixtures. Those fixtures test command ordering and failure propagation; they do not prove real container deployment. The production-ready, platform-complete and checklist documents now describe verified results and outstanding work.

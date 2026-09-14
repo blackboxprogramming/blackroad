@@ -12,6 +12,11 @@ Pick up your Roadies. Discover the BlackRoad together.
 [Product names, brand language, and implementation boundaries](BLACKROAD_CANON.md)
 <!-- BLACKROAD:CANON:END -->
 
+## Deployment status
+
+The SaaS deployment portion of this repository is incomplete. Production Compose references missing source, and integration checks remain failed. See [deployment readiness](PRODUCTION_DEPLOYMENT_READY.md) and [verified CI repairs](CI_REPAIR_STATUS.md). Historical completion documents have been corrected to reflect this evidence.
+
+
 ## One ecosystem, clear names
 
 **BlackRoad** brings the work together. **RoadOS** is the portable computer and control environment. **Roadies** are AI collaborators, coordinated through **Roadie**, the meta-AI. **Road** is the language. **Routes** are the namespace, a **Route** is the addressing primitive, and **Ramps** connect external services.
