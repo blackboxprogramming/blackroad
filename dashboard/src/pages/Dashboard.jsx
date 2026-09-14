@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import StatCard from '../components/StatCard'
-import Chart from '../components/Chart'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
-export default function Dashboard({ user }) {
-  const [stats, setStats] = useState({
+export default function Dashboard() {
+  const [stats] = useState({
     requests: 12500,
     revenue: 250,
     users: 5,
     tier: 'Light'
   })
 
-  const [chartData, setChartData] = useState([
+  const [chartData] = useState([
     { day: 'Mon', requests: 1200 },
     { day: 'Tue', requests: 1900 },
     { day: 'Wed', requests: 1500 },

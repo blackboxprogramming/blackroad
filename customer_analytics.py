@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Depends, Header, Query
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict
 import os
-from sqlalchemy import text, func
+from sqlalchemy import text, func, distinct
 from database import SessionLocal, engine
 from models import StripeCustomer, MonthlyUsage, UserTier, Charge, Invoice
 

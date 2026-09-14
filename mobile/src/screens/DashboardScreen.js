@@ -6,9 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  Dimensions,
 } from 'react-native'
-import { LineChart } from 'react-native-charts-wrapper'
 
 export default function DashboardScreen() {
   const [data, setData] = useState(null)

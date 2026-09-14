@@ -65,7 +65,7 @@ jobs:
         run: pytest performance_tests.py -v
       
       - name: Upload performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: performance-results

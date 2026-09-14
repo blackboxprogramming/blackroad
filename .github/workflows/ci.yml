@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 env:
-  NODE_VERSION: 18
+  NODE_VERSION: 22
   PYTHON_VERSION: 3.11
 
 jobs:
@@ -63,6 +63,20 @@ jobs:
         ports:
           - 5432:5432
 
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/blackroad_test
+      REDIS_URL: redis://localhost:6379/0
+
     steps:
       - uses: actions/checkout@v3
       
@@ -75,11 +89,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-asyncio
+          pip install -r requirements-test.txt
       
+      - name: Apply committed database migrations
+        run: alembic upgrade head
+
       - name: Run tests
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/blackroad_test
         run: pytest --cov=. --cov-report=xml
       
       - name: Upload coverage
@@ -113,13 +128,12 @@ jobs:
       
       - name: Lint
         run: npm run lint
-        continue-on-error: true
       
       - name: Build
         run: npm run build
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dashboard-build
           path: dashboard/dist
@@ -127,7 +141,7 @@ jobs:
 
   # Mobile App (React Native)
   mobile-lint:
-    name: Mobile App Lint
+    name: Mobile App Lint & Bundle
     runs-on: ubuntu-latest
     
     defaults:
@@ -149,7 +163,24 @@ jobs:
       
       - name: Check for errors
         run: npm run lint
-        continue-on-error: true
+
+      - name: Check Expo dependency compatibility
+        env:
+          CI: '1'
+        run: npm run check:dependencies
+
+      - name: Export Android and iOS JavaScript bundles
+        env:
+          CI: '1'
+        run: npm run export:check
+
+      - name: Upload mobile JavaScript bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-js-bundles
+          path: mobile/dist
+          if-no-files-found: error
+          retention-days: 5
 
   # Security & Quality
   security-scan:
@@ -167,8 +198,16 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
       
+      - name: Preserve Trivy report
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+          if-no-files-found: error
+
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -188,19 +227,91 @@ jobs:
           SONARCLOUD_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
         continue-on-error: true
 
+  infrastructure-containers:
+    name: Infrastructure Container Checks
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@localhost:5432/blackroad_prod
+      REDIS_URL: redis://:cache_secure_pass_12345@localhost:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install infrastructure test dependencies
+        run: pip install -r requirements-test.txt
+      - name: Build the migration image
+        run: docker compose -f docker-compose.prod.yml build migrations
+      - name: Validate local Alertmanager configuration
+        run: docker compose -f docker-compose.prod.yml run --rm --no-deps --entrypoint /bin/amtool alertmanager check-config /etc/alertmanager/alertmanager.yml
+      - name: Start isolated infrastructure services
+        run: docker compose -f docker-compose.prod.yml up -d --no-deps --wait --wait-timeout 90 postgres redis alertmanager
+      - name: Apply committed migrations twice to verify repeatability
+        run: |
+          docker compose -f docker-compose.prod.yml run --rm migrations
+          docker compose -f docker-compose.prod.yml run --rm migrations
+      - name: Verify database and cache behavior
+        run: pytest tests/integration/test_complete_platform.py -v -k 'TestCommittedMigration or TestCacheConnectivity or test_database_connection'
+      - name: Verify Alertmanager readiness and API
+        run: |
+          curl --fail --silent --show-error --max-time 5 http://127.0.0.1:9093/-/healthy
+          curl --fail --silent --show-error --max-time 5 http://127.0.0.1:9093/-/ready
+          python -c "import json, urllib.request; s=json.load(urllib.request.urlopen('http://127.0.0.1:9093/api/v2/status', timeout=5)); assert s['versionInfo']['version']; assert 'local-only' in s['config']['original']; print('Alertmanager API and local configuration verified')"
+      - name: Infrastructure logs
+        if: failure()
+        run: docker compose -f docker-compose.prod.yml logs postgres redis alertmanager migrations
+      - name: Remove disposable CI services and volumes
+        if: always()
+        run: docker compose -f docker-compose.prod.yml down -v
+
+  dashboard-container:
+    name: Dashboard Container HTTP Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build the dashboard through its Compose service
+        run: docker compose -f docker-compose.prod.yml build react-web
+      - name: Start only the dashboard container
+        run: docker compose -f docker-compose.prod.yml up -d --no-deps --wait --wait-timeout 60 react-web
+      - name: Verify served pages, assets and API boundary
+        run: python3 scripts/check-dashboard-http.py http://127.0.0.1:3002
+      - name: Dashboard logs
+        if: failure()
+        run: |
+          docker compose -f docker-compose.prod.yml logs react-web
+          docker inspect --format '{{json .State.Health}}' blackroad-react-web
+      - name: Stop dashboard container
+        if: always()
+        run: docker compose -f docker-compose.prod.yml down
+
+  deployment-source:
+    name: Deployment Source Readiness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check Compose source prerequisites without starting services
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.prod.yml config --format json |
+            python3 scripts/deployment_preflight.py --root "$GITHUB_WORKSPACE"
+
   # Notify
   notify:
     name: Notify Status
     runs-on: ubuntu-latest
     if: always()
-    needs: [python-lint, python-test, dashboard-lint, mobile-lint, security-scan]
+    needs: [python-lint, python-test, dashboard-lint, mobile-lint, security-scan, deployment-source, dashboard-container, infrastructure-containers]
     
     steps:
-      - name: Check test results
-        run: |
-          if [ "${{ needs.python-test.result }}" == "failure" ]; then
-            echo "Tests failed!"
-            exit 1
-          fi
-          echo "All checks passed!"
-
+      - uses: actions/checkout@v4
+      - name: Check all required job results
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+        run: python3 scripts/check-ci-results.py

@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter } from 'recharts'
+import { useState } from 'react'
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState('7d')
-  const [metrics, setMetrics] = useState({
+  const [metrics] = useState({
     avgResponseTime: 245,
     errorRate: 0.12,
     p95Latency: 890,
