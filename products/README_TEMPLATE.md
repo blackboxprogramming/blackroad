@@ -1,6 +1,20 @@
 # [Product Name]
 
-Plain-English one-liner.
+<!-- BLACKROAD:CANON:START -->
+## The Road. Pave Tomorrow.
+
+**We access it all at RoadOS.**  
+**We collaborate with Roadies.**  
+**We code in Road.**
+
+*Integration is Innovation.*
+
+Pick up your Roadies. Discover the BlackRoad together.
+
+[Product names, brand language, and implementation boundaries](https://github.com/blackboxprogramming/blackroad/blob/main/BLACKROAD_CANON.md)
+<!-- BLACKROAD:CANON:END -->
+
+Plain-English one-liner explaining this product’s role in BlackRoad.
 
 ## What this is
 
@@ -34,7 +48,9 @@ One clear CTA.
 
 Planning / Prototype / Active build / Live / Archived
 
-## Related roads
+State what is implemented, planned, disconnected, or unverified. Use “Live” only with a verified destination and dated evidence. Keep implementation languages, dependencies, and compatibility limits accurate. The shared Road statement does not claim that every repository is already written in Road.
+
+## Related BlackRoad products
 
 Links to related BlackRoad products.
 

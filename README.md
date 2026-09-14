@@ -12,6 +12,12 @@ Pick up your Roadies. Discover the BlackRoad together.
 [Product names, brand language, and implementation boundaries](BLACKROAD_CANON.md)
 <!-- BLACKROAD:CANON:END -->
 
+## One ecosystem, clear names
+
+**BlackRoad** brings the work together. **RoadOS** is the portable computer and control environment. **Roadies** are AI collaborators, coordinated through **Roadie**, the meta-AI. **Road** is the language. **Routes** are the namespace, a **Route** is the addressing primitive, and **Ramps** connect external services.
+
+The device-discovery prototype described below contributes to that direction. Its actual behavior and limits are documented separately from the broader product vision.
+
 BlackRoad — Local-first device discovery (prototype)
 
 Summary

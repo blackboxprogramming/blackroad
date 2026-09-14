@@ -1,10 +1,27 @@
 # Product Cards — Copy-ready
 
-Each card is 1–2 lines of public-facing copy suitable for a product grid.
+<!-- BLACKROAD:CANON:START -->
+## The Road. Pave Tomorrow.
 
-- RoadOS — Browser computer in one tab. Open the RoadOS demo. CTA: Open RoadOS demo
-- RoadCode — In-browser coding workspace for building and previewing projects. CTA: Open RoadCode editor
-- RoadTrip — Humans + agents collaborating in one convoy. CTA: Join RoadTrip planning
+**We access it all at RoadOS.**  
+**We collaborate with Roadies.**  
+**We code in Road.**
+
+*Integration is Innovation.*
+
+Pick up your Roadies. Discover the BlackRoad together.
+
+[Product names, brand language, and implementation boundaries](../BLACKROAD_CANON.md)
+<!-- BLACKROAD:CANON:END -->
+
+Each card is 1–2 lines of public-facing copy suitable for a product grid. These are copy templates, not a deployment inventory. Publish a call to action only when its destination and described behavior have been verified.
+
+- RoadOS — Your portable computer and control environment, with work and authorized Roadie actions visible in one place. CTA: Explore RoadOS
+- Roadies — AI collaborators with identity, context, permissions, history, and receipts. CTA: Meet your Roadies
+- Roadie — The meta-AI coordinating the experience across Roadies. CTA: Explore Roadie
+- Road — The language for intent, meaning, execution, and orchestration. CTA: Explore Road
+- RoadCode — The planned coding workspace for building with Roadies; Road is the language. CTA: Explore RoadCode
+- RoadTrip — People and Roadies collaborating on shared work. CTA: Join RoadTrip planning
 - PitStop — Short lessons, tutoring, and practice. CTA: Explore PitStop
 - RoadWork — Simple tools for company operations and approvals. CTA: View RoadWork plan
 - BackRoad — Publish work and host real conversations. CTA: Start a BackRoad community
