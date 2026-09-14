@@ -339,20 +339,20 @@ services:
   # Frontend Applications
   # ============================================
 
+  # Existing static dashboard. Application API integration remains unfinished.
   react-web:
     build:
-      context: ./frontends/react_web
-      dockerfile: Dockerfile.prod
+      context: ./dashboard
+      dockerfile: Dockerfile
     container_name: blackroad-react-web
-    environment:
-      REACT_APP_API_URL: http://localhost/api
-      REACT_APP_ENV: production
-      NODE_ENV: production
     ports:
-      - "3000:80"
-    depends_on:
-      - nginx
+      - "127.0.0.1:3002:80"
     restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - blackroad-network
 

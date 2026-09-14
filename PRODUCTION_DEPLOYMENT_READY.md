@@ -47,8 +47,18 @@ Passing this check proves only that these local prerequisites were found. It doe
 
 ## Work needed
 
-Restore or implement the missing application code and reconcile Compose with actual entry points. Resolve the host-port conflict between Grafana and the referenced web frontend. Replace example deployment credentials and validate runtime configuration. Implement deployment and rollback operations against an explicit target, then verify application workflows, migrations, integration tests and operational behavior in that target.
+Restore or implement the missing application code and reconcile Compose with actual entry points. The existing dashboard now builds through the react-web service and binds to localhost:3002; Grafana retains port 3000. The separate admin frontend source is still missing. Replace example deployment credentials and validate runtime configuration. Implement deployment and rollback operations against an explicit target, then verify application workflows, migrations, integration tests and operational behavior in that target.
 
 See [the checklist](PRODUCTION_CHECKLIST.md). The repaired commands do not establish production readiness.
 
 Docker references: [Compose config](https://docs.docker.com/reference/cli/docker/compose/config/) and [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/).
+
+## Run the existing dashboard alone
+
+```bash
+docker compose -f docker-compose.prod.yml build react-web
+docker compose -f docker-compose.prod.yml up -d --no-deps --wait --wait-timeout 60 react-web
+python3 scripts/check-dashboard-http.py http://127.0.0.1:3002
+```
+
+This starts the static dashboard independently of the incomplete backend stack. Its pages contain sample data. Requests under `/api/` return HTTP 503 with an explicit integration-not-configured message; there is no working API proxy. The HTTP checks verify served HTML, built JavaScript/CSS, SPA routing, health and that API boundary. They do not execute browser JavaScript or verify sign-in.

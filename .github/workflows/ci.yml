@@ -227,6 +227,27 @@ jobs:
           SONARCLOUD_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
         continue-on-error: true
 
+  dashboard-container:
+    name: Dashboard Container HTTP Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build the dashboard through its Compose service
+        run: docker compose -f docker-compose.prod.yml build react-web
+      - name: Start only the dashboard container
+        run: docker compose -f docker-compose.prod.yml up -d --no-deps --wait --wait-timeout 60 react-web
+      - name: Verify served pages, assets and API boundary
+        run: python3 scripts/check-dashboard-http.py http://127.0.0.1:3002
+      - name: Dashboard logs
+        if: failure()
+        run: docker compose -f docker-compose.prod.yml logs react-web
+      - name: Stop dashboard container
+        if: always()
+        run: docker compose -f docker-compose.prod.yml down
+
   deployment-source:
     name: Deployment Source Readiness
     runs-on: ubuntu-latest
@@ -247,7 +268,7 @@ jobs:
     name: Notify Status
     runs-on: ubuntu-latest
     if: always()
-    needs: [python-lint, python-test, dashboard-lint, mobile-lint, security-scan, deployment-source]
+    needs: [python-lint, python-test, dashboard-lint, mobile-lint, security-scan, deployment-source, dashboard-container]
     
     steps:
       - uses: actions/checkout@v4

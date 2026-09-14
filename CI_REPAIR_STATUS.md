@@ -101,3 +101,11 @@ A source-readiness CI job resolves production Compose and checks local build pat
 The Python deployment interface's simulated deployment/traffic/telemetry helpers now report unimplemented operations. It checks backend availability before invoking Git, Docker or AWS, records failed deployment attempts, and does not automatically stash changes. HTTP smoke checks reject error responses.
 
 Twelve offline regression tests cover these failure paths, including execution of the shell script with controlled command fixtures. Those fixtures test command ordering and failure propagation; they do not prove real container deployment. The production-ready, platform-complete and checklist documents now describe verified results and outstanding work.
+
+## Dashboard container repair
+
+Production Compose now builds `react-web` from the existing `dashboard/` source, using its corrected Dockerfile and Node 22. Nginx configuration is copied relative to that build context. The service is independent of the incomplete API gateway and binds only to localhost:3002, avoiding Grafana's port 3000.
+
+Nginx serves the static dashboard and explicitly returns HTTP 503 for `/api/` requests until real API integration exists. A separate required CI job builds and starts only this Compose service, then checks health, HTML, deep-link fallback, built JavaScript/CSS and the API error response over HTTP. These are container HTTP checks, not browser interaction tests.
+
+The other missing service contexts, admin frontend, Alertmanager configuration and migration mount remain unresolved. Full-stack deployment is still blocked.
