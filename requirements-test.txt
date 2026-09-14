@@ -1,0 +1,8 @@
+# Collection dependencies for tests/integration/test_complete_platform.py.
+# Installing these does not start the service stack that integration tests require.
+pytest>=8,<10
+pytest-cov>=5,<8
+pytest-asyncio>=0.23,<2
+requests>=2.32,<3
+psycopg2-binary>=2.9,<3
+redis>=5,<7

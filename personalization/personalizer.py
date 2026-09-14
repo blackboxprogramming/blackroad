@@ -316,7 +316,7 @@ class PersonalizationEngine:
     def get_cohort_profiles(self, segment_id: str) -> List[Dict[str, Any]]:
         """Get profiles for users in a segment."""
         profiles = [
-            self.get_profile_summary(pid)
+            self.get_profile_summary(profile.user_id)
             for profile in self.profiles.values()
             if segment_id in profile.segments
         ]

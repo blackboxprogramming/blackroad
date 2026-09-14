@@ -34,8 +34,8 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      - run: pip install -r requirements.txt pytest pytest-cov
-      - run: pytest app/tests/ -v --cov=app || true
+      - run: pip install -r requirements.txt -r requirements-test.txt
+      - run: pytest tests/ -v --cov=.
 
   build:
     needs: test
@@ -68,12 +68,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
       - run: |
-          docker-compose up -d
+          docker compose up -d
           sleep 10
       - run: |
-          k6 run --vus 100 --duration 2m load-test.js --out json=results.json || true
-      - run: python3 analyze-load-test.py results.json -o report.txt || true
-      - uses: actions/upload-artifact@v3
+          k6 run --vus 100 --duration 2m load-test.js --out json=results.json
+      - run: python3 analyze-load-test.py results.json -o report.txt
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: load-test-results

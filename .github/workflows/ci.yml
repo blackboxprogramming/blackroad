@@ -75,7 +75,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-asyncio
+          pip install -r requirements-test.txt
       
       - name: Run tests
         env:
@@ -119,7 +119,7 @@ jobs:
         run: npm run build
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dashboard-build
           path: dashboard/dist
@@ -167,8 +167,16 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
       
+      - name: Preserve Trivy report
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+          if-no-files-found: error
+
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
@@ -196,11 +204,9 @@ jobs:
     needs: [python-lint, python-test, dashboard-lint, mobile-lint, security-scan]
     
     steps:
-      - name: Check test results
-        run: |
-          if [ "${{ needs.python-test.result }}" == "failure" ]; then
-            echo "Tests failed!"
-            exit 1
-          fi
-          echo "All checks passed!"
+      - uses: actions/checkout@v4
+      - name: Check all required job results
+        env:
+          CI_NEEDS: ${{ toJSON(needs) }}
+        run: python3 scripts/check-ci-results.py
 
