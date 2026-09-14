@@ -62,3 +62,11 @@ python3 scripts/check-dashboard-http.py http://127.0.0.1:3002
 ```
 
 This starts the static dashboard independently of the incomplete backend stack. Its pages contain sample data. Requests under `/api/` return HTTP 503 with an explicit integration-not-configured message; there is no working API proxy. The HTTP checks verify served HTML, built JavaScript/CSS, SPA routing, health and that API boundary. They do not execute browser JavaScript or verify sign-in.
+
+## Existing database, cache and alert services
+
+The missing SQL initialization mount is replaced by a dedicated migration image that runs the committed Alembic revision. Backend services require successful migration completion before starting. Existing databases are upgraded by Alembic rather than depending on first-boot SQL initialization.
+
+Redis health checks authenticate and require an exact PONG response without writing a counter. Alertmanager uses the committed local-only receiver configuration and exposes its UI/API only at localhost:9093. No email, Slack or webhook notification delivery is configured.
+
+CI starts only PostgreSQL, Redis and Alertmanager with disposable volumes, applies the migration twice, and runs the five existing database/cache checks plus Alertmanager configuration/readiness/API checks. This does not establish the missing application services or outbound alert delivery. The production example credentials still need replacement before using any real deployment target.

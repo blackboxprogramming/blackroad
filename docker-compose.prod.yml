@@ -14,7 +14,6 @@ services:
       POSTGRES_DB: blackroad_prod
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./services/database/migrations:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     healthcheck:
@@ -25,16 +24,33 @@ services:
     networks:
       - blackroad-network
 
+  # Apply the committed Alembic schema on every explicit migration run.
+  # Python migrations do not belong in PostgreSQL's SQL init directory.
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    environment:
+      DATABASE_URL: postgresql://blackroad:prod_secure_pass_12345@postgres:5432/blackroad_prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - blackroad-network
+
   redis:
     image: redis:7-alpine
     container_name: blackroad-redis
+    environment:
+      REDISCLI_AUTH: cache_secure_pass_12345
     command: redis-server --requirepass cache_secure_pass_12345 --maxmemory 512mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     ports:
       - "6379:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD-SHELL", "redis-cli --raw ping | grep -qx PONG"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -82,13 +98,18 @@ services:
     image: prom/alertmanager:latest
     container_name: blackroad-alertmanager
     volumes:
-      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager_data:/alertmanager
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
     ports:
-      - "9093:9093"
+      - "127.0.0.1:9093:9093"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:9093/-/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - blackroad-network
 
@@ -118,6 +139,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -149,6 +172,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -178,6 +203,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -207,6 +234,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -236,6 +265,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -267,6 +298,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -297,6 +330,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -326,6 +361,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

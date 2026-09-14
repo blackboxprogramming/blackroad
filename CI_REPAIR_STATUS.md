@@ -108,4 +108,10 @@ Production Compose now builds `react-web` from the existing `dashboard/` source,
 
 Nginx serves the static dashboard and explicitly returns HTTP 503 for `/api/` requests until real API integration exists. A separate required CI job builds and starts only this Compose service, then checks health, HTML, deep-link fallback, built JavaScript/CSS and the API error response over HTTP. These are container HTTP checks, not browser interaction tests.
 
-The other missing service contexts, admin frontend, Alertmanager configuration and migration mount remain unresolved. Full-stack deployment is still blocked.
+The backend service contexts and admin frontend remain unresolved. Full-stack deployment is still blocked.
+
+## Infrastructure container repair
+
+A dedicated Dockerfile.migrations runs the actual committed Alembic schema and replaces the absent SQL-init mount. Backend services depend on successful migration completion. Redis health checks authenticate and require PONG without mutating cache data. Alertmanager has a local-only configuration with no outbound notification destinations.
+
+A required infrastructure CI job builds the migration image, validates Alertmanager configuration, starts disposable Compose database/cache/alert containers, applies migrations twice, runs the five existing database/cache integration checks and verifies Alertmanager readiness/API. Cleanup removes only this job's disposable Compose containers and volumes. Complete platform integration remains a separate failing check.
