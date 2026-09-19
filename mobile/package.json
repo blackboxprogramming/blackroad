@@ -17,7 +17,7 @@
     "react-native-gesture-handler": "^2.12.0",
     "react-navigation": "^6.1.0",
     "@react-navigation/native": "^6.1.7",
-    "@react-navigation/bottom-tabs": "^6.5.8",
+    "@react-navigation/bottom-tabs": "^7.15.11",
     "@react-navigation/stack": "^6.3.16",
     "axios": "^1.4.0",
     "react-native-charts-wrapper": "^1.11.0",
